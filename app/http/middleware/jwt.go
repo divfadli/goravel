@@ -44,7 +44,6 @@ func Jwt() http.Middleware {
 		}
 
 		ctx.Response().Header("Authorization", token)
-
 		ctx.Request().Next()
 	}
 }
