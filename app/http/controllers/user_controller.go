@@ -3,6 +3,7 @@ package controllers
 import (
 	RequestUser "goravel/app/http/requests/user"
 	"goravel/app/models"
+	"time"
 
 	"github.com/goravel/framework/contracts/http"
 	"github.com/goravel/framework/facades"
@@ -52,7 +53,6 @@ func (r *UserController) Login(ctx http.Context) http.Response {
 		return ErrorSystem(ctx)
 	}
 	access, _ := facades.Auth().Parse(ctx, token_access)
-	// refresh, _ := facades.Auth().Parse(ctx, token_refresh)
 
 	token := map[string]any{
 		"access_token": token_access,
@@ -63,13 +63,21 @@ func (r *UserController) Login(ctx http.Context) http.Response {
 	// 	userData.Role = append(userData.Role, "karyawan")
 	// }
 
-	return Success(ctx, http.Json{
+	// Assuming Cache().Put and Cache().Get work correctly
+	cachedData := map[string]interface{}{
 		"token": token,
 		"name":  user.Name,
 		"email": user.Email,
 		"nik":   user.Nik,
-		"role":  []string{"admin"},
-	})
+		"role":  []string{"admin"}, // Assuming this is correct
+	}
+	facades.Cache().Put("user_data", cachedData, 2*time.Hour)
+
+	// Log the cached data for debugging
+	// facades.Log().Info("Cached user data:", cachedData)
+
+	// Redirect to the index page
+	return ctx.Response().Redirect(http.StatusFound, "/index")
 }
 func (r *UserController) Register(ctx http.Context) http.Response {
 	var req RequestUser.Register

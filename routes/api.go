@@ -16,7 +16,7 @@ func Api() {
 			user.Get("users", userController.Show)
 			user.Post("login", userController.Login)
 			user.Post("register", userController.Register)
-			user.Middleware(middleware.Jwt()).Get("info", userController.Info)
+			user.Middleware(middleware.Jwt(), middleware.Cors()).Get("info", userController.Info)
 		})
 	})
 }

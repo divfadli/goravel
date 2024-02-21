@@ -1,4 +1,3 @@
-{{ define "welcome.tmpl" }}
 <!DOCTYPE html>
 <html>
 
@@ -6,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>Goravel</title>
+    <title>Rekapitulasi | Login</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -839,52 +838,44 @@
             </div>
 
             <div class="mt-16">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
-                    <a href="https://goravel.dev" class="scale-100 p-6 bg-white dark:bg-gray-800/50 dark:bg-gradient-to-bl from-gray-700/50 via-transparent dark:ring-1 dark:ring-inset dark:ring-white/5 rounded-lg shadow-2xl shadow-gray-500/20 dark:shadow-none flex motion-safe:hover:scale-[1.01] transition-all duration-250 focus:outline focus:outline-2 focus:outline-red-500">
-                        <div>
-                            <div class="h-16 w-16 bg-red-50 dark:bg-red-800/20 flex items-center justify-center rounded-full">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" class="w-7 h-7 stroke-red-500">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
-                                </svg>
-                            </div>
-
-                            <h2 class="mt-6 text-xl font-semibold text-gray-900 dark:text-white">Documentation</h2>
-
-                            <p class="mt-4 text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
-                                Goravel has wonderful documentation covering every aspect of the framework. Whether you are a newcomer or have prior experience with Goravel, we recommend reading our documentation from beginning to end.
-                            </p>
+                <div class="grid grid-cols-1 md:grid-cols-1 gap-6 lg:gap-8">
+                    <form class="floating-form" id="login_page" action="{{.loginURL}}" method="post">
+                        <div class=" inputBox">
+                            <input type="text" name="username" id="username" required>
+                            <span class="highlight"></span>
+                            <span class="bar"></span>
+                            <label>Username</label>
                         </div>
 
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" class="self-center shrink-0 stroke-red-500 w-6 h-6 mx-6">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75" />
-                        </svg>
-                    </a>
-
-                    <a href="https://github.com/goravel/goravel" class="scale-100 p-6 bg-white dark:bg-gray-800/50 dark:bg-gradient-to-bl from-gray-700/50 via-transparent dark:ring-1 dark:ring-inset dark:ring-white/5 rounded-lg shadow-2xl shadow-gray-500/20 dark:shadow-none flex motion-safe:hover:scale-[1.01] transition-all duration-250 focus:outline focus:outline-2 focus:outline-red-500">
-                        <div>
-                            <div class="h-16 w-16 bg-red-50 dark:bg-red-800/20 flex items-center justify-center rounded-full">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" class="w-7 h-7 stroke-red-500">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 01-2.25 2.25M16.5 7.5V18a2.25 2.25 0 002.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 002.25 2.25h13.5M6 7.5h3v3H6v-3z" />
-                                </svg>
-                            </div>
-
-                            <h2 class="mt-6 text-xl font-semibold text-gray-900 dark:text-white">Repository</h2>
-
-                            <p class="mt-4 text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
-                                Goravel is a web application framework with complete functions and good scalability. As a starting scaffolding to help Gopher quickly build their own applications.
-                            </p>
+                        <div class="inputBox">
+                            <input type="password" name="password" id="password" required>
+                            <span class="highlight"></span>
+                            <span class="bar"></span>
+                            <label>Password</label>
                         </div>
 
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" class="self-center shrink-0 stroke-red-500 w-6 h-6 mx-6">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75" />
-                        </svg>
-                    </a>
+                        <div class="form-group d-flex flex-wrap justify-content-between align-items-center mt-3">
+                            <div class="checkbox-inline">
+                                <label class="checkbox checkbox-primary text-fp">
+                                    <input type="checkbox" name="remember-me">
+                                    <span class="mr-4" style="border: 2px solid #1D2657;"></span>Remember Me
+                                </label>
+                            </div>
+                            <!-- <a href="http://127.0.0.1:8000/password/reset" class="text-fp text-hover-primary">Forgot Password ?</a> -->
+                        </div>
+                        <!--begin::Action-->
+                        <button type="submit" class="form-control btn btn-login submit px-3 text-light">Log In</button>
+                        <p class="mr-4" style="color:  #1D2657;">New User ?
+                            <button type="button" class=" btn btn-link font-weight-bold" data-toggle="modal" data-target="#registerOptionModal">Register</button>
+                        </p>
+                        <!--end::Action-->
+                    </form>
                 </div>
             </div>
 
             <div class="flex justify-center mt-16 px-0 sm:items-center sm:justify-between">
                 <div class="ml-4 text-center text-sm text-gray-500 dark:text-gray-400 sm:text-right sm:ml-0">
-                    Goravel {{ .version }} {{ .data.name}}
+                    Goravel {{ .version }}
                 </div>
             </div>
         </div>
@@ -892,4 +883,3 @@
 </body>
 
 </html>
-{{ end }}
