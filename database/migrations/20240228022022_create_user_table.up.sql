@@ -1,0 +1,15 @@
+-- CREATE TABLE "public".users (
+--   id BIGSERIAL NOT NULL,
+--   "name" text NULL,
+--   email text NULL,
+--   nik text NULL,
+--   username text NULL,
+--   "password" text NULL,
+--   remember_token text NULL,
+--   created_at timestamp NOT NULL,
+--   updated_at timestamp NOT NULL,
+--   "type" text NULL,
+--   user_type text NULL,
+--   CONSTRAINT users_nik_unique UNIQUE (nik),
+--   CONSTRAINT users_pkey PRIMARY KEY (id)
+-- );

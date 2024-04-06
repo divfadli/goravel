@@ -1,0 +1,268 @@
+{{ define "form_rekap_pel.tmpl"}}
+
+{{ template "templates/layout.tmpl" .}}
+
+    <form role="form" class="form-horizontal" action="" method="post" enctype="multipart/form-data" id="frInput" name="frInput" data-toggle="validator">
+
+        <div class="card-body col-md-12 col-lg-12">
+            <div class="row">
+                
+                <div class="col-md-6">
+                    <div class="form-group row">
+                        <label class="col-sm-4 col-form-label" id="tgl_kejadian">Tanggal Pelanggaran</label>
+                        <div class="col-sm-8">
+                            <input type="text" name="tgl_kejadian" class="form-control form-control-sm" data-error="Tanggal Pelanggaran harus diisi." required>
+                            <div class="help-block with-errors"></div>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-4 col-form-label" id="nama_kapal">Nama Kapal</label>
+                        <div class="col-sm-8">
+                            <input type="text" name="nama_kapal" class="form-control form-control-sm" data-error="Nama kapal harus diisi." required>
+                            <div class="help-block with-errors"></div>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-4 col-form-label">No. Telepon</label>
+                        <div class="col-sm-4">
+                            <input type="number" name="no_telepon" class="form-control form-control-sm" data-error="No telepon harus diisi." required>
+                            <div class="help-block with-errors"></div>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-4 col-form-label">No. HP</label>
+                        <div class="col-sm-4">
+                            <input type="number" name="no_hp" class="form-control form-control-sm" data-error="No HP harus diisi." required>
+                            <div class="help-block with-errors"></div>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-4 col-form-label">Email</label>
+                        <div class="col-sm-8">
+                            <input type="email" name="email" class="form-control form-control-sm" data-error="Alamat email harus diisi.">
+                            <div class="help-block with-errors"></div>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-4 col-form-label">Nama Pengurus/Ketua</label>
+                        <div class="col-sm-8">
+                            <input type="text" name="pengurus" class="form-control form-control-sm" data-error="Harus diisi. Untuk Perseorangan isi dengan '-'" required>
+                            <div class="help-block with-errors"></div>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-4 col-form-label">Rekening BNI | Atas Nama</label>
+                        <div class="col-sm-3">
+                            <input type="number" name="rekening" maxlength="10" data-minlength="10" class="form-control form-control-sm" data-error="Masukkan no. rekening BNI." placeholder="No. Rekening" required>
+                        </div>
+                        <div class="col-sm-5">
+                            <input type="text" name="rekening_nama" maxlength="50" class="form-control form-control-sm" data-error="Nama Pemilik Rekening." placeholder="Atas Nama" required>
+                            <div class="help-block with-errors"></div>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-4 text-blue"><h5><u>Alamat</u></h5></label>
+                        <div class="col-sm-6">
+                            <div class="help-block with-errors"></div>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-4 col-form-label">Alamat</label>
+                        <div class="col-sm-8">
+                            <textarea name="alamat" class="form-control form-control-sm" data-error="Alamat harus diisi." required style="font-size:1em;"></textarea>
+                            <div class="help-block with-errors"></div>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-4 col-form-label">Propinsi</label>
+                        <div class="col-sm-6">
+                            <select name="provinsi" id="propinsi" class="form-control form-control-sm" required disabled="disabled">
+                                <option value="33">Jawa Tengah</option>
+                            </select>
+                            <div class="help-block with-errors"></div>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-4 col-form-label">Kota</label>
+                        <div class="col-sm-6">
+                            <select name="kota" id="kota" class="form-control form-control-sm" required disabled="disabled">
+                                <option value="3371">Kota Magelang</option>
+                            </select>
+                            <div class="help-block with-errors"></div>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-4 col-form-label">Kecamatan</label>
+                        <div class="col-sm-6">
+                            <select name="kecamatan" id="kecamatan" data-error="Pilih kecamatan" class="form-control form-control-sm" onchange="ajaxkel(this.value)" required>
+                                <option value="">- Pilih -</option>
+                                                                                <option value="3371010">
+                                    Magelang Selatan												</option>
+                                                                                <option value="3371011">
+                                    Magelang Tengah												</option>
+                                                                                <option value="3371020">
+                                    Magelang Utara												</option>
+                                                                            </select>
+                            <div class="help-block with-errors"></div>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-4 col-form-label">Desa/Kelurahan</label>
+                        <div class="col-sm-6">
+                            <select name="desa" id="desa" data-error="Pilih desa/kelurahan" class="form-control form-control-sm" required>
+                                <option value="">- Pilih -</option>
+                                                                            </select>
+                            <div class="help-block with-errors"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="input-group input-group-sm">
+                        <input type="text" name="lokasi" id="alamat" class="form-control" placeholder="Cari Lokasi">
+                        <span class="input-group-append">
+                            <button onclick="cari_alamat(); return false;" type="button" class="btn btn-info btn-flat">Cari!</button>
+                        </span>
+                    </div>
+                    <div id="maps" style="border:1px solid #CCC; height:420px;"></div>
+                    <div class="form-group row">
+                        <div class="col-sm-12">
+                            <input type="text" style="text-align: center" id="koordinat" name="koordinat" readonly="readonly" class="form-control form-control-sm" data-error="Koordinat harus diisi." required>
+                            <div class="help-block with-errors"></div>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-4 text-blue"><h5><u>Data Login</u></h5></label>
+                        <div class="col-sm-6">
+                            <div class="help-block with-errors"></div>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-4 col-form-label">Username</label>
+                        <div class="col-sm-6">
+                            <input type="text" name="username" class="form-control form-control-sm" data-error="Username harus diisi." required>
+                            <div class="help-block with-errors"></div>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-4 col-form-label">Password</label>
+                        <div class="col-sm-6">
+                            <input id="pass" name="pass" class="form-control form-control-sm" type="password" data-minlength="5" data-error="Minimal 5 karakter" required>
+                            <div class="help-block with-errors"></div>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-4 col-form-label">Ulangi Password</label>
+                        <div class="col-sm-6">
+                            <input name="pass2" class="form-control form-control-sm" type="password" data-match="#pass" data-minlength="5" data-error="Password tidak sama" required>
+                            <div class="help-block with-errors"></div>
+                        </div>
+                    </div>
+                    </td>
+
+                </div>
+                <!-- /.box-body -->
+            </div>
+        </div>
+        <div class="card-footer">
+            <button type="submit" name="btn_simpan" id="btn_simpan" class="btn btn-primary">Kirim Pendaftaran</button>
+            <button type="button" id="btn_batal" class="btn btn-danger" onclick="document.location='https://banksampahmagelangkota.or.id'">Batal</button>
+        </div>
+    </form>
+
+{{ template "layouts/footer.tmpl" . }}
+
+<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDkYiyUDkeJm28qaoaYuhfPPfiPJq8Vl-E&callback=initMap"></script>
+
+<script>
+    function init(){
+ var info_window = new google.maps.InfoWindow();
+    console.log(info_window);
+    console.log(google.maps);
+  // menentukan level zoom
+ var zoom = 4;
+
+ // menentukan latitude dan longitude
+ var pos = new google.maps.LatLng(-2.548926, 118.0148634);
+
+ // menentukan opsi peta yang akan di buat
+ var options = {
+    'center': pos,
+  'zoom': zoom,
+    'mapTypeId': google.maps.MapTypeId.ROADMAP
+ };
+
+ // membuat peta
+ var map = new google.maps.Map(document.getElementById('maps'), options);
+ info_window = new google.maps.InfoWindow({
+  'content': 'loading...'
+ });
+	
+ }
+
+
+function cari_alamat(){
+ // mengambil isi dari textarea dengan id alamat
+ var alamat = document.getElementById('alamat').value;
+
+ // membuat geocoder
+ var geocoder = new google.maps.Geocoder();
+ geocoder.geocode(
+  {'address': alamat}, 
+  function(results, status) { 
+   if (status == google.maps.GeocoderStatus.OK) {
+    var info_window = new google.maps.InfoWindow();
+
+    // mendapatkan lokasi koordinat
+    var geo = results[0].geometry.location;
+
+    // set koordinat
+    var pos = new google.maps.LatLng(geo.lat(),geo.lng());
+
+    // menampilkan latitude dan longitude pada id lat dan lng
+    var lat = document.getElementById('koordinat').value = geo.lat()+', '+geo.lng();
+    //var lng = document.getElementById('lng').innerHTML = ;
+
+    // opsi peta yang akan di tampilkan
+    var option = {
+     center: pos,
+     zoom: 4,
+     mapTypeId:google.maps.MapTypeId.ROADMAP
+    };
+
+    // membuat peta
+    var map = new google.maps.Map(document.getElementById('maps'),option);
+    info_window = new google.maps.InfoWindow({
+     content: 'loading...'
+    });
+
+    // menambahkan marker pada peta
+    var marker = new google.maps.Marker({
+		 position: pos,
+		 draggable:true,
+		 title: 'Lokasi Anda',
+		 //animation:google.maps.Animation.BOUNCE
+    });
+    marker.setMap(map);
+
+    // menambahkan event click ketika marker di klik
+    google.maps.event.addListener(marker, 'click', function () {
+		 info_window.setContent('<b>'+ this.title +'</b>');
+		 info_window.open(map, this);
+    });
+	
+    google.maps.event.addListener(marker, 'dragend', function (evt) {		 
+		 document.getElementById('koordinat').value = evt.latLng.lat()+', '+evt.latLng.lng();
+		 //document.getElementById('lng').innerHTML = ;
+    });
+	
+   } else {
+    alert('Lokasi Tidak Ditemukan'); 
+   } 
+  }
+ );
+}
+google.maps.event.addDomListener(window, 'load', init);
+</script>
+
+{{ end }}

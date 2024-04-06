@@ -27,8 +27,7 @@ func (r *UserController) Show(ctx http.Context) http.Response {
 func (r *UserController) Login(ctx http.Context) http.Response {
 	var req RequestUser.Login
 
-	sanitize := Sanitize(ctx, &req)
-	if sanitize != nil {
+	if sanitize := SanitizePost(ctx, &req); sanitize != nil {
 		return sanitize
 	}
 
@@ -38,11 +37,12 @@ func (r *UserController) Login(ctx http.Context) http.Response {
 		facades.Log().Request(ctx.Request()).Tags("goravel", "User").With(map[string]any{
 			"error": err.Error(),
 		}).Info("Failed to query user")
-		return ErrorSystem(ctx)
+		return ErrorSystem(ctx, "Failed to query user")
 	}
 
 	if user.ID == 0 || !facades.Hash().Check(req.Password, user.Password) {
-		return Error(ctx, http.StatusForbidden, "Wrong username or password")
+		// return ctx.Response().Redirect(http.StatusFound, "/login")
+		return Error(ctx, http.StatusUnauthorized, "Wrong username or password")
 	}
 
 	token_access, loginErr := facades.Auth().LoginUsingID(ctx, user.ID)
@@ -50,7 +50,7 @@ func (r *UserController) Login(ctx http.Context) http.Response {
 		facades.Log().Request(ctx.Request()).Tags("goravel", "User").With(map[string]any{
 			"error": err.Error(),
 		}).Info("Login failed")
-		return ErrorSystem(ctx)
+		return ErrorSystem(ctx, loginErr.Error())
 	}
 	access, _ := facades.Auth().Parse(ctx, token_access)
 
@@ -69,21 +69,24 @@ func (r *UserController) Login(ctx http.Context) http.Response {
 		"name":  user.Name,
 		"email": user.Email,
 		"nik":   user.Nik,
-		"role":  []string{"admin"}, // Assuming this is correct
+		// "role":  []string{"admin"}, // Assuming this is correct
+		"role": user.Type,
 	}
-	facades.Cache().Put("user_data", cachedData, 2*time.Hour)
+	facades.Cache().Put("user_data", cachedData, 2*time.Minute)
 
 	// Log the cached data for debugging
 	// facades.Log().Info("Cached user data:", cachedData)
 
 	// Redirect to the index page
-	return ctx.Response().Redirect(http.StatusFound, "/index")
+	// return ctx.Response().Redirect(http.StatusFound, "/dashboard")
+	return ctx.Response().Success().Json(http.Json{
+		"data": cachedData,
+	})
 }
 func (r *UserController) Register(ctx http.Context) http.Response {
 	var req RequestUser.Register
 
-	sanitize := Sanitize(ctx, &req)
-	if sanitize != nil {
+	if sanitize := SanitizePost(ctx, &req); sanitize != nil {
 		return sanitize
 	}
 
@@ -104,8 +107,10 @@ func (r *UserController) Register(ctx http.Context) http.Response {
 	user.Name = req.Name
 	user.Type = req.Type
 
-	facades.Orm().Query().Create(&user)
-	return ctx.Response().Success().Json(http.Json{
+	if err := facades.Orm().Query().Create(&user); err != nil {
+		return ErrorSystem(ctx, "Data Gagal Ditambahkan")
+	}
+	return Success(ctx, http.Json{
 		"Success": "Data Berhasil Ditambahkan",
 	})
 }
@@ -117,7 +122,7 @@ func (r *UserController) Info(ctx http.Context) http.Response {
 		facades.Log().Request(ctx.Request()).Tags("goravel", "User").With(map[string]any{
 			"error": err.Error(),
 		}).Info("Failed to obtain user information")
-		return ErrorSystem(ctx)
+		return ErrorSystem(ctx, "Failed to obtain user information")
 	}
 
 	return Success(ctx, http.Json{

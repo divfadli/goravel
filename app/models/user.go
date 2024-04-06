@@ -1,21 +1,21 @@
 package models
 
-import "github.com/golang-module/carbon/v2"
+import (
+	"github.com/goravel/framework/database/orm"
+)
 
 type User struct {
-	ID            uint            `gorm:"primaryKey" json:"id"`
-	Name          string          `gorm:"default:null" json:"name"`
-	Email         string          `gorm:"default:null" json:"email"`
-	Nik           string          `gorm:"unique;not null" json:"nik"`
-	Username      string          `gorm:"not null" json:"username"`
-	Password      string          `gorm:"not null" json:"password"`
-	RememberToken string          `gorm:"default:null" json:"remember_token"`
-	Type          string          `gorm:"default:null" json:"type"`
-	UserType      string          `gorm:"default:null" json:"user_type"`
-	CreatedAt     carbon.DateTime `gorm:"autoCreateTime;column:created_at" json:"created_at"`
-	UpdatedAt     carbon.DateTime `gorm:"autoUpdateTime;column:updated_at" json:"updated_at"`
+	orm.Model
+	Name          string `gorm:"default:null" column:"name"`
+	Email         string `gorm:"default:null" column:"email"`
+	Nik           string `gorm:"unique;not null" column:"nik"`
+	Username      string `gorm:"not null" column:"username"`
+	Password      string `gorm:"not null" column:"password"`
+	RememberToken string `gorm:"default:null" column:"remember_token"`
+	Type          string `gorm:"default:null" column:"type"`
+	UserType      string `gorm:"default:null" column:"user_type"`
 }
 
-func (User) TableName() string {
+func (r *User) TableName() string {
 	return "public.users"
 }

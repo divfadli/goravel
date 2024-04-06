@@ -18,5 +18,18 @@ func Api() {
 			user.Post("register", userController.Register)
 			user.Middleware(middleware.Jwt(), middleware.Cors()).Get("info", userController.Info)
 		})
+
+		r.Prefix("kejadian").Group(func(kejadian route.Router) {
+			kejadianController := controllers.NewKejadianController()
+
+			kejadian.Post("storeKejadian", kejadianController.PostKejadian)
+			kejadian.Post("listKejadian", kejadianController.ListKejadian)
+			kejadian.Get("showDetailKejadian", kejadianController.ShowDetailKejadian)
+			kejadian.Delete("deleteKejadian", kejadianController.DeleteKejadian)
+		})
+
+		r.Prefix("rekap").Group(func(rekap route.Router) {
+
+		})
 	})
 }

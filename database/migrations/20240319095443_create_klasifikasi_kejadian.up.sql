@@ -1,0 +1,6 @@
+CREATE TABLE rekapitulasi.klasifikasi_kejadian (
+  id_klasifikasi BIGSERIAL PRIMARY KEY NOT NULL,
+  nama_klasifikasi varchar(45) NOT NULL,
+  created_at timestamp NOT NULL,
+  updated_at timestamp NOT NULL
+);
