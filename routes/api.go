@@ -29,7 +29,14 @@ func Api() {
 		})
 
 		r.Prefix("rekap").Group(func(rekap route.Router) {
+			rekap.Prefix("keamanan").Group(func(keamanan route.Router) {
+				rekapKeamananController := controllers.NewRekapKejadianKeamananController()
 
+				keamanan.Post("storeRekapKeamanan", rekapKeamananController.StoreRekapKeamanan)
+				keamanan.Post("listRekapKeamanan", rekapKeamananController.ListRekapKeamanan)
+				keamanan.Get("showDetailRekapKeamanan", rekapKeamananController.ShowDetailRekapKeamanan)
+				keamanan.Delete("deleteRekapKeamanan", rekapKeamananController.DeleteRekapKeamanan)
+			})
 		})
 	})
 }

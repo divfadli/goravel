@@ -8,8 +8,8 @@ import (
 type ListKeamanan struct {
 	Nik          string `form:"nik" json:"nik" binding:"required"`
 	Key          string `form:"key" json:"key"`
-	TanggalAwal  string `form:"tanggal_awal" json:"tanggal_awal"`
-	TanggalAkhir string `form:"tanggal_akhir" json:"tanggal_akhir"`
+	TanggalAwal  string `form:"tanggal_awal" json:"tanggal_awal" binding:"required"`
+	TanggalAkhir string `form:"tanggal_akhir" json:"tanggal_akhir" binding:"required"`
 	Zona         string `form:"zona" json:"zona"`
 }
 
@@ -19,13 +19,17 @@ func (r *ListKeamanan) Authorize(ctx http.Context) error {
 
 func (r *ListKeamanan) Rules(ctx http.Context) map[string]string {
 	return map[string]string{
-		"nik": "required",
+		"nik":           "required",
+		"tanggal_awal":  "required",
+		"tanggal_akhir": "required",
 	}
 }
 
 func (r *ListKeamanan) Messages(ctx http.Context) map[string]string {
 	return map[string]string{
-		"nik.required": "NIK Cannot be Empty",
+		"nik.required":           "NIK Cannot be Empty",
+		"tanggal_awal.required":  "Tanggal Awal Cannot be Empty",
+		"tanggal_akhir.required": "Tanggal Akhir Cannot be Empty",
 	}
 }
 
