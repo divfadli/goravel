@@ -33,9 +33,14 @@ func (r *RekapKejadianKeamananController) StoreRekapKeamanan(ctx http.Context) h
 	}
 
 	var rekap_keamanan models.RekapKejadianDataKeamanan
+	var kejadian models.Kejadian
 
 	if req.IdRekapKeamanan != 0 {
-		if err := facades.Orm().Query().Where("id_rekap_keamanan", req.IdRekapKeamanan).First(&rekap_keamanan); err != nil || rekap_keamanan.IdRekapKeamanan == 0 {
+		if err := facades.Orm().Query().Table("rekapitulasi.rekap_kejadian_data_keamanan").
+			Join(`inner join rekapitulasi.kejadian k ON k.id_type_kejadian = rekapitulasi.rekap_kejadian_data_keamanan.type_kejadian_id
+				inner join rekapitulasi.klasifikasi_kejadian kk ON k.klasifikasi_id = kk.id_klasifikasi`).
+			Where("kk.id_klasifikasi = ? AND id_rekap_keamanan = ? AND k.id_type_kejadian=?", "1", req.IdRekapKeamanan, req.TypeKejadianId).
+			First(&rekap_keamanan); err != nil || rekap_keamanan.IdRekapKeamanan == 0 {
 			return Error(ctx, http.StatusNotFound, "Rekap Keamanan Not Found")
 		}
 
@@ -76,6 +81,7 @@ func (r *RekapKejadianKeamananController) StoreRekapKeamanan(ctx http.Context) h
 			if err := facades.Orm().Query().Save(&rekap_keamanan); err != nil {
 				return ErrorSystem(ctx, "Data Gagal Diubah")
 			}
+
 			return Success(ctx, http.Json{
 				"Success": "Data Berhasil Diubah",
 			})
@@ -111,6 +117,13 @@ func (r *RekapKejadianKeamananController) StoreRekapKeamanan(ctx http.Context) h
 		rekap_keamanan.InformasiKategori = req.InformasiKategori
 		rekap_keamanan.Zona = req.Zona
 		rekap_keamanan.CreatedBy = req.Nik
+
+		if err := facades.Orm().Query().Table("rekapitulasi.kejadian").
+			Join(`inner join rekapitulasi.klasifikasi_kejadian kk ON rekapitulasi.kejadian.klasifikasi_id = kk.id_klasifikasi`).
+			Where("kk.id_klasifikasi = ? AND rekapitulasi.kejadian.id_type_kejadian = ?", "1", req.TypeKejadianId).
+			First(&kejadian); err != nil || kejadian.IDTypeKejadian == "" {
+			return Error(ctx, http.StatusNotFound, "Data Keamanan Not Found")
+		}
 
 		if err := facades.Orm().Query().Create(&rekap_keamanan); err != nil {
 			return ErrorSystem(ctx, "Data Gagal Ditambahkan")
@@ -192,8 +205,8 @@ func (r *RekapKejadianKeamananController) DeleteRekapKeamanan(ctx http.Context) 
 	}
 
 	var rekap_keamanan []models.RekapKejadianDataKeamanan
-	if data, err := facades.Orm().Query().Where("id_rekap_keamanan AND is_locked is false", req.IdRekapKeamanan).Delete(&rekap_keamanan); err != nil || data.RowsAffected == 0 {
-		return ErrorSystem(ctx, "Data Tidak Ada")
+	if data, err := facades.Orm().Query().Where("id_rekap_keamanan = ? AND is_locked is false", req.IdRekapKeamanan).Delete(&rekap_keamanan); err != nil || data.RowsAffected == 0 {
+		return ErrorSystem(ctx, "Data Tidak Ada / Data Tidak Dapat Dihapus")
 	}
 
 	return Success(ctx, "Data Berhasil Dihapus")

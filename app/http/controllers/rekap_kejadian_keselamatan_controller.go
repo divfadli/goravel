@@ -4,16 +4,16 @@ import (
 	"github.com/goravel/framework/contracts/http"
 )
 
-type RekapKejadianKecelakaanController struct {
+type RekapKejadianKeselamatanController struct {
 	//Dependent services
 }
 
-func NewRekapKejadianKecelakaanController() *RekapKejadianKecelakaanController {
-	return &RekapKejadianKecelakaanController{
+func NewRekapKejadianKeselamatanController() *RekapKejadianKeselamatanController {
+	return &RekapKejadianKeselamatanController{
 		//Inject services
 	}
 }
 
-func (r *RekapKejadianKecelakaanController) Index(ctx http.Context) http.Response {
+func (r *RekapKejadianKeselamatanController) Index(ctx http.Context) http.Response {
 	return nil
 }	

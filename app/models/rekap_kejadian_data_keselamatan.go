@@ -8,15 +8,15 @@ import (
 )
 
 type RekapKejadianDataKeselamatan struct {
-	orm.Model
-	Tanggal            carbon.Date     `gorm:"default:not null" json:"tanggal"`
+	IdRekapKeselamatan uint8           `gorm:"primary_key" column:"id_rekap_keselamatan"`
+	Tanggal            carbon.Date     `gorm:"default:not null" column:"tanggal"`
 	TypeIDKejadian     string          `gorm:"default:not null" column:"type_id_kejadian"`
 	NamaKapal          string          `gorm:"default:not null" column:"nama_kapal"`
 	SumberBerita       string          `gorm:"default:not null" column:"sumber_berita"`
 	LokasiKejadian     string          `gorm:"default:not null" column:"lokasi_kejadian"`
-	Korban             json.RawMessage `gorm:"default:not null;type:json" column:"korban"`
-	Latitude           string          `gorm:"default:not null" column:"latitude"`
-	Longitude          string          `gorm:"default:not null" column:"longitude"`
+	Korban             json.RawMessage `gorm:"default:not null  column:"korban"`
+	Latitude           float64         `gorm:"default:not null" column:"latitude"`
+	Longitude          float64         `gorm:"default:not null" column:"longitude"`
 	Penyebab           string          `gorm:"default:not null" column:"penyebab"`
 	TipeSumberKejadian string          `gorm:"default:not null" column:"tipe_sumber_kejadian"`
 	PelabuhanAsal      string          `gorm:"default:null" column:"pelabuhan_asal"`
@@ -25,12 +25,13 @@ type RekapKejadianDataKeselamatan struct {
 	Keterangan         string          `gorm:"default:not null" column:"keterangan"`
 	Zona               string          `gorm:"default:not null" column:"zona"`
 	IsLocked           bool            `gorm:"default:false" column:"is_locked"`
+	orm.Timestamps
 }
 
 type Korban struct {
-	KorbanTewas   int `gorm:"default:not null" json:"korban_tewas"`
-	KorbanSelamat int `gorm:"default:not null" json:"korban_selamat"`
-	KorbanHilang  int `gorm:"default:not null" json:"korban_hilang"`
+	KorbanTewas   int `gorm:"default:0" json:"korban_tewas"`
+	KorbanSelamat int `gorm:"default:0" json:"korban_selamat"`
+	KorbanHilang  int `gorm:"default:0" json:"korban_hilang"`
 }
 
 func (r *RekapKejadianDataKeselamatan) TableName() string {
