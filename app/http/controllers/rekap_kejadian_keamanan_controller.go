@@ -25,6 +25,12 @@ func (r *RekapKejadianKeamananController) Index(ctx http.Context) http.Response 
 	return nil
 }
 
+var (
+	rekapTabelKejadianDataKeamanan = "rekapitulasi.rekap_kejadian_data_keamanan"
+	modelRekapKeamanan             = models.RekapKejadianDataKeamanan{}
+	modelRekapKeamananArray        = []models.RekapKejadianDataKeamanan{}
+)
+
 func (r *RekapKejadianKeamananController) StoreRekapKeamanan(ctx http.Context) http.Response {
 	var req rekap.PostKeamanan
 
@@ -34,53 +40,52 @@ func (r *RekapKejadianKeamananController) StoreRekapKeamanan(ctx http.Context) h
 
 	// upload_file, handler, err := ctx.Request().Origin().FormFile("file")
 
-	var rekap_keamanan models.RekapKejadianDataKeamanan
 	var kejadian models.Kejadian
 
 	if req.IdRekapKeamanan != 0 {
-		if err := facades.Orm().Query().Table("rekapitulasi.rekap_kejadian_data_keamanan").
+		if err := facades.Orm().Query().Table(rekapTabelKejadianDataKeamanan).
 			Join(`inner join rekapitulasi.kejadian k ON k.id_type_kejadian = rekapitulasi.rekap_kejadian_data_keamanan.type_kejadian_id
 				inner join rekapitulasi.klasifikasi_kejadian kk ON k.klasifikasi_id = kk.id_klasifikasi`).
 			Where("kk.id_klasifikasi = ? AND id_rekap_keamanan = ? AND k.id_type_kejadian=?", "1", req.IdRekapKeamanan, req.TypeKejadianId).
-			First(&rekap_keamanan); err != nil || rekap_keamanan.IdRekapKeamanan == 0 {
+			First(&modelRekapKeamanan); err != nil || modelRekapKeamanan.IdRekapKeamanan == 0 {
 			return Error(ctx, http.StatusNotFound, "Rekap Keamanan Not Found")
 		}
 
-		if rekap_keamanan.IsLocked {
+		if modelRekapKeamanan.IsLocked {
 			return Error(ctx, http.StatusNotFound, "Rekap Keamanan Locked")
 		} else {
-			rekap_keamanan.Tanggal = carbon.Parse(req.Tanggal).ToDateStruct()
-			fmt.Println(rekap_keamanan.Tanggal)
-			rekap_keamanan.TypeKejadianId = req.TypeKejadianId
-			rekap_keamanan.NamaKapal = req.NamaKapal
-			rekap_keamanan.SumberBerita = req.SumberBerita
-			rekap_keamanan.LinkBerita = req.LinkBerita
-			rekap_keamanan.LokasiKejadian = req.LokasiKejadian
-			rekap_keamanan.Muatan = req.Muatan
+			modelRekapKeamanan.Tanggal = carbon.Parse(req.Tanggal).ToDateStruct()
+			fmt.Println(modelRekapKeamanan.Tanggal)
+			modelRekapKeamanan.TypeKejadianId = req.TypeKejadianId
+			modelRekapKeamanan.NamaKapal = req.NamaKapal
+			modelRekapKeamanan.SumberBerita = req.SumberBerita
+			modelRekapKeamanan.LinkBerita = req.LinkBerita
+			modelRekapKeamanan.LokasiKejadian = req.LokasiKejadian
+			modelRekapKeamanan.Muatan = req.Muatan
 			if req.Asal != "" {
-				rekap_keamanan.Asal = &req.Asal
+				modelRekapKeamanan.Asal = &req.Asal
 			}
 			if req.Bendera != "" {
-				rekap_keamanan.Bendera = &req.Bendera
+				modelRekapKeamanan.Bendera = &req.Bendera
 			}
 			if req.Tujuan != "" {
-				rekap_keamanan.Tujuan = &req.Tujuan
+				modelRekapKeamanan.Tujuan = &req.Tujuan
 			}
-			rekap_keamanan.Latitude = req.Latitude
-			rekap_keamanan.Longitude = req.Longitude
-			rekap_keamanan.KategoriSumber = req.KategoriSumber
-			rekap_keamanan.TindakLanjut = req.TindakLanjut
+			modelRekapKeamanan.Latitude = req.Latitude
+			modelRekapKeamanan.Longitude = req.Longitude
+			modelRekapKeamanan.KategoriSumber = req.KategoriSumber
+			modelRekapKeamanan.TindakLanjut = req.TindakLanjut
 			if req.IMOKapal != "" {
-				rekap_keamanan.IMOKapal = &req.IMOKapal
+				modelRekapKeamanan.IMOKapal = &req.IMOKapal
 			}
 			if req.MMSIKapal != "" {
-				rekap_keamanan.MMSIKapal = &req.MMSIKapal
+				modelRekapKeamanan.MMSIKapal = &req.MMSIKapal
 			}
-			rekap_keamanan.InformasiKategori = req.InformasiKategori
-			rekap_keamanan.Zona = req.Zona
-			rekap_keamanan.CreatedBy = req.Nik
+			modelRekapKeamanan.InformasiKategori = req.InformasiKategori
+			modelRekapKeamanan.Zona = req.Zona
+			modelRekapKeamanan.CreatedBy = req.Nik
 
-			if err := facades.Orm().Query().Save(&rekap_keamanan); err != nil {
+			if err := facades.Orm().Query().Save(&modelRekapKeamanan); err != nil {
 				return ErrorSystem(ctx, "Data Gagal Diubah")
 			}
 
@@ -89,36 +94,36 @@ func (r *RekapKejadianKeamananController) StoreRekapKeamanan(ctx http.Context) h
 			})
 		}
 	} else {
-		rekap_keamanan.Tanggal = carbon.Parse(req.Tanggal).ToDateStruct()
-		fmt.Println(rekap_keamanan.Tanggal)
-		rekap_keamanan.TypeKejadianId = req.TypeKejadianId
-		rekap_keamanan.NamaKapal = req.NamaKapal
-		rekap_keamanan.SumberBerita = req.SumberBerita
-		rekap_keamanan.LinkBerita = req.LinkBerita
-		rekap_keamanan.LokasiKejadian = req.LokasiKejadian
-		rekap_keamanan.Muatan = req.Muatan
+		modelRekapKeamanan.Tanggal = carbon.Parse(req.Tanggal).ToDateStruct()
+		fmt.Println(modelRekapKeamanan.Tanggal)
+		modelRekapKeamanan.TypeKejadianId = req.TypeKejadianId
+		modelRekapKeamanan.NamaKapal = req.NamaKapal
+		modelRekapKeamanan.SumberBerita = req.SumberBerita
+		modelRekapKeamanan.LinkBerita = req.LinkBerita
+		modelRekapKeamanan.LokasiKejadian = req.LokasiKejadian
+		modelRekapKeamanan.Muatan = req.Muatan
 		if req.Asal != "" {
-			rekap_keamanan.Asal = &req.Asal
+			modelRekapKeamanan.Asal = &req.Asal
 		}
 		if req.Bendera != "" {
-			rekap_keamanan.Bendera = &req.Bendera
+			modelRekapKeamanan.Bendera = &req.Bendera
 		}
 		if req.Tujuan != "" {
-			rekap_keamanan.Tujuan = &req.Tujuan
+			modelRekapKeamanan.Tujuan = &req.Tujuan
 		}
-		rekap_keamanan.Latitude = req.Latitude
-		rekap_keamanan.Longitude = req.Longitude
-		rekap_keamanan.KategoriSumber = req.KategoriSumber
-		rekap_keamanan.TindakLanjut = req.TindakLanjut
+		modelRekapKeamanan.Latitude = req.Latitude
+		modelRekapKeamanan.Longitude = req.Longitude
+		modelRekapKeamanan.KategoriSumber = req.KategoriSumber
+		modelRekapKeamanan.TindakLanjut = req.TindakLanjut
 		if req.IMOKapal != "" {
-			rekap_keamanan.IMOKapal = &req.IMOKapal
+			modelRekapKeamanan.IMOKapal = &req.IMOKapal
 		}
 		if req.MMSIKapal != "" {
-			rekap_keamanan.MMSIKapal = &req.MMSIKapal
+			modelRekapKeamanan.MMSIKapal = &req.MMSIKapal
 		}
-		rekap_keamanan.InformasiKategori = req.InformasiKategori
-		rekap_keamanan.Zona = req.Zona
-		rekap_keamanan.CreatedBy = req.Nik
+		modelRekapKeamanan.InformasiKategori = req.InformasiKategori
+		modelRekapKeamanan.Zona = req.Zona
+		modelRekapKeamanan.CreatedBy = req.Nik
 
 		if err := facades.Orm().Query().Table("rekapitulasi.kejadian").
 			Join(`inner join rekapitulasi.klasifikasi_kejadian kk ON rekapitulasi.kejadian.klasifikasi_id = kk.id_klasifikasi`).
@@ -127,7 +132,7 @@ func (r *RekapKejadianKeamananController) StoreRekapKeamanan(ctx http.Context) h
 			return Error(ctx, http.StatusNotFound, "Data Keamanan Not Found")
 		}
 
-		if err := facades.Orm().Query().Create(&rekap_keamanan); err != nil {
+		if err := facades.Orm().Query().Create(&modelRekapKeamanan); err != nil {
 			return ErrorSystem(ctx, "Data Gagal Ditambahkan")
 		}
 		return Success(ctx, http.Json{
@@ -142,8 +147,7 @@ func (r *RekapKejadianKeamananController) ListRekapKeamanan(ctx http.Context) ht
 		return SanitizeGet(ctx, chekRequestErr)
 	}
 
-	var rekap_keamanan []models.RekapKejadianDataKeamanan
-	query := facades.Orm().Query().Table("rekapitulasi.rekap_kejadian_data_keamanan").
+	query := facades.Orm().Query().Table(rekapTabelKejadianDataKeamanan).
 		Join(`inner join rekapitulasi.kejadian k ON k.id_type_kejadian = rekapitulasi.rekap_kejadian_data_keamanan.type_kejadian_id
 			  inner join rekapitulasi.klasifikasi_kejadian kk ON k.klasifikasi_id = kk.id_klasifikasi`)
 
@@ -167,12 +171,12 @@ func (r *RekapKejadianKeamananController) ListRekapKeamanan(ctx http.Context) ht
 
 	query = query.Where("kk.id_klasifikasi", "1")
 
-	if err := query.Order("rekapitulasi.rekap_kejadian_data_keamanan.tanggal asc").Find(&rekap_keamanan); err != nil {
+	if err := query.Order("rekapitulasi.rekap_kejadian_data_keamanan.tanggal asc").Find(&modelRekapKeamananArray); err != nil {
 		return ErrorSystem(ctx, "Data Tidak Ada")
 	}
 
 	return Success(ctx, http.Json{
-		"data_rekap_keamanan": rekap_keamanan,
+		"data_rekap_keamanan": modelRekapKeamananArray,
 	})
 }
 
@@ -183,19 +187,18 @@ func (r *RekapKejadianKeamananController) ShowDetailRekapKeamanan(ctx http.Conte
 		return sanitize
 	}
 
-	var rekap_keamanan models.RekapKejadianDataKeamanan
-	query := facades.Orm().Query().Table("rekapitulasi.rekap_kejadian_data_keamanan").
+	query := facades.Orm().Query().Table(rekapTabelKejadianDataKeamanan).
 		Join(`inner join rekapitulasi.kejadian k ON k.id_type_kejadian = rekapitulasi.rekap_kejadian_data_keamanan.type_kejadian_id
 			  inner join rekapitulasi.klasifikasi_kejadian kk ON k.klasifikasi_id = kk.id_klasifikasi`)
 
 	query = query.Where("rekapitulasi.rekap_kejadian_data_keamanan.id_rekap_keamanan", req.IdRekapKeamanan)
 
-	if err := query.First(&rekap_keamanan); err != nil || rekap_keamanan.IdRekapKeamanan == 0 {
+	if err := query.First(&modelRekapKeamanan); err != nil || modelRekapKeamanan.IdRekapKeamanan == 0 {
 		return ErrorSystem(ctx, "Data Tidak Ada")
 	}
 
 	return Success(ctx, http.Json{
-		"data_rekap_keamanan": rekap_keamanan,
+		"data_rekap_keamanan": modelRekapKeamanan,
 	})
 }
 
@@ -206,8 +209,7 @@ func (r *RekapKejadianKeamananController) DeleteRekapKeamanan(ctx http.Context) 
 		return SanitizeGet(ctx, chekRequestErr)
 	}
 
-	var rekap_keamanan []models.RekapKejadianDataKeamanan
-	if data, err := facades.Orm().Query().Where("id_rekap_keamanan = ? AND is_locked is false", req.IdRekapKeamanan).Delete(&rekap_keamanan); err != nil || data.RowsAffected == 0 {
+	if data, err := facades.Orm().Query().Where("id_rekap_keamanan = ? AND is_locked is false", req.IdRekapKeamanan).Delete(&modelRekapKeamananArray); err != nil || data.RowsAffected == 0 {
 		return ErrorSystem(ctx, "Data Tidak Ada / Data Tidak Dapat Dihapus")
 	}
 
