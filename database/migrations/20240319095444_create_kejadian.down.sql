@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS rekapitulasi.kejadian;
+-- DROP TABLE IF EXISTS rekapitulasi.kejadian;

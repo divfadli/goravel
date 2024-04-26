@@ -44,7 +44,7 @@ func Success(ctx http.Context, data any) http.Response {
 // Error response error
 func Error(ctx http.Context, code int, message string) http.Response {
 	return ctx.Response().Json(code, &ErrorResponse{
-		Message: "Error: " + message,
+		Message: message,
 	})
 }
 

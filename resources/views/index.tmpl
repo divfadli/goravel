@@ -2,6 +2,133 @@
 
 {{ template "templates/layout.tmpl" .}}
 {{ template "templates/heading_content.tmpl" . }}
-{{ template "layouts/footer.tmpl" . }}
+<!-- Start about-info Area -->
+<section class="price-area section-gap">
 
-{{ end }}
+  <section id="peta_indonesia" class="about-info-area section-gap">
+    <div class="container">
+
+      <div class="title text-center">
+        <h1 class="mb-10">Peta Lokasi Kejadian</h1>
+        <br>
+      </div>
+
+      <div class="row align-items-center">
+
+        <div id="map" style="width:100%;height:420px;"></div>
+        <script>(g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})
+        ({key: "AIzaSyDkYiyUDkeJm28qaoaYuhfPPfiPJq8Vl-E", v: "weekly"});</script>
+
+        <!-- Script LeafletJS -->
+        <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+        <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.4.2/leaflet.draw.css"/>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.4.2/leaflet.draw.js"></script>
+
+        <script type="text/javascript">
+          var peta1 = L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFyZGFsaXVzIiwiYSI6ImNsZnVtbDdtZzAyYjMzdXRhdDN6djY5cWoifQ.Xqtyqa7hvGhQla2oAwpG_Q', {
+            attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, ' +
+                '<a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
+                'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+            id: 'mapbox/streets-v11'
+          });
+          
+          var map = new L.Map('map',{
+            center:{ lat: -2.548926, lng: 118.0148634},
+            zoom: 4,
+            layers:peta1,
+            drawControl: true
+          })
+
+          async function initMap() {
+            await getDataKeamanan();
+
+            var baseLayers = {
+              "Grayscale": peta1,
+            };
+
+            var overlays = {
+            };
+
+            L.control.layers(baseLayers).addTo(map);
+
+
+            // FeatureGroup is to store editable layers
+            var drawnItems = new L.FeatureGroup();
+            map.addLayer(drawnItems);
+            var drawControl = new L.Control.Draw({
+              draw: {
+                polygon: false,
+                marker: false,
+                circle: false,
+                circlemarker: false,
+                rectangle: false,
+                polyline: true,
+              },
+              edit: {
+                featureGroup: drawnItems
+              }
+            });
+            map.addControl(drawControl);
+          }
+
+
+          function setMarkers(map, locations) {
+            locations.forEach((a) => {
+            marker = new L.marker([a.Latitude, a.Longitude]).bindPopup(a.NamaKapal).addTo(map);
+            });
+          }
+
+          function getInfoCallback(map, content) {
+              var infowindow = new google.maps.InfoWindow({
+                content: content
+              });
+              return function() {
+                infowindow.setContent(content);
+                infowindow.open(map, this);
+              };
+            }
+
+          async function getDataKeamanan(){
+            return new Promise((resolve, reject) => {
+              $.ajax({
+                url: "{{.dataKeamananURL}}",
+                method: "POST",
+                data: {
+                  nik: "99999",
+                  tanggal_awal: "2024-03-01",
+                  tanggal_akhir: "2024-03-10"
+                },
+                success: function(response) {
+                  setMarkers(map, response.data.data_rekap_keamanan)
+                  resolve();
+                },
+                error: function(response) {
+                  Swal.fire({
+                    type: 'error',
+                    title: 'Opps!',
+                    text: response.responseJSON.message
+                  });
+                  reject(response);
+                }
+              });
+            });
+          }
+
+          initMap();
+        </script>
+
+        <link href="https://api.mapbox.com/mapbox-gl-js/v3.2.0/mapbox-gl.css" rel="stylesheet">
+        <script src="https://api.mapbox.com/mapbox-gl-js/v3.2.0/mapbox-gl.js"></script>
+      </div>
+
+
+    </div>
+  </section>
+  <!-- End about-info Area -->
+
+
+
+  {{ template "layouts/footer.tmpl" . }}
+
+  {{ end }}

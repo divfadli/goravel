@@ -1,9 +1,9 @@
-CREATE TABLE rekapitulasi.kejadian (
-  id_type_kejadian varchar(45) NOT NULL,
-  jenis_pelanggaran varchar(45) NOT NULL,
-	klasifikasi_id int8 NOT NULL,
-  created_at timestamp NOT NULL,
-  updated_at timestamp NOT NULL,
-  CONSTRAINT id_type_kejadian_pkey PRIMARY KEY (id_type_kejadian),
-  CONSTRAINT jenis_pelanggaran UNIQUE (jenis_pelanggaran)
-);
+-- CREATE TABLE rekapitulasi.kejadian (
+--   id_type_kejadian varchar(45) NOT NULL,
+--   jenis_pelanggaran varchar(45) NOT NULL,
+-- 	klasifikasi_id int8 NOT NULL,
+--   created_at timestamp NOT NULL,
+--   updated_at timestamp NOT NULL,
+--   CONSTRAINT id_type_kejadian_pkey PRIMARY KEY (id_type_kejadian),
+--   CONSTRAINT jenis_pelanggaran UNIQUE (jenis_pelanggaran)
+-- );

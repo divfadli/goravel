@@ -42,7 +42,27 @@ func (r *UserController) Login(ctx http.Context) http.Response {
 
 	if user.ID == 0 || !facades.Hash().Check(req.Password, user.Password) {
 		// return ctx.Response().Redirect(http.StatusFound, "/login")
-		return Error(ctx, http.StatusUnauthorized, "Wrong username or password")
+		return Error(ctx, http.StatusUnauthorized, "Username atau Password salah")
+	}
+
+	var dataKaryawan models.Karyawan
+	facades.Orm().Query().Where("emp_no", user.Nik).First(&dataKaryawan)
+
+	var count int64
+	facades.Orm().Query().Table("public.karyawan").Where("sup_pos_id=?", dataKaryawan.PosID).Count(&count)
+
+	is_superior := true
+	if count == 0 {
+		is_superior = false
+	}
+
+	var roleKaryawan []models.MyRole
+	facades.Orm().Query().Table("public.role").Where("emp_no=?", dataKaryawan.EmpNo).Scan(&roleKaryawan)
+	defaultRole := models.MyRole{
+		Name: "karyawan",
+	}
+	if roleKaryawan == nil {
+		roleKaryawan = append(roleKaryawan, defaultRole)
 	}
 
 	token_access, loginErr := facades.Auth().LoginUsingID(ctx, user.ID)
@@ -59,20 +79,20 @@ func (r *UserController) Login(ctx http.Context) http.Response {
 		"expires_in":   access.ExpireAt,
 	}
 
-	// if user.Type != "" {
-	// 	userData.Role = append(userData.Role, "karyawan")
-	// }
+	if user.UserType != "" {
+		roleKaryawan = append(roleKaryawan, models.MyRole{Name: user.UserType})
+	}
 
 	// Assuming Cache().Put and Cache().Get work correctly
 	cachedData := map[string]interface{}{
-		"token": token,
-		"name":  user.Name,
-		"email": user.Email,
-		"nik":   user.Nik,
-		// "role":  []string{"admin"}, // Assuming this is correct
-		"role": user.Type,
+		"token":       token,
+		"name":        user.Name,
+		"email":       user.Email,
+		"nik":         user.Nik,
+		"is_superior": is_superior,
+		"role":        roleKaryawan,
 	}
-	facades.Cache().Put("user_data", cachedData, 2*time.Minute)
+	facades.Cache().Put("user_data", cachedData, 2*time.Hour)
 
 	// Log the cached data for debugging
 	// facades.Log().Info("Cached user data:", cachedData)
@@ -97,15 +117,15 @@ func (r *UserController) Register(ctx http.Context) http.Response {
 		return Error(ctx, http.StatusForbidden, "Username or Nik already exists")
 	}
 
-	if req.Type != "" {
-		user.Type = req.Type
+	if req.UserType != "" {
+		user.UserType = req.UserType
 	}
 	user.Username = req.Username
 	user.Password, _ = facades.Hash().Make(req.Password)
 	user.Email = req.Email
 	user.Nik = req.Nik
 	user.Name = req.Name
-	user.Type = req.Type
+	user.UserType = req.UserType
 
 	if err := facades.Orm().Query().Create(&user); err != nil {
 		return ErrorSystem(ctx, "Data Gagal Ditambahkan")

@@ -3,11 +3,8 @@
         <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
 
             <!-- Sidebar - Brand -->
-            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/dashboard">
-                <div class="sidebar-brand-icon rotate-n-15">
-                    <i class="fas fa-laugh-wink"></i>
-                </div>
-                <div class="sidebar-brand-text mx-3">Rekapitulasi Data</div>
+            <a class="sidebar-brand d-flex align-items-center justify-content-center mt-3" href="/dashboard">
+                <div class="sidebar-brand-text mb-3">SIREKAP DATA KEAMANAN DAN KESELAMATAN</div>
             </a>
 
             <!-- Divider -->
@@ -23,22 +20,17 @@
             <!-- Divider -->
             <hr class="sidebar-divider">
 
-            <!-- Heading -->
-            <div class="sidebar-heading">
-                Kejadian
-            </div>
-
             <!-- Nav Item - Pages Collapse Menu -->
             <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTwo"
-                    aria-expanded="true" aria-controls="collapseTwo">
-                    <i class="fas fa-fw fa-cog"></i>
-                    <span>Data Kejadian</span>
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseRekapData"
+                    aria-expanded="true" aria-controls="collapseRekapData">
+                    <i class="fas fa-fw fa-history"></i>
+                    <span>Rekap Data</span>
                 </a>
-                <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+                <div id="collapseRekapData" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
                     <div class="bg-info py-2 collapse-inner rounded">
-                        <a class="collapse-item" href="/data_kejadian/pelanggaran">Data Pelanggaran</a>
-                        <a class="collapse-item" href="/data_kejadian/kecelakaan">Data Kecelakaan</a>
+                        <a class="collapse-item" href="/rekap_data_kejadian/pelanggaran">Keamanan</a>
+                        <a class="collapse-item" href="/rekap_data_kejadian/kecelakaan">Kecelakaan</a>
                     </div>
                 </div>
             </li>
@@ -46,24 +38,61 @@
             <!-- Divider -->
             <hr class="sidebar-divider">
 
-            <!-- Heading -->
-            <div class="sidebar-heading">
-                Rekap Kejadian
-            </div>
-
-            <!-- Nav Item - Pages Collapse Menu -->
             <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsePages"
-                    aria-expanded="true" aria-controls="collapsePages">
-                    <i class="fas fa-fw fa-folder"></i>
-                    <span>Rekap dan Laporan</span>
+                <a href="#" class="nav-link">
+                    <i class="fas fa-fw fa-fax"></i>
+                    <span>Pengajuan Laporan</span>
                 </a>
-                <div id="collapsePages" class="collapse" aria-labelledby="headingPages" data-parent="#accordionSidebar">
-                    <div class="bg-info py-2 collapse-inner rounded">
-                        <a class="collapse-item" href="/rekap/mingguan">Rekap Laporan Mingguan</a>
-                        <a class="collapse-item" href="/rekap/bulanan">Rekap Laporan Bulanan</a>
-                    </div>
-                </div>
+            </li>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider">
+
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="fas fa-fw fa-list"></i>
+                    <span>List Laporan</span>
+                </a>
+            </li>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider">
+
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="fas fa-fw fa-check-square"></i>
+                    <span>Approval Laporan</span>
+                </a>
+            </li>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider">
+
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="fas fa-fw fa-ship"></i>
+                    <span>Prediksi Kejadian</span>
+                </a>
+            </li>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider">
+
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="fas fa-fw fa-user-circle"></i>
+                    <span>Role Pengguna</span>
+                </a>
+            </li>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider">
+
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="fas fa-fw fa-anchor"></i>
+                    <span>Jenis Kejadian</span>
+                </a>
             </li>
         </ul>
         <!-- End of Sidebar -->

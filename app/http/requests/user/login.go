@@ -23,9 +23,9 @@ func (r *Login) Rules(ctx http.Context) map[string]string {
 
 func (r *Login) Messages(ctx http.Context) map[string]string {
 	return map[string]string{
-		"username.required": "Username Cannot be Empty",
-		"password.required": "Password Cannot be Empty",
-		"password.min_len":  "The password must be at least 8 characters",
+		"username.required": "Username Tidak Boleh Kosong ",
+		"password.required": "Password Tidak Boleh Kosong ",
+		"password.min_len":  "Masukkan Password Minimal 8 Karakter",
 	}
 }
 

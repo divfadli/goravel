@@ -11,7 +11,7 @@ type Register struct {
 	Email    string `json:"email" form:"email"`
 	Name     string `json:"name" form:"name"`
 	Nik      string `json:"nik" form:"nik"`
-	Type     string `json:"type" form:"type"`
+	UserType string `json:"user_type" form:"user_type"`
 }
 
 func (r *Register) Authorize(ctx http.Context) error {

@@ -32,6 +32,8 @@ func (r *RekapKejadianKeamananController) StoreRekapKeamanan(ctx http.Context) h
 		return SanitizeGet(ctx, chekRequestErr)
 	}
 
+	// upload_file, handler, err := ctx.Request().Origin().FormFile("file")
+
 	var rekap_keamanan models.RekapKejadianDataKeamanan
 	var kejadian models.Kejadian
 

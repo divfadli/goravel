@@ -1,8 +1,6 @@
 package routes
 
 import (
-	"fmt"
-
 	"github.com/goravel/framework/contracts/http"
 	"github.com/goravel/framework/contracts/route"
 	"github.com/goravel/framework/facades"
@@ -15,6 +13,12 @@ func Web() {
 	facades.Route().Static("/img", "./public/img")
 	facades.Route().Static("/css", "./public/css")
 
+	facades.Route().Get("/map", func(ctx http.Context) http.Response {
+		return ctx.Response().View().Make("map.tmpl", map[string]any{
+			"version": support.Version,
+		})
+	})
+
 	// Login
 	facades.Route().Get("login", func(ctx http.Context) http.Response {
 		loginURL := "/api/user/login"
@@ -22,6 +26,13 @@ func Web() {
 			"loginURL": loginURL,
 			"version":  support.Version,
 		})
+	})
+	// Logout
+	facades.Route().Get("logout", func(ctx http.Context) http.Response {
+		facades.Cache().Flush()
+		facades.Auth().Logout(ctx)
+
+		return ctx.Response().Redirect(http.StatusFound, "/login")
 	})
 
 	// Register
@@ -37,15 +48,17 @@ func Web() {
 	facades.Route().Get("dashboard", func(ctx http.Context) http.Response {
 		// Retrieve cached user data
 		userInfo := facades.Cache().Get("user_data")
-		fmt.Println(userInfo)
+		dataKeamananURL := "/api/rekap/keamanan/listRekapKeamanan"
+		// fmt.Println(userInfo)
 
-		// Check if data is available in cache
+		// // Check if data is available in cache
 		if userInfo != nil {
 			return ctx.Response().View().Make("index.tmpl", map[string]interface{}{
-				"title":       "Dashboard | Rekapitulasi",
-				"pageheading": "Dashboard",
-				"version":     support.Version,
-				"data":        userInfo,
+				"title":           "Dashboard | Rekapitulasi",
+				"pageheading":     "Dashboard",
+				"version":         support.Version,
+				"dataKeamananURL": dataKeamananURL,
+				"data":            userInfo,
 			})
 		}
 

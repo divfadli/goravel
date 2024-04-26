@@ -1,1 +1,1 @@
-DROP SCHEMA IF EXISTS "rekapitulasi";
+-- DROP SCHEMA IF EXISTS "rekapitulasi";

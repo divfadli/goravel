@@ -1,1 +1,1 @@
-CREATE SCHEMA rekapitulasi;
+-- CREATE SCHEMA rekapitulasi;

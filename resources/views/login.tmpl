@@ -7,6 +7,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="/css/sb-admin-2.min.css" rel="stylesheet">
+    <link rel="icon" href="/img/logo_bakamla.png" />
 
     <title>Login</title>
 </head>
@@ -17,26 +18,25 @@
         <div class="col-md-5 offset-md-3">
           <div class="card">
             <div class="card-body">
-              <label>LOGIN</label>
-              <hr>
+              <img class="mx-auto d-block" src="/img/logo_bakamla.png" alt="logo" width="200px">
+                <form id="form-login" action="{{.loginURL}}" method="post">
+                  <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" class="form-control" id="username" placeholder="Masukkan Username" required
+                    oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Username tidak boleh kosong')">
+                  </div>
 
-                <div class="form-group">
-                  <label>Username</label>
-                  <input type="text" class="form-control" id="username" placeholder="Masukkan Username" required>
-                </div>
-
-                <div class="form-group">
-                  <label>Password</label>
-                  <input type="password" class="form-control" id="password" placeholder="Masukkan Password" required>
-                </div>
-                <button type="submit" class="btn btn-login btn-block btn-success">LOGIN</button>
+                  <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" class="form-control" id="password" placeholder="Masukkan Password" required
+                    oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Password tidak boleh kosong')">
+                  </div>
+                  <button type="submit" class="btn btn-block btn-success">LOGIN</button>
+                  
+                  <p style="color:red" id="error-message"></p>
+                </form>
             </div>
           </div>
-
-          <div class="text-center" style="margin-top: 15px">
-            Belum punya akun? <a href="/register">Silahkan Register</a>
-          </div>
-
         </div>
       </div>
     </div>
@@ -48,35 +48,23 @@
 
 <script>
     $(document).ready(function() {
-        $(".btn-login").click( function() {
-            
-            var username = $("#username").val();
-            var password = $("#password").val();
+         $("#form-login").submit( function(e) {
+            e.preventDefault();
 
             $.ajax({
-                url: "{{.loginURL}}",
+                url: $(this).attr("action"),
                 method: "POST",
-                data: {username: username, password: password},
+                data: {
+                  username: $("#username").val(), 
+                  password: $("#password").val()
+                },
                 success: function(data) {
-                    Swal.fire({
-                        type: 'success',
-                        title: 'Login Berhasil!',
-                        text: "Loading...",
-                        timer: 2000,
-                        onBeforeOpen: () => {
-                            swal.showLoading();
-                        },
-                        showConfirmButton: false
-                    }).then(function() {
-                        window.location.href = "/dashboard";
-                    });
+                  window.location.href = "/dashboard";
                 },
                 error:function(response){
-                    Swal.fire({
-                        type: 'error',
-                        title: 'Opps!',
-                        text: response.responseJSON.message
-                    });
+                  $("#password").val("");
+                  $("#password").focus();
+                  $("#error-message").text(response.responseJSON.message);
                 }
             });
             
