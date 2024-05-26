@@ -5,7 +5,6 @@ import (
 	"github.com/goravel/framework/facades"
 
 	"goravel/app/http/controllers"
-	"goravel/app/http/middleware"
 )
 
 func Api() {
@@ -15,8 +14,8 @@ func Api() {
 
 			user.Get("users", userController.Show)
 			user.Post("login", userController.Login)
-			user.Post("register", userController.Register)
-			user.Middleware(middleware.Jwt(), middleware.Cors()).Get("info", userController.Info)
+			// user.Post("register", userController.Register)
+			// user.Middleware(middleware.Jwt(), middleware.Cors()).Get("info", userController.Info)
 		})
 
 		r.Prefix("kejadian").Group(func(kejadian route.Router) {
@@ -30,12 +29,12 @@ func Api() {
 
 		r.Prefix("rekap").Group(func(rekap route.Router) {
 			rekap.Prefix("keamanan").Group(func(keamanan route.Router) {
-				rekapKeamananController := controllers.NewRekapKejadianKeamananController()
+				// rekapKeamananController := controllers.NewRekapKejadianKeamananController()
 
-				keamanan.Post("storeRekapKeamanan", rekapKeamananController.StoreRekapKeamanan)
-				keamanan.Post("listRekapKeamanan", rekapKeamananController.ListRekapKeamanan)
-				keamanan.Get("showDetailRekapKeamanan", rekapKeamananController.ShowDetailRekapKeamanan)
-				keamanan.Delete("deleteRekapKeamanan", rekapKeamananController.DeleteRekapKeamanan)
+				// keamanan.Post("storeRekapKeamanan", rekapKeamananController.StoreRekapKeamanan)
+				// keamanan.Post("listRekapKeamanan", rekapKeamananController.ListRekapKeamanan)
+				// keamanan.Get("showDetailRekapKeamanan", rekapKeamananController.ShowDetailRekapKeamanan)
+				// keamanan.Delete("deleteRekapKeamanan", rekapKeamananController.DeleteRekapKeamanan)
 			})
 		})
 	})

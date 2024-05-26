@@ -7,14 +7,15 @@ import (
 
 type Karyawan struct {
 	EmpNo        string      `json:"emp_no" gorm:"primary_key"`
-	Name         string      `json:"name"`
-	Gender       string      `json:"gender"`
-	Agama        string      `json:"agama"`
-	TanggalLahir carbon.Date `json:"tanggal_lahir"`
-	HP           string      `json:"hp"`
-	PosID        string      `json:"pos_id"`
-	SupPosID     string      `json:"sup_pos_id"`
-	SupEmpNo     string      `json:"sup_emp_no"`
+	Name         string      `json:"name" gorm:"default:not null" column:"name"`
+	Gender       string      `json:"gender" gorm:"default:not null" column:"gender"`
+	Agama        string      `json:"agama" gorm:"default:not null" column:"agama"`
+	TanggalLahir carbon.Date `json:"tanggal_lahir" gorm:"default:not null" column:"tanggal_lahir"`
+	UserID       int         `json:"user_id" gorm:"default:not null" column:"user_id"`
+	User         Akun        `gorm:"foreign_key:user_id"`
+	JabatanID    int         `json:"jabatan_id" gorm:"default:not null" column:"jabatan_id"`
+	Jabatan      Jabatan     `gorm:"foreign_key:JabatanID"`
+	IDAtasan     *int        `json:"id_atasan" gorm:"default:null" column:"id_atasan"`
 	orm.Timestamps
 }
 

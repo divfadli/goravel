@@ -1,0 +1,18 @@
+package models
+
+import (
+	"github.com/goravel/framework/database/orm"
+)
+
+type ImageKeamanan struct {
+	IDImageKeamanan    uint8            `json:"id_image_keamanan" gorm:"primary_key" column:"id_image_keamanan"`
+	FileImageID        int              `json:"file_image_id" gorm:"default:not null" column:"file_image_id"`
+	FileImage          FileImage        `gorm:"foreignKey:FileImageID"`
+	KejadianKeamananID int              `json:"kejadian_keamanan_id" gorm:"default:not null" column:"kejadian_keamanan_id"`
+	KejadianKeamanan   KejadianKeamanan `gorm:"foreignKey:KejadianKeamananID"`
+	orm.Timestamps
+}
+
+func (r *ImageKeamanan) TableName() string {
+	return "public.image_keamanan"
+}

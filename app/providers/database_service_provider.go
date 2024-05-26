@@ -18,7 +18,7 @@ func (receiver *DatabaseServiceProvider) Register(app foundation.Application) {
 func (receiver *DatabaseServiceProvider) Boot(app foundation.Application) {
 	facades.Seeder().Register([]seeder.Seeder{
 		&seeders.DatabaseSeeder{},
-		&seeders.KlasifikasiKejadianSeeder{},
-		&seeders.KejadianSeeder{},
+		// &seeders.KlasifikasiKejadianSeeder{},
+		// &seeders.KejadianSeeder{},
 	})
 }

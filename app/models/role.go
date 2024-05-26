@@ -5,15 +5,14 @@ import (
 )
 
 type Role struct {
-	RoleID int    `gorm:"primary_key" json:"role_id"`
-	Name   string `gorm:"not null" json:"name"`
-	EmpNo  string `gorm:"not null" json:"emp_no"`
+	IDRole int    `gorm:"primary_key" json:"id_role" column:"id_role"`
+	Name   string `gorm:"not null" json:"name" column:"name"`
 	orm.Timestamps
 }
 
-type MyRole struct {
-	Name string `json:"name"`
-}
+// type MyRole struct {
+// 	Name string `json:"name"`
+// }
 
 func (r *Role) TableName() string {
 	return "public.role"

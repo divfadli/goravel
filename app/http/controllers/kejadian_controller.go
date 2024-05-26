@@ -42,16 +42,15 @@ func (r *KejadianController) PostKejadian(ctx http.Context) http.Response {
 	// 	return sanitize
 	// }
 
-	var kejadian models.Kejadian
-	var klasifikasi *models.KlasifikasiKejadian
+	var kejadian models.JenisKejadian
 
 	// Update data
 	if req.IdTypeKejadian != "" {
-		if err := facades.Orm().Query().Where("id_type_kejadian", req.IdTypeKejadian).First(&kejadian); err != nil || kejadian.IDTypeKejadian == "" {
+		if err := facades.Orm().Query().Where("id_type_kejadian", req.IdTypeKejadian).First(&kejadian); err != nil || kejadian.IDJenisKejadian == "" {
 			return ErrorSystem(ctx, "Data Tidak Ada")
 		}
 
-		kejadian.JenisPelanggaran = req.JenisPelanggaran
+		kejadian.NamaKejadian = req.JenisPelanggaran
 
 		if err := facades.Orm().Query().Save(&kejadian); err != nil {
 			return ErrorSystem(ctx, "Data Gagal Diubah")
@@ -62,16 +61,20 @@ func (r *KejadianController) PostKejadian(ctx http.Context) http.Response {
 	} else {
 		// Create data
 
-		if err := facades.Orm().Query().Where("id_klasifikasi", req.KlasifikasiId).First(&klasifikasi); err != nil || klasifikasi.IDKlasifikasi == 0 {
-			return ErrorSystem(ctx, "Data Tidak Ada")
-		}
+		// if err := facades.Orm().Query().Where("id_klasifikasi", req.KlasifikasiId).First(&klasifikasi); err != nil || klasifikasi.IDKlasifikasi == 0 {
+		// 	return ErrorSystem(ctx, "Data Tidak Ada")
+		// }
 
 		// Seed the random number generator
 		rand.Seed(time.Now().UnixNano())
 
-		kejadian.IDTypeKejadian = "TYP-000" + strconv.Itoa(rand.Intn(1000))
-		kejadian.JenisPelanggaran = req.JenisPelanggaran
-		kejadian.KlasifikasiID = uint(req.KlasifikasiId)
+		kejadian.IDJenisKejadian = "TYP-000" + strconv.Itoa(rand.Intn(1000))
+		kejadian.NamaKejadian = req.JenisPelanggaran
+		if uint(req.KlasifikasiId) == 1 {
+			kejadian.KlasifikasiName = "Keamanan Laut"
+		} else if uint(req.KlasifikasiId) == 2 {
+			kejadian.KlasifikasiName = "Keselamatan Laut"
+		}
 
 		if err := facades.Orm().Query().Create(&kejadian); err != nil {
 			return ErrorSystem(ctx, "Data Gagal Ditambahkan")
@@ -144,7 +147,7 @@ func (r *KejadianController) DeleteKejadian(ctx http.Context) http.Response {
 	// 	return sanitize
 	// }
 
-	var kejadian []models.Kejadian
+	var kejadian []models.JenisKejadian
 	if data, err := facades.Orm().Query().Where("id_type_kejadian", req.IdTypeKejadian).Delete(&kejadian); err != nil || data.RowsAffected == 0 {
 		return ErrorSystem(ctx, "Data Tidak Ada")
 	}
