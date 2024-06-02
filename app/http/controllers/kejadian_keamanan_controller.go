@@ -118,7 +118,7 @@ func (r *KejadianKeamananController) StoreKejadianKeamanan(ctx http.Context) htt
 		data_keamanan.Zona = req.Zona
 		data_keamanan.CreatedBy = req.Nik
 
-		if err := facades.Orm().Query().Table("public.jenis_kejadian").
+		if err := facades.Orm().Query().
 			Where("klasifikasi_name = ? AND id_jenis_kejadian = ?", "Keamanan Laut", req.JenisKejadianId).
 			First(&kejadian); err != nil || kejadian.IDJenisKejadian == "" {
 			return Error(ctx, http.StatusNotFound, "Data Kejadian Keamanan Tidak Ditemukan!!")
@@ -141,6 +141,8 @@ func (r *KejadianKeamananController) ListKejadianKeamanan(ctx http.Context) http
 		return SanitizeGet(ctx, chekRequestErr)
 	}
 
+	var rekap_keamanan []models.KejadianKeamanan
+	facades.Orm().Query().With("JenisKejadian").Where("nama_kejadian=?", "Pelanggaran Wilayah").Find(&rekap_keamanan)
 	// var rekap_keamanan []models.KejadianKeamanan
 	// query := facades.Orm().Query().Table("public.kejadian_keamanan").
 	// 	Join(`inner join public.jenis_kejadian k ON k.id_jenis_kejadian = public.kejadian_keamanan.jenis_kejadian_id`)
@@ -167,17 +169,23 @@ func (r *KejadianKeamananController) ListKejadianKeamanan(ctx http.Context) http
 	// 	return ErrorSystem(ctx, "Data Tidak Ada")
 	// }
 
-	var rekap_keamanan []models.KejadianKeamanan
-	if err := facades.Orm().Query().Join(`inner join public.jenis_kejadian k ON k.id_jenis_kejadian = public.kejadian_keamanan.jenis_kejadian_id`).
-		Where("public.kejadian_keamanan.jenis_kejadian_id =? ", "TYP-000024").
-		With("JenisKejadian").Find(&rekap_keamanan).
-		Error(); err != "" {
-		return ErrorSystem(ctx, "Data Tidak Ada")
-	}
+	// var kejadian_keamanan models.KejadianKeamanan
+	// facades.Orm().Query().Association("JenisKejadian").Find(&kejadian_keamanan)
+	// var jenis_kejadians []models.JenisKejadian
+
+	// facades.Orm().Query().Where("public.kejadian_keamanan.jenis_kejadian_id =? ", "TYP-000024").
+	// 	Find(&jenis_kejadians)
+
+	// if err := facades.Orm().Query().Join(`inner join public.jenis_kejadian k ON k.id_jenis_kejadian = public.kejadian_keamanan.jenis_kejadian_id`).
+	// 	Where("public.kejadian_keamanan.jenis_kejadian_id =? ", "TYP-000024").
+	// 	With("JenisKejadian").Find(&rekap_keamanan).
+	// 	Error; err != nil || len(rekap_keamanan) == 0 {
+	// 	return ErrorSystem(ctx, "Data Tidak Ada")
+	// }
 	// if err := facades.Orm().Query().Table("public.kejadian_keamanan").
 	// 	Join(`inner join public.jenis_kejadian k ON k.id_jenis_kejadian = public.kejadian_keamanan.jenis_kejadian_id`).
 	// 	Where("public.kejadian_keamanan.jenis_kejadian_id=?", "TYP-000024").
-	// 	Association("JenisKejadianId").Find(&rekap_keamanan).Error(); err != "" {
+	// 	Association("JenisKejadianId").Find(&rekap_keamanan).Error; err != nil || len(rekap_keamanan) == 0 {
 	// 	return ErrorSystem(ctx, "Data Tidak Ada")
 	// }
 
