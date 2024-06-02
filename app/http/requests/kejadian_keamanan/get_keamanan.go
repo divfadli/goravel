@@ -6,7 +6,7 @@ import (
 )
 
 type GetKeamanan struct {
-	IdRekapKeamanan string `form:"id_rekap_keamanan" json:"id_rekap_keamanan" binding:"required"`
+	IdKejadianKeamanan string `form:"id_kejadian_keamanan" json:"id_kejadian_keamanan" binding:"required"`
 }
 
 func (r *GetKeamanan) Authorize(ctx http.Context) error {
@@ -15,13 +15,13 @@ func (r *GetKeamanan) Authorize(ctx http.Context) error {
 
 func (r *GetKeamanan) Rules(ctx http.Context) map[string]string {
 	return map[string]string{
-		"id_rekap_keamanan": "required",
+		"id_kejadian_keamanan": "required",
 	}
 }
 
 func (r *GetKeamanan) Messages(ctx http.Context) map[string]string {
 	return map[string]string{
-		"id_rekap_keamanan.required": "ID Rekap Keamanan Cannot be Empty",
+		"id_kejadian_keamanan.required": "ID Kejadian Keamanan tidak boleh kosong!!",
 	}
 }
 

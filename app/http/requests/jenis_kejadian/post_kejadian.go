@@ -6,9 +6,9 @@ import (
 )
 
 type PostKejadian struct {
-	IdTypeKejadian string `form:"id_type_kejadian" json:"id_type_kejadian"`
-	JenisPelanggaran string `form:"jenis_pelanggaran" json:"jenis_pelanggaran" binding:"required"`
-	KlasifikasiId int `form:"klasifikasi_id" json:"klasifikasi_id" binding:"required"`
+	IdJenisKejadian string `form:"id_jenis_kejadian" json:"id_jenis_kejadian" binding:"required"`
+	NamaKejadian    string `form:"nama_kejadian" json:"nama_kejadian" binding:"required"`
+	KlasifikasiName string `form:"klasifikasi_name" json:"klasifikasi_name" binding:"required"`
 }
 
 func (r *PostKejadian) Authorize(ctx http.Context) error {
@@ -17,13 +17,13 @@ func (r *PostKejadian) Authorize(ctx http.Context) error {
 
 func (r *PostKejadian) Rules(ctx http.Context) map[string]string {
 	return map[string]string{
-		"klasifikasi_id": "required",
+		"klasifikasi_name": "required",
 	}
 }
 
 func (r *PostKejadian) Messages(ctx http.Context) map[string]string {
 	return map[string]string{
-		"klasifikasi_id.required": "Klasifikasi ID Cannot be Empty",
+		"klasifikasi_name.required": "Klasifikasi Name tidak boleh kosong!!",
 	}
 }
 

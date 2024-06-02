@@ -48,22 +48,24 @@ func (r *UserController) Login(ctx http.Context) http.Response {
 	var dataKaryawan models.Karyawan
 	facades.Orm().Query().Where("user_id", user.IDUser).First(&dataKaryawan)
 
-	// var count int64
+	var count int64
 	// facades.Orm().Query().Table("public.karyawan").Where("sup_pos_id=?", dataKaryawan.PosID).Count(&count)
+	facades.Orm().Query().Table("public.karyawan").Where("id_atasan", dataKaryawan.EmpNo).Count(&count)
 
 	is_superior := true
-	// if count == 0 {
-	// 	is_superior = false
-	// }
+	if count == 0 {
+		is_superior = false
+	}
 
-	// var roleKaryawan []models.MyRole
+	var role []models.MyRole
+	facades.Orm().Query().Table("public.role").Where("id_role=?", user.RoleID).Scan(&role)
 	// facades.Orm().Query().Table("public.role").Where("emp_no=?", dataKaryawan.EmpNo).Scan(&roleKaryawan)
-	// defaultRole := models.MyRole{
-	// 	Name: "karyawan",
-	// }
-	// if roleKaryawan == nil {
-	// 	roleKaryawan = append(roleKaryawan, defaultRole)
-	// }
+	defaultRole := models.MyRole{
+		Name: "karyawan",
+	}
+	if role == nil {
+		role = append(role, defaultRole)
+	}
 
 	token_access, loginErr := facades.Auth().LoginUsingID(ctx, user.IDUser)
 	if loginErr != nil {
@@ -79,10 +81,6 @@ func (r *UserController) Login(ctx http.Context) http.Response {
 		"expires_in":   access.ExpireAt,
 	}
 
-	// if user.UserType != "" {
-	// 	roleKaryawan = append(roleKaryawan, models.MyRole{Name: user.UserType})
-	// }
-
 	// Assuming Cache().Put and Cache().Get work correctly
 	cachedData := map[string]interface{}{
 		"token":       token,
@@ -90,7 +88,7 @@ func (r *UserController) Login(ctx http.Context) http.Response {
 		"email":       user.Email,
 		"nik":         dataKaryawan.EmpNo,
 		"is_superior": is_superior,
-		// "role":        roleKaryawan,
+		"role":        role,
 	}
 	facades.Cache().Put("user_data", cachedData, 2*time.Hour)
 

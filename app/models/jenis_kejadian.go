@@ -5,10 +5,11 @@ import (
 )
 
 type JenisKejadian struct {
-	IDJenisKejadian string `json:"id_jenis_kejadian" gorm:"primary_key" column:"id_jenis_kejadian"`
-	NamaKejadian    string `json:"nama_kejadian" gorm:"default:not null" column:"nama_kejadian"`
-	KlasifikasiName string `json:"klasifikasi_name" gorm:"default:not null" column:"klasifikasi_name"`
+	IDJenisKejadian string `json:"id_jenis_kejadian" gorm:"primary_key;column:id_jenis_kejadian"`
+	NamaKejadian    string `json:"nama_kejadian" gorm:"not null;column:nama_kejadian"`
+	KlasifikasiName string `json:"klasifikasi_name" gorm:"not null;column:klasifikasi_name"`
 	orm.Timestamps
+	CreatedBy string `json:"created_by" gorm:"not null;column:created_by"`
 }
 
 func (r *JenisKejadian) TableName() string {

@@ -6,7 +6,7 @@ import (
 )
 
 type ListKejadian struct {
-	KlasifikasiId int `form:"klasifikasi_id" json:"klasifikasi_id" binding:"required"`
+	KlasifikasiName string `form:"klasifikasi_name" json:"klasifikasi_name" binding:"required"`
 }
 
 func (r *ListKejadian) Authorize(ctx http.Context) error {
@@ -15,13 +15,13 @@ func (r *ListKejadian) Authorize(ctx http.Context) error {
 
 func (r *ListKejadian) Rules(ctx http.Context) map[string]string {
 	return map[string]string{
-		"klasifikasi_id": "required",
+		"klasifikasi_name": "required",
 	}
 }
 
 func (r *ListKejadian) Messages(ctx http.Context) map[string]string {
 	return map[string]string{
-		"klasifikasi_id.required": "Klasifikasi ID Cannot be Empty",
+		"klasifikasi_name.required": "Klasifikasi Name tidak boleh kosong!!",
 	}
 }
 

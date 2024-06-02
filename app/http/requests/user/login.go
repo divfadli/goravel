@@ -16,7 +16,7 @@ func (r *Login) Authorize(ctx http.Context) error {
 
 func (r *Login) Rules(ctx http.Context) map[string]string {
 	return map[string]string{
-		"username": "required",
+		"username": "required|email",
 		"password": "required|min_len:8",
 	}
 }
@@ -24,6 +24,7 @@ func (r *Login) Rules(ctx http.Context) map[string]string {
 func (r *Login) Messages(ctx http.Context) map[string]string {
 	return map[string]string{
 		"username.required": "Username Tidak Boleh Kosong ",
+		"username.email":    "Email Tidak Valid",
 		"password.required": "Password Tidak Boleh Kosong ",
 		"password.min_len":  "Masukkan Password Minimal 8 Karakter",
 	}

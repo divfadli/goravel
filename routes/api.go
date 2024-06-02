@@ -19,22 +19,20 @@ func Api() {
 		})
 
 		r.Prefix("kejadian").Group(func(kejadian route.Router) {
-			kejadianController := controllers.NewKejadianController()
+			jenisKejadianController := controllers.NewJenisKejadianController()
 
-			kejadian.Post("storeKejadian", kejadianController.PostKejadian)
-			kejadian.Post("listKejadian", kejadianController.ListKejadian)
-			kejadian.Get("showDetailKejadian", kejadianController.ShowDetailKejadian)
-			kejadian.Delete("deleteKejadian", kejadianController.DeleteKejadian)
-		})
+			kejadian.Post("storeKejadian", jenisKejadianController.PostKejadian)
+			kejadian.Post("listKejadian", jenisKejadianController.ListKejadian)
+			kejadian.Get("showDetailKejadian", jenisKejadianController.ShowDetailKejadian)
+			kejadian.Delete("deleteKejadian", jenisKejadianController.DeleteKejadian)
 
-		r.Prefix("rekap").Group(func(rekap route.Router) {
-			rekap.Prefix("keamanan").Group(func(keamanan route.Router) {
-				// rekapKeamananController := controllers.NewRekapKejadianKeamananController()
+			kejadian.Prefix("keamanan").Group(func(keamanan route.Router) {
+				KejadianKeamananController := controllers.NewKejadianKeamananController()
 
-				// keamanan.Post("storeRekapKeamanan", rekapKeamananController.StoreRekapKeamanan)
-				// keamanan.Post("listRekapKeamanan", rekapKeamananController.ListRekapKeamanan)
-				// keamanan.Get("showDetailRekapKeamanan", rekapKeamananController.ShowDetailRekapKeamanan)
-				// keamanan.Delete("deleteRekapKeamanan", rekapKeamananController.DeleteRekapKeamanan)
+				keamanan.Post("storeKejadianKeamanan", KejadianKeamananController.StoreKejadianKeamanan)
+				keamanan.Post("listKejadianKeamanan", KejadianKeamananController.ListKejadianKeamanan)
+				// keamanan.Get("showDetailKejadianKeamanan", KejadianKeamananController.ShowDetailKejadianKeamanan)
+				keamanan.Delete("deleteKejadianKeamanan", KejadianKeamananController.DeleteKejadianKeamanan)
 			})
 		})
 	})

@@ -28,6 +28,7 @@ type KejadianKeselamatan struct {
 	Zona                  string          `json:"zona" gorm:"default:not null" column:"zona"`
 	IsLocked              bool            `json:"is_locked" gorm:"default:false" column:"is_locked"`
 	orm.Timestamps
+	CreatedBy string `json:"created_by" gorm:"default: not null" column:"created_by"`
 }
 
 func (r *KejadianKeselamatan) TableName() string {

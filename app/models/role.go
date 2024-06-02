@@ -10,9 +10,9 @@ type Role struct {
 	orm.Timestamps
 }
 
-// type MyRole struct {
-// 	Name string `json:"name"`
-// }
+type MyRole struct {
+	Name string `json:"name"`
+}
 
 func (r *Role) TableName() string {
 	return "public.role"
