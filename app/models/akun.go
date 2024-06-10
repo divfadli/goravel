@@ -9,7 +9,7 @@ type Akun struct {
 	Email    string `gorm:"default:not null" column:"email"`
 	Password string `gorm:"default:not null" column:"password"`
 	orm.Timestamps
-	RoleID int  `json:"role_id" gorm:"default:not null" column:"role_id"`
+	RoleID int  `json:"role_id" gorm:"default:null" column:"role_id"`
 	Role   Role `gorm:"foreign_key:RoleID"`
 }
 

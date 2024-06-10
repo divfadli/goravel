@@ -21,7 +21,7 @@ func (r *GetKejadian) Rules(ctx http.Context) map[string]string {
 
 func (r *GetKejadian) Messages(ctx http.Context) map[string]string {
 	return map[string]string{
-		"id_jenis_kejadian.required": "ID Jenis Kejadian tidak boleh kosong!!",
+		"id_jenis_kejadian.required": "ID Jenis Kejadian Tidak Boleh Kosong!!",
 	}
 }
 

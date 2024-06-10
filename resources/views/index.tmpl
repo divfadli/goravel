@@ -74,9 +74,12 @@
 
 
           function setMarkers(map, locations) {
+            console.log(locations)
+            <!--  
             locations.forEach((a) => {
             marker = new L.marker([a.Latitude, a.Longitude]).bindPopup(a.NamaKapal).addTo(map);
             });
+            -->
           }
 
           function getInfoCallback(map, content) {
@@ -100,7 +103,7 @@
                   tanggal_akhir: "2024-03-10"
                 },
                 success: function(response) {
-                  setMarkers(map, response.data.data_rekap_keamanan)
+                  setMarkers(map, response.data.data_kejadian_keamanan)
                   resolve();
                 },
                 error: function(response) {

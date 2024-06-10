@@ -9,7 +9,7 @@ type KejadianKeamanan struct {
 	IdKejadianKeamanan uint8         `json:"id_kejadian_keamanan" gorm:"primary_key;column:id_kejadian_keamanan"`
 	Tanggal            carbon.Date   `json:"tanggal" gorm:"default:not null"`
 	JenisKejadianId    string        `json:"jenis_kejadian_id" gorm:"default:not null;column:jenis_kejadian_id"`
-	JenisKejadian      JenisKejadian `gorm:"foreign_key:JenisKejadianId;references:IDJenisKejadian"`
+	JenisKejadian      JenisKejadian `json:"jenis_kejadian" gorm:"foreign_key:JenisKejadianId;references:IDJenisKejadian"`
 	NamaKapal          string        `json:"nama_kapal" gorm:"default:not null;column:nama_kapal"`
 	SumberBerita       string        `json:"sumber_berita" gorm:"default:not null;column:sumber_berita"`
 	LinkBerita         string        `json:"link_berita" gorm:"default:not null;column:link_berita"`
@@ -29,6 +29,11 @@ type KejadianKeamanan struct {
 	IsLocked           bool          `json:"is_locked" gorm:"default:false;column:is_locked"`
 	orm.Timestamps
 	CreatedBy string `json:"created_by" gorm:"default:not null;column:created_by"`
+}
+
+type KejadianKeamananImage struct {
+	KejadianKeamanan
+	FileImage []FileImage `json:"file_image"`
 }
 
 // type DetailKejadianKeamanan struct {

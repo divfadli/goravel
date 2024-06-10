@@ -6,10 +6,10 @@ import (
 
 type ImageKeamanan struct {
 	IDImageKeamanan    uint8            `json:"id_image_keamanan" gorm:"primary_key" column:"id_image_keamanan"`
-	FileImageID        int              `json:"file_image_id" gorm:"default:not null" column:"file_image_id"`
-	FileImage          FileImage        `gorm:"foreignKey:FileImageID"`
-	KejadianKeamananID int              `json:"kejadian_keamanan_id" gorm:"default:not null" column:"kejadian_keamanan_id"`
-	KejadianKeamanan   KejadianKeamanan `gorm:"foreignKey:KejadianKeamananID"`
+	FileImageID        uint8            `json:"file_image_id" gorm:"default:0" column:"file_image_id"`
+	FileImage          FileImage        `gorm:"foreignKey:FileImageID;references:IdFileImage"`
+	KejadianKeamananID uint8            `json:"kejadian_keamanan_id" gorm:"default:0" column:"kejadian_keamanan_id"`
+	KejadianKeamanan   KejadianKeamanan `gorm:"foreignKey:KejadianKeamananID;references:IdKejadianKeamanan"`
 	orm.Timestamps
 }
 

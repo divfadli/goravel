@@ -32,7 +32,7 @@ func (r *UserController) Login(ctx http.Context) http.Response {
 	}
 
 	var user models.Akun
-	err := facades.Orm().Query().Where("email", req.Username).First(&user)
+	err := facades.Orm().Query().Where("email", req.Email).First(&user)
 	if err != nil {
 		facades.Log().Request(ctx.Request()).Tags("goravel", "User").With(map[string]any{
 			"error": err.Error(),
@@ -102,37 +102,30 @@ func (r *UserController) Login(ctx http.Context) http.Response {
 	})
 }
 
-// func (r *UserController) Register(ctx http.Context) http.Response {
-// 	var req RequestUser.Register
+func (r *UserController) Register(ctx http.Context) http.Response {
+	var req RequestUser.Register
 
-// 	if sanitize := SanitizePost(ctx, &req); sanitize != nil {
-// 		return sanitize
-// 	}
+	if sanitize := SanitizePost(ctx, &req); sanitize != nil {
+		return sanitize
+	}
 
-// 	var user models.Akun
+	var user models.Akun
 
-// 	facades.Orm().Query().Where("email=? OR nik=?", req.Username, req.Nik).First(&user)
-// 	if user.IDUser != 0 {
-// 		return Error(ctx, http.StatusForbidden, "Username or Nik already exists")
-// 	}
+	facades.Orm().Query().Where("email=?", req.Email).First(&user)
+	if user.IDUser != 0 {
+		return Error(ctx, http.StatusForbidden, "Email already exists")
+	}
 
-// 	if req.UserType != "" {
-// 		user.UserType = req.UserType
-// 	}
-// 	user.Username = req.Username
-// 	user.Password, _ = facades.Hash().Make(req.Password)
-// 	user.Email = req.Email
-// 	user.Nik = req.Nik
-// 	user.Name = req.Name
-// 	user.UserType = req.UserType
+	user.Password, _ = facades.Hash().Make(req.Password)
+	user.Email = req.Email
 
-// 	if err := facades.Orm().Query().Create(&user); err != nil {
-// 		return ErrorSystem(ctx, "Data Gagal Ditambahkan")
-// 	}
-// 	return Success(ctx, http.Json{
-// 		"Success": "Data Berhasil Ditambahkan",
-// 	})
-// }
+	if err := facades.Orm().Query().Create(&user); err != nil {
+		return ErrorSystem(ctx, "Data Gagal Ditambahkan")
+	}
+	return Success(ctx, http.Json{
+		"Success": "Data Berhasil Ditambahkan",
+	})
+}
 
 // func (r *UserController) Info(ctx http.Context) http.Response {
 // 	var user models.Akun

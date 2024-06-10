@@ -6,7 +6,7 @@ import (
 )
 
 type Login struct {
-	Username string `json:"username" form:"username"`
+	Email    string `json:"email" form:"email"`
 	Password string `json:"password" form:"password"`
 }
 
@@ -16,15 +16,15 @@ func (r *Login) Authorize(ctx http.Context) error {
 
 func (r *Login) Rules(ctx http.Context) map[string]string {
 	return map[string]string{
-		"username": "required|email",
+		"email":    "required|email",
 		"password": "required|min_len:8",
 	}
 }
 
 func (r *Login) Messages(ctx http.Context) map[string]string {
 	return map[string]string{
-		"username.required": "Username Tidak Boleh Kosong ",
-		"username.email":    "Email Tidak Valid",
+		"email.required":    "Email Tidak Boleh Kosong ",
+		"email.email":       "Email Tidak Valid",
 		"password.required": "Password Tidak Boleh Kosong ",
 		"password.min_len":  "Masukkan Password Minimal 8 Karakter",
 	}

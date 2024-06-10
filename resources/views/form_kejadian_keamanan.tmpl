@@ -1,0 +1,313 @@
+{{ define "form_kejadian_keamanan.tmpl"}}
+
+{{ template "templates/layout.tmpl" .}}
+
+    <form id="form-kejadian-keamanan" action="{{.kejadianKeamananURL}}" method="post">
+        <div class="card-body col-md-12 col-lg-12">
+            <div class="card card-custom gutter-b">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <label class="col-sm-4 col-form-label" for="tanggal_kejadian">Tanggal</label>
+                                <div class="col-sm-8">
+                                    <input type="date" id="tanggal_kejadian" name="tanggal_kejadian" class="form-control form-control-sm" data-error="Tanggal Pelanggaran harus diisi." required>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-sm-4 col-form-label" for="jenis_pelanggaran">Jenis Pelanggaran</label>
+                                <div class="col-sm-8">
+                                    <select name="jenis_pelanggaran" id="jenis_pelanggaran" data-error="Pilih Jenis Pelanggaran" class="form-control form-control-sm" required>
+                                        <option value="" selected disabled hidden> Pilih </option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-sm-4 col-form-label" for="nama_kapal">Nama Kapal</label>
+                                <div class="col-sm-8">
+                                    <input type="text" id="nama_kapal" name="nama_kapal" class="form-control form-control-sm" data-error="Nama Kapal harus diisi." required>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-sm-4 col-form-label" for="imo_kapal">IMO Kapal</label>
+                                <div class="col-sm-8">
+                                    <input type="text" id="imo_kapal" name="imo_kapal" class="form-control form-control-sm" data-error="IMO Kapal harus diisi." required>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-sm-4 col-form-label" for="mmsi_kapal">MMSI Kapal</label>
+                                <div class="col-sm-8">
+                                    <input type="text" id="mmsi_kapal" name="mmsi_kapal" class="form-control form-control-sm" data-error="MMSI Kapal harus diisi." required>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-sm-4 col-form-label" for="sumber_berita">Sumber Berita</label>
+                                <div class="col-sm-8">
+                                    <input type="text" id="sumber_berita" name="sumber_berita" class="form-control form-control-sm" data-error="Sumber Berita harus diisi." required>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-sm-4 col-form-label" for="link_berita">Link Berita</label>
+                                <div class="col-sm-8">
+                                    <textarea id="link_berita" name="link_berita" class="form-control form-control-sm" data-error="Link Berita harus diisi." required style="font-size:1em;"></textarea>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-sm-4 col-form-label" for="muatan">Muatan</label>
+                                <div class="col-sm-8">
+                                    <textarea id="muatan" name="muatan" class="form-control form-control-sm" data-error="Muatan harus diisi." required style="font-size:1em;"></textarea>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-sm-4 col-form-label" for="asal">Asal</label>
+                                <div class="col-sm-8">
+                                    <input type="text" id="asal" name="asal" class="form-control form-control-sm" data-error="Asal harus diisi." required>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-sm-4 col-form-label" for="bendera">Bendera</label>
+                                <div class="col-sm-8">
+                                    <input type="text" id="bendera" name="bendera" class="form-control form-control-sm" data-error="Bendera harus diisi." required>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-sm-4 col-form-label" for="tujuan">Tujuan</label>
+                                <div class="col-sm-8">
+                                    <input type="text" id="tujuan" name="tujuan" class="form-control form-control-sm" data-error="Tujuan harus diisi." required>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-sm-4 col-form-label" for="kategori_sumber">Kategori Sumber</label>
+                                <div class="col-sm-8">
+                                    <select name="kategori_sumber" id="kategori_sumber" data-error="Pilih Kategori Sumber" class="form-control form-control-sm" required>
+                                        <option value="" selected disabled hidden> Pilih </option>
+                                        <option value="Media Online"> Media Online </option>
+                                        <option value="Puldata"> Puldata </option>
+                                        <option value="Media Online dan Puldata"> Media Online dan Puldata </option>
+                                        <option value="Media Online dan KPIML"> Media Online dan KPIML </option>
+                                        <option value="Media Online dan Operasi"> Media Online dan Operasi </option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                                <div class="col-sm-6">
+                                    <div class="input-group">
+                                        <input type="text" name="lokasi_kejadian" id="lokasi_kejadian" class="form-control bg-light border-0 small" placeholder="Cari Lokasi" aria-label="Search" aria-describedby="basic-addon2">
+                                        <div class="input-group-append">
+                                            <button onclick="search_location(); return false;" class="btn btn-primary" type="button">
+                                                <i class="fas fa-search fa-sm"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+
+                                <div class="col-sm-6">
+                                    <div class="form-inline">
+                                        <label class="my-1 mr-2" for="zona">Zona</label>
+                                        <select class="custom-select my-1 mr-sm-2" name="zona" id="zona" data-error="Pilih Zona" required>
+                                            <option value="" selected disabled hidden> Pilih </option>
+                                            <option value="BARAT"> Barat </option>
+                                            <option value="TENGAH"> Tengah </option>
+                                            <option value="TIMUR"> Timur </option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                            </div>
+
+                            <div id="map_location" style="border:1px solid #CCC; height:420px;"></div>
+                            <div class="form-group row">
+                                <div class="col-sm-12">
+                                    <input type="text" style="text-align: center" id="koordinat" name="koordinat" readonly="readonly" class="form-control form-control-sm" data-error="Koordinat harus diisi." required>
+                                </div>
+                            </div>
+                            
+                           <div class="form-group row">
+                                <label class="col-sm-4 col-form-label" for="tindak_lanjut">Tindak Lanjut</label>
+                                <div class="col-sm-8">
+                                    <textarea id="tindak_lanjut" name="tindak_lanjut" class="form-control form-control-sm" data-error="Tindak Lanjut harus diisi." required style="font-size:1em;"></textarea>
+                                </div>
+                            </div>
+
+                            <div class="form-group row">
+                                <label class="col-sm-4 col-form-label" for="informasi_kategori">Informasi Kategori</label>
+                                <div class="col-sm-8">
+                                    <textarea id="informasi_kategori" name="informasi_kategori" class="form-control form-control-sm" data-error="Informasi Kategori harus diisi." required style="font-size:1em;"></textarea>
+                                </div>
+                            </div>
+
+                            <div class="form-group row">
+                                <label class="col-sm-4 col-form-label" for="files">Image</label>
+                                <div class="col-sm-8">
+                                    <input type="file" id="file_input" name="files" accept="image/*" multiple>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- /.box-body -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer text-right">
+            <button type="submit" class="btn btn-primary">Save</button>
+            <button type="button" id="btn_batal" class="btn btn-danger" onclick="document.location='/dashboard'">Cancel</button>
+        </div>
+        <!-- /.box-footer -->
+    </form>
+
+ {{ template "layouts/script.tmpl" . }}
+
+    <script>
+        getJenisPelanggaran();
+
+        function getJenisPelanggaran(){
+            $.ajax({
+                url: window.location.origin+'/api/kejadian/listKejadian',
+                type: 'POST',
+                data: {
+                    klasifikasi_name: "Keamanan Laut" 
+                },
+                success: function(response) {
+                    response.data.data_jenis_kejadian.forEach((x,i) =>{
+                        $("#jenis_pelanggaran").append("<option value='"+x.id_jenis_kejadian+"'>"+x.nama_kejadian+"</option>");
+                    });
+                },
+                error:function(response){
+                    console.log(response);
+                }
+            });
+        };
+    </script>
+
+    <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAeQVXtdaEgd0Cfvjy41mjGZ6_f5thMVt4&loading=async&callback=initMap"></script>
+    
+    <script>
+
+       let marker;
+       let latitude,longitude;
+
+        function initMap() {
+            try {
+                map = new google.maps.Map(document.getElementById('map_location'), {
+                    center: { lat: -2.548926, lng: 118.0148634 },
+                    zoom: 4
+                });
+
+                infoWindow = new google.maps.InfoWindow();
+                geocoder = new google.maps.Geocoder();
+                console.log(geocoder);
+
+                map.addListener('click', function(mapsMouseEvent) {
+                    handleLocation(mapsMouseEvent.latLng);
+                });
+            } catch (error) {
+                console.error('Error initializing map:', error);
+            }
+        }
+
+
+        function handleLocation(latLng) {
+            geocoder.geocode({ 'location': latLng }, function (results, status) {
+                if (status === google.maps.GeocoderStatus.OK && results[0]) {
+                    updateLocationInfo(results[0]);
+                } else {
+                    console.error('Geocode was not successful for the following reason: ' + status);
+                }
+            });
+        }
+
+        function search_location() {
+            let address = $('#lokasi_kejadian').val();
+            geocoder.geocode({ 'address': address }, function (results, status) {
+                if (status === google.maps.GeocoderStatus.OK && results[0]) {
+                    updateLocationInfo(results[0]);
+                } else {
+                    console.error('Geocode was not successful for the following reason: ' + status);
+                }
+            });
+        }
+
+        function updateLocationInfo(result) {
+            infoWindow.close();
+
+            let location = result.formatted_address;
+            let index = location.indexOf(' ') + 1; // Find the first space and move one character forward
+            let address = location.substring(index);
+
+            let coordinates = result.geometry.location;
+            latitude = coordinates.lat();
+            longitude = coordinates.lng();
+
+            console.log(typeof latitude)
+            console.log(typeof longitude)
+
+            $('#lokasi_kejadian').val(address);
+            $('#koordinat').val(`Latitude: ${coordinates.lat()}; Longitude: ${coordinates.lng()}`);
+
+            if (marker) {
+                marker.setMap(null);
+            }
+
+            marker = new google.maps.Marker({
+                position: coordinates,
+                title: address,
+                draggable: true,
+                map: map
+            });
+
+            google.maps.event.addListener(marker, 'click', function () {
+                infoWindow.setContent('<b>' + this.title + '</b>');
+                infoWindow.open(map, this);
+            });
+
+            google.maps.event.addListener(marker, 'dragend', function (evt) {
+                handleLocation(evt.latLng);
+            });
+        }
+
+    </script>
+
+    <script>
+        $(document).ready(function() {
+            
+            $("#form-kejadian-keamanan").submit( function(e) {
+                e.preventDefault();
+                
+                $.ajax({
+                    url: $(this).attr("action"),
+                    method: "POST",
+                    data: {
+                        tanggal: $("#tanggal_kejadian").val(),
+                        jenis_kejadian_id: $("#jenis_pelanggaran").val(),
+                        nama_kapal: $("#nama_kapal").val(),
+                        sumber_berita: $("#sumber_berita").val(),
+                        link_berita: $("#link_berita").val(),
+                        lokasi_kejadian: $("#lokasi_kejadian").val(),
+                        muatan: $("#muatan").val(),
+                        asal: $("#asal").val(),
+                        bendera: $("#bendera").val(),
+                        tujuan: $("#tujuan").val(),
+                        latitude: latitude,
+                        longitude: longitude,
+                        kategori_sumber: $("#kategori_sumber").val(),
+                        tindak_lanjut: $("#tindak_lanjut").val(),
+                        imo_kapal: $("#imo_kapal").val(),
+                        mmsi_kapal: $("#mmsi_kapal").val(),
+                        informasi_kategori: $("#informasi_kategori").val(),
+                        zona: $("#zona").val(),
+                        nik: "99999"
+                    },
+                    success: function(data) {
+                        window.location.href = "/dashboard";
+                    },
+                });
+            });  
+        });
+        
+    </script>
+
+{{ end }}

@@ -1,7 +1,12 @@
 package controllers
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"errors"
+	"path/filepath"
+	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -79,4 +84,17 @@ func SanitizeGet(ctx http.Context, err error) http.Response {
 	}
 
 	return nil
+}
+
+func buildFileIdentificator(origFileName string) string {
+	ext := filepath.Ext(origFileName)
+	unixTime := time.Now().Unix()
+	str := origFileName + strconv.Itoa(int(unixTime))
+	data := []byte(str)
+	hasher := md5.New()
+	hasher.Write(data)
+	hash := hasher.Sum(nil)
+	hashedString := hex.EncodeToString(hash)
+	finalName := hashedString + ext
+	return finalName
 }

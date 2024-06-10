@@ -40,11 +40,12 @@ func (r *JenisKejadianController) PostKejadian(ctx http.Context) http.Response {
 
 	// Update data
 	if req.IdJenisKejadian != "" {
-		if err := facades.Orm().Query().Where("id_jenis_kejadian", req.IdJenisKejadian).First(&data); err != nil || data.IDJenisKejadian == "" {
+		if err := facades.Orm().Query().Where("id_jenis_kejadian=?", req.IdJenisKejadian).First(&data); err != nil || data.IDJenisKejadian == "" {
 			return ErrorSystem(ctx, "Data Tidak Ada")
 		}
 
 		data.NamaKejadian = req.NamaKejadian
+		data.CreatedBy = req.Nik
 
 		if err := facades.Orm().Query().Save(&data); err != nil {
 			return ErrorSystem(ctx, "Data Gagal Diubah")
@@ -60,6 +61,7 @@ func (r *JenisKejadianController) PostKejadian(ctx http.Context) http.Response {
 		data.IDJenisKejadian = "TYP-000" + strconv.Itoa(rand.Intn(1000))
 		data.NamaKejadian = req.NamaKejadian
 		data.KlasifikasiName = req.KlasifikasiName
+		data.CreatedBy = req.Nik
 
 		if err := facades.Orm().Query().Create(&data); err != nil {
 			return ErrorSystem(ctx, "Data Gagal Ditambahkan")
@@ -84,12 +86,12 @@ func (r *JenisKejadianController) ListKejadian(ctx http.Context) http.Response {
 	// }
 	var data []models.JenisKejadian
 
-	if err := facades.Orm().Query().Where("klasifikasi_name", req.KlasifikasiName).Find(&data); err != nil || len(data) == 0 {
+	if err := facades.Orm().Query().Where("klasifikasi_name =? AND deleted_at IS NULL", req.KlasifikasiName).Find(&data); err != nil || len(data) == 0 {
 		return ErrorSystem(ctx, "Data Tidak Ada")
 	}
 
 	return Success(ctx, http.Json{
-		"data_kejadian": data,
+		"data_jenis_kejadian": data,
 	})
 }
 
@@ -102,12 +104,12 @@ func (r *JenisKejadianController) ShowDetailKejadian(ctx http.Context) http.Resp
 
 	var data models.JenisKejadian
 
-	if err := facades.Orm().Query().Where("id_jenis_kejadian=?", req.IdJenisKejadian).First(&data); err != nil || data.IDJenisKejadian == "" {
+	if err := facades.Orm().Query().Where("id_jenis_kejadian=? AND deleted_at IS NULL", req.IdJenisKejadian).First(&data); err != nil || data.IDJenisKejadian == "" {
 		return ErrorSystem(ctx, "Data Tidak Ada")
 	}
 
 	return Success(ctx, http.Json{
-		"data_kejadian": data,
+		"data_jenis_kejadian": data,
 	})
 }
 
@@ -119,7 +121,7 @@ func (r *JenisKejadianController) DeleteKejadian(ctx http.Context) http.Response
 	}
 
 	var data []models.JenisKejadian
-	if x, err := facades.Orm().Query().Where("id_jenis_kejadian", req.IdJenisKejadian).Delete(&data); err != nil || x.RowsAffected == 0 {
+	if x, err := facades.Orm().Query().Where("id_jenis_kejadian=?", req.IdJenisKejadian).Delete(&data); err != nil || x.RowsAffected == 0 {
 		return ErrorSystem(ctx, "Data Tidak Ada")
 	}
 

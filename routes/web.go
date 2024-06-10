@@ -12,6 +12,7 @@ func Web() {
 	facades.Route().Static("/vendor", "./public/vendor")
 	facades.Route().Static("/img", "./public/img")
 	facades.Route().Static("/css", "./public/css")
+	facades.Route().Static("/api/files/", "./storage/app")
 
 	facades.Route().Get("/map", func(ctx http.Context) http.Response {
 		return ctx.Response().View().Make("map.tmpl", map[string]any{
@@ -48,7 +49,7 @@ func Web() {
 	facades.Route().Get("dashboard", func(ctx http.Context) http.Response {
 		// Retrieve cached user data
 		userInfo := facades.Cache().Get("user_data")
-		dataKeamananURL := "/api/rekap/keamanan/listRekapKeamanan"
+		dataKeamananURL := "/api/kejadian/keamanan/listKejadianKeamanan"
 		// fmt.Println(userInfo)
 
 		// // Check if data is available in cache
@@ -67,9 +68,22 @@ func Web() {
 		return ctx.Response().Redirect(http.StatusFound, "/login")
 	})
 
+	facades.Route().Prefix("jenis_kejadian").Group(func(r route.Router) {
+		r.Get("form_jenis_kejadian", func(ctx http.Context) http.Response {
+			storeJenisKejadian := "/api/kejadian/storeKejadian"
+			return ctx.Response().View().Make("form_jenis_kejadian.tmpl", map[string]interface{}{
+				"title":            "Form Jenis Kejadian | Rekapitulasi",
+				"pageheading":      "Form Jenis Kejadian",
+				"jenisKejadianURL": storeJenisKejadian,
+				"version":          support.Version,
+			})
+		})
+	})
+
 	// Rekap Data Kejadian
-	facades.Route().Prefix("rekap_data_kejadian").Group(func(r route.Router) {
-		r.Prefix("pelanggaran").Group(func(pelanggaran route.Router) {
+	facades.Route().Prefix("kejadian").Group(func(r route.Router) {
+
+		r.Prefix("keamanan").Group(func(pelanggaran route.Router) {
 			// Pelanggaran
 			pelanggaran.Get("", func(ctx http.Context) http.Response {
 				// Retrieve cached user data
@@ -89,16 +103,18 @@ func Web() {
 				return ctx.Response().Redirect(http.StatusFound, "/login")
 			})
 
-			pelanggaran.Get("/form_rekap_pel", func(ctx http.Context) http.Response {
-				return ctx.Response().View().Make("form_rekap_pel.tmpl", map[string]interface{}{
-					"title":       "Form Rekap | Pelanggaran",
-					"pageheading": "Form Pelanggaran",
-					"version":     support.Version,
+			pelanggaran.Get("form_kejadian_keamanan", func(ctx http.Context) http.Response {
+				storeKejadianKeamanan := "/api/kejadian/keamanan/storeKejadianKeamanan"
+				return ctx.Response().View().Make("form_kejadian_keamanan.tmpl", map[string]interface{}{
+					"title":               "Form Kejadian Keamanan",
+					"pageheading":         "Form Pelanggaran",
+					"kejadianKeamananURL": storeKejadianKeamanan,
+					"version":             support.Version,
 				})
 			})
 		})
 
-		r.Prefix("rekap_kecelakaan").Group(func(kecelakaan route.Router) {
+		r.Prefix("kecelakaan").Group(func(kecelakaan route.Router) {
 			// Pelanggaran
 			kecelakaan.Get("", func(ctx http.Context) http.Response {
 				// Retrieve cached user data

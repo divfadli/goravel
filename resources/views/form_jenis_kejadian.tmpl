@@ -1,0 +1,69 @@
+{{ define "form_jenis_kejadian.tmpl"}}
+
+{{ template "templates/layout.tmpl" .}}
+
+    <form id="form-jenis-kejadian" action="{{.jenisKejadianURL}}" method="post">
+        <div class="card-body col-md-12 col-lg-12">
+
+            <div class="card card-custom gutter-b">
+                <div class="card-body">
+                    <div class="col-md-6">
+                        <div class="form-group row">
+                            <label class="col-sm-4 col-form-label" for="klasifikasi_name">Nama Klasifikasi</label>
+                            <div class="col-sm-8">
+                                <select class="custom-select my-1 mr-sm-2" id="klasifikasi_name" name="klasifikasi_name">
+                                    <option value="Keamanan Laut">Keamanan Laut</option>
+                                    <option value="Keselamatan Laut">Keselamatan Laut</option>
+                                </select>
+                                <div class="help-block with-errors"></div>
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label class="col-sm-4 col-form-label" for="nama_kejadian">Nama Kejadian</label>
+                            <div class="col-sm-8">
+                                <input type="text" id="nama_kejadian" name="nama_kejadian" class="form-control form-control-solid" required
+                                oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Nama kejadian harus diisi..!!')">
+                                <div class="help-block with-errors"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.box-body -->
+            </div>
+        </div>
+
+        <div class="card-footer text-right">
+            <button type="submit" class="btn btn-primary">Save</button>
+            <button type="button" id="btn_batal" class="btn btn-danger" onclick="document.location='/dashboard'">Cancel</button>
+        </div>
+        <!-- /.box-footer -->
+    </form>
+
+    {{ template "layouts/script.tmpl" . }}
+
+
+    <script>
+        $(document).ready(function() {
+            
+            $("#form-jenis-kejadian").submit( function(e) {
+                e.preventDefault();
+
+                $.ajax({
+                    url: $(this).attr("action"),
+                    method: "POST",
+                    data: {
+                        nama_kejadian: $("#nama_kejadian").val(), 
+                        klasifikasi_name: $("#klasifikasi_name").val(),
+                        nik: "99999"
+                    },
+                    success: function(data) {
+                        window.location.href = "/dashboard";
+                    },
+                });
+                
+            });  
+        });
+    </script>
+
+{{ end }}

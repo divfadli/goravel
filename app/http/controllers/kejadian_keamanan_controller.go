@@ -4,10 +4,15 @@ import (
 	"fmt"
 	kejadianKeamanan "goravel/app/http/requests/kejadian_keamanan"
 	"goravel/app/models"
+	"path/filepath"
+	"strconv"
+	"strings"
+	"time"
 
 	"github.com/golang-module/carbon/v2"
 	"github.com/goravel/framework/contracts/http"
 	"github.com/goravel/framework/facades"
+	"github.com/goravel/framework/filesystem"
 )
 
 type KejadianKeamananController struct {
@@ -22,7 +27,7 @@ func NewKejadianKeamananController() *KejadianKeamananController {
 
 // func (r *KejadianKeamananController) Index(ctx http.Context) http.Response {
 // 	return nil
-// }
+//
 
 func (r *KejadianKeamananController) StoreKejadianKeamanan(ctx http.Context) http.Response {
 	var req kejadianKeamanan.PostKeamanan
@@ -31,7 +36,8 @@ func (r *KejadianKeamananController) StoreKejadianKeamanan(ctx http.Context) htt
 		return SanitizeGet(ctx, chekRequestErr)
 	}
 
-	// upload_file, handler, err := ctx.Request().Origin().FormFile("file")
+	form := ctx.Request().Origin().MultipartForm
+	files := form.File["files"]
 
 	var data_keamanan models.KejadianKeamanan
 	var kejadian models.JenisKejadian
@@ -39,9 +45,8 @@ func (r *KejadianKeamananController) StoreKejadianKeamanan(ctx http.Context) htt
 
 	// Update
 	if req.IdKejadianKeamanan != 0 {
-		if err := facades.Orm().Query().Table("public.kejadian_keamanan").
-			Join(`inner join public.kejadian k ON k.id_jenis_kejadian = public.kejadian_keamanan.jenis_kejadian_id`).
-			Where("k.klasifikasi_name = ? AND id_kejadian_keamanan = ? AND k.id_jenis_kejadian=?", "Keamanan Laut", req.IdKejadianKeamanan, req.JenisKejadianId).
+		if err := facades.Orm().Query().
+			Where("id_kejadian_keamanan = ? AND jenis_kejadian_id=?", req.IdKejadianKeamanan, req.JenisKejadianId).
 			First(&data_keamanan); err != nil || data_keamanan.IdKejadianKeamanan == 0 {
 			return Error(ctx, http.StatusNotFound, "Data Kejadian Keamanan Tidak Ditemukan!!")
 		}
@@ -51,7 +56,7 @@ func (r *KejadianKeamananController) StoreKejadianKeamanan(ctx http.Context) htt
 		} else {
 			data_keamanan.Tanggal = carbon.Parse(req.Tanggal).ToDateStruct()
 			fmt.Println(data_keamanan.Tanggal)
-			data_keamanan.JenisKejadianId = req.JenisKejadianId
+			// data_keamanan.JenisKejadianId = req.JenisKejadianId
 			data_keamanan.NamaKapal = req.NamaKapal
 			data_keamanan.SumberBerita = req.SumberBerita
 			data_keamanan.LinkBerita = req.LinkBerita
@@ -82,6 +87,53 @@ func (r *KejadianKeamananController) StoreKejadianKeamanan(ctx http.Context) htt
 
 			if err := facades.Orm().Query().Save(&data_keamanan); err != nil {
 				return ErrorSystem(ctx, "Data Gagal Diubah")
+			}
+
+			var fileImageKeamanan []models.ImageKeamanan
+			facades.Orm().Query().Where("kejadian_keamanan_id = ?", data_keamanan.IdKejadianKeamanan).Find(&fileImageKeamanan)
+
+			for _, file := range fileImageKeamanan {
+				var fileImage models.FileImage
+				facades.Orm().Query().Where("id_file_image=?", file.FileImageID).First(&fileImage)
+				facades.Storage().Delete(fileImage.Url)
+				facades.Orm().Query().Delete(&file)
+				facades.Orm().Query().Delete(&fileImage)
+			}
+
+			for _, fileHeader := range files {
+				file, err := fileHeader.Open()
+				if err != nil {
+					return Error(ctx, http.StatusInternalServerError, err.Error())
+				}
+				defer file.Close()
+
+				if !strings.HasPrefix(fileHeader.Header.Get("Content-Type"), "image/") {
+					return Error(ctx, http.StatusInternalServerError, "File Tidak Valid!!")
+				}
+
+				// You can directly pass the multipart.File to the storage function
+				newfileIdentificator := buildFileIdentificator(fileHeader.Filename)
+				newFile, _ := filesystem.NewFileFromRequest(fileHeader)
+
+				waktu := time.Now()
+				folder, err := facades.Storage().PutFileAs(strconv.Itoa(waktu.Year())+"/Photos/Keamanan/"+waktu.Month().String(), newFile, newfileIdentificator)
+
+				if err != nil {
+					return Error(ctx, http.StatusInternalServerError, err.Error())
+				}
+
+				var fileImage models.FileImage
+				fileImage.Filename = newfileIdentificator
+				fileImage.Extension = filepath.Ext(newfileIdentificator)
+				fileImage.Url = folder
+
+				facades.Orm().Query().Create(&fileImage)
+
+				var fileImageKeamanan models.ImageKeamanan
+				fileImageKeamanan.FileImageID = fileImage.IdFileImage
+				fileImageKeamanan.KejadianKeamananID = data_keamanan.IdKejadianKeamanan
+
+				facades.Orm().Query().Create(&fileImageKeamanan)
 			}
 
 			pesan = "Data Berhasil Diubah"
@@ -121,11 +173,47 @@ func (r *KejadianKeamananController) StoreKejadianKeamanan(ctx http.Context) htt
 		if err := facades.Orm().Query().
 			Where("klasifikasi_name = ? AND id_jenis_kejadian = ?", "Keamanan Laut", req.JenisKejadianId).
 			First(&kejadian); err != nil || kejadian.IDJenisKejadian == "" {
-			return Error(ctx, http.StatusNotFound, "Data Kejadian Keamanan Tidak Ditemukan!!")
+			return Error(ctx, http.StatusNotFound, "Data Jenis Kejadian Tidak Ditemukan!!")
 		}
 
 		if err := facades.Orm().Query().Create(&data_keamanan); err != nil {
 			return ErrorSystem(ctx, "Data Gagal Ditambahkan")
+		}
+
+		for _, fileHeader := range files {
+			file, err := fileHeader.Open()
+			if err != nil {
+				return Error(ctx, http.StatusInternalServerError, err.Error())
+			}
+			defer file.Close()
+
+			if !strings.HasPrefix(fileHeader.Header.Get("Content-Type"), "image/") {
+				return Error(ctx, http.StatusInternalServerError, "File Tidak Valid!!")
+			}
+
+			// You can directly pass the multipart.File to the storage function
+			newfileIdentificator := buildFileIdentificator(fileHeader.Filename)
+			newFile, _ := filesystem.NewFileFromRequest(fileHeader)
+
+			waktu := time.Now()
+			folder, err := facades.Storage().PutFileAs(strconv.Itoa(waktu.Year())+"/Photos/Keamanan/"+waktu.Month().String(), newFile, newfileIdentificator)
+
+			if err != nil {
+				return Error(ctx, http.StatusInternalServerError, err.Error())
+			}
+
+			var fileImage models.FileImage
+			fileImage.Filename = newfileIdentificator
+			fileImage.Extension = filepath.Ext(newfileIdentificator)
+			fileImage.Url = folder
+
+			facades.Orm().Query().Create(&fileImage)
+
+			var fileImageKeamanan models.ImageKeamanan
+			fileImageKeamanan.FileImageID = fileImage.IdFileImage
+			fileImageKeamanan.KejadianKeamananID = data_keamanan.IdKejadianKeamanan
+
+			facades.Orm().Query().Create(&fileImageKeamanan)
 		}
 
 		pesan = "Data Berhasil Ditambahkan"
@@ -137,84 +225,84 @@ func (r *KejadianKeamananController) StoreKejadianKeamanan(ctx http.Context) htt
 
 func (r *KejadianKeamananController) ListKejadianKeamanan(ctx http.Context) http.Response {
 	var req kejadianKeamanan.ListKeamanan
+
 	if chekRequestErr := ctx.Request().Bind(&req); chekRequestErr != nil {
 		return SanitizeGet(ctx, chekRequestErr)
 	}
 
-	var rekap_keamanan []models.KejadianKeamanan
-	facades.Orm().Query().With("JenisKejadian").Where("nama_kejadian=?", "Pelanggaran Wilayah").Find(&rekap_keamanan)
-	// var rekap_keamanan []models.KejadianKeamanan
-	// query := facades.Orm().Query().Table("public.kejadian_keamanan").
-	// 	Join(`inner join public.jenis_kejadian k ON k.id_jenis_kejadian = public.kejadian_keamanan.jenis_kejadian_id`)
+	var data_keamanan []models.KejadianKeamanan
 
-	// if req.Key != "" {
-	// 	query = query.Where(`(
-	// 							lower(k.nama_kejadian) like lower(?) OR
-	// 						 	lower(public.kejadian_keamanan.nama_kapal) like lower(?) OR
-	// 						 	lower(public.kejadian_keamanan.lokasi_kejadian) like lower(?)
-	// 						)`, "%"+req.Key+"%", "%"+req.Key+"%", "%"+req.Key+"%")
-	// }
+	query := facades.Orm().Query().
+		Join("inner join public.jenis_kejadian k on k.id_jenis_kejadian = jenis_kejadian_id ").
+		With("JenisKejadian")
 
-	// if req.Zona != "" {
-	// 	query = query.Where("lower(public.kejadian_keamanan.zona::text) like lower(?)", "%"+req.Zona+"%")
-	// }
+	if req.Key != "" {
+		query = query.Where(`(
+								lower(k.nama_kejadian) like lower(?) OR
+							 	lower(nama_kapal) like lower(?) OR
+							 	lower(lokasi_kejadian) like lower(?)
+							)`, "%"+req.Key+"%", "%"+req.Key+"%", "%"+req.Key+"%")
+	}
 
-	// tanggal_awal, _ := time.Parse(time.DateOnly, req.TanggalAwal)
-	// tanggal_akhir, _ := time.Parse(time.DateOnly, req.TanggalAkhir)
+	if req.Zona != "" {
+		query = query.Where("lower(zona::text) like lower(?)", "%"+req.Zona+"%")
+	}
 
-	// query = query.Where("public.kejadian_keamanan.tanggal between ? AND ?",
-	// 	tanggal_awal, tanggal_akhir)
+	tanggal_awal, _ := time.Parse(time.DateOnly, req.TanggalAwal)
+	tanggal_akhir, _ := time.Parse(time.DateOnly, req.TanggalAkhir)
 
-	// if err := query.Order("public.kejadian_keamanan.tanggal asc").Find(&)Scan(&rekap_keamanan); err != nil || len(rekap_keamanan) == 0 {
-	// 	return ErrorSystem(ctx, "Data Tidak Ada")
-	// }
+	query = query.Where("tanggal between ? AND ?",
+		tanggal_awal, tanggal_akhir)
 
-	// var kejadian_keamanan models.KejadianKeamanan
-	// facades.Orm().Query().Association("JenisKejadian").Find(&kejadian_keamanan)
-	// var jenis_kejadians []models.JenisKejadian
+	if err := query.Order("tanggal asc").Find(&data_keamanan); err != nil || len(data_keamanan) == 0 {
+		return ErrorSystem(ctx, "Data Tidak Ada")
+	}
 
-	// facades.Orm().Query().Where("public.kejadian_keamanan.jenis_kejadian_id =? ", "TYP-000024").
-	// 	Find(&jenis_kejadians)
+	var results []models.KejadianKeamananImage
+	for _, data := range data_keamanan {
+		var data_keamanan_image []models.FileImage
+		facades.Orm().Query().Join("inner join public.image_keamanan imk ON id_file_image = imk.file_image_id").
+			Where("imk.kejadian_keamanan_id=?", data.IdKejadianKeamanan).Find(&data_keamanan_image)
 
-	// if err := facades.Orm().Query().Join(`inner join public.jenis_kejadian k ON k.id_jenis_kejadian = public.kejadian_keamanan.jenis_kejadian_id`).
-	// 	Where("public.kejadian_keamanan.jenis_kejadian_id =? ", "TYP-000024").
-	// 	With("JenisKejadian").Find(&rekap_keamanan).
-	// 	Error; err != nil || len(rekap_keamanan) == 0 {
-	// 	return ErrorSystem(ctx, "Data Tidak Ada")
-	// }
-	// if err := facades.Orm().Query().Table("public.kejadian_keamanan").
-	// 	Join(`inner join public.jenis_kejadian k ON k.id_jenis_kejadian = public.kejadian_keamanan.jenis_kejadian_id`).
-	// 	Where("public.kejadian_keamanan.jenis_kejadian_id=?", "TYP-000024").
-	// 	Association("JenisKejadianId").Find(&rekap_keamanan).Error; err != nil || len(rekap_keamanan) == 0 {
-	// 	return ErrorSystem(ctx, "Data Tidak Ada")
-	// }
+		results = append(results, models.KejadianKeamananImage{
+			KejadianKeamanan: data,
+			FileImage:        data_keamanan_image,
+		})
+	}
 
 	return Success(ctx, http.Json{
-		"data": rekap_keamanan,
+		"data_kejadian_keamanan": results,
 	})
 }
 
-// func (r *KejadianKeamananController) ShowDetailKejadianKeamanan(ctx http.Context) http.Response {
-// 	var req kejadianKeamanan.GetKeamanan
+func (r *KejadianKeamananController) ShowDetailKejadianKeamanan(ctx http.Context) http.Response {
+	var req kejadianKeamanan.GetKeamanan
 
-// 	if sanitize := SanitizePost(ctx, &req); sanitize != nil {
-// 		return sanitize
-// 	}
+	if sanitize := SanitizePost(ctx, &req); sanitize != nil {
+		return sanitize
+	}
 
-// 	var data_keamanan models.DetailKejadianKeamanan
-// 	query := facades.Orm().Query().Table("public.kejadian_keamanan").
-// 		Join(`inner join public.kejadian k ON k.id_jenis_kejadian = public.kejadian_keamanan.jenis_kejadian_id`)
+	var data_keamanan models.KejadianKeamanan
 
-// 	query = query.Where("public.kejadian_keamanan.id_kejadian_keamanan", req.IdKejadianKeamanan)
+	if err := facades.Orm().Query().With("JenisKejadian").Where("id_kejadian_keamanan=?", req.IdKejadianKeamanan).
+		First(&data_keamanan); err != nil || data_keamanan.IdKejadianKeamanan == 0 {
+		return ErrorSystem(ctx, "Data Tidak Ada")
+	}
 
-// 	if err := query.First(&data_keamanan); err != nil || data_keamanan.IdKejadianKeamanan == 0 {
-// 		return ErrorSystem(ctx, "Data Tidak Ada")
-// 	}
+	var data_keamanan_image []models.FileImage
 
-// 	return Success(ctx, http.Json{
-// 		"data": data_keamanan,
-// 	})
-// }
+	facades.Orm().Query().Join("inner join public.image_keamanan imk ON id_file_image = imk.file_image_id").
+		Where("imk.kejadian_keamanan_id=?", data_keamanan.IdKejadianKeamanan).Find(&data_keamanan_image)
+
+	results := models.KejadianKeamananImage{
+		KejadianKeamanan: data_keamanan,
+		FileImage:        data_keamanan_image,
+	}
+
+	return Success(ctx, http.Json{
+		"data_kejadian_keamanan": results,
+	})
+}
 
 func (r *KejadianKeamananController) DeleteKejadianKeamanan(ctx http.Context) http.Response {
 	var req kejadianKeamanan.GetKeamanan
@@ -223,8 +311,21 @@ func (r *KejadianKeamananController) DeleteKejadianKeamanan(ctx http.Context) ht
 		return SanitizeGet(ctx, chekRequestErr)
 	}
 
-	var data_keamanan []models.KejadianKeamanan
-	if x, err := facades.Orm().Query().Where("id_kejadian_keamanan = ? AND is_locked is false", req.IdKejadianKeamanan).Delete(&data_keamanan); err != nil || x.RowsAffected == 0 {
+	var data_keamanan models.KejadianKeamanan
+	facades.Orm().Query().Where("id_kejadian_keamanan=? AND is_locked is false", req.IdKejadianKeamanan).First(&data_keamanan)
+
+	var fileImageKeamanan []models.ImageKeamanan
+	facades.Orm().Query().Where("kejadian_keamanan_id = ?", data_keamanan.IdKejadianKeamanan).Find(&fileImageKeamanan)
+
+	for _, file := range fileImageKeamanan {
+		var fileImage models.FileImage
+		facades.Orm().Query().Where("id_file_image=?", file.FileImageID).First(&fileImage)
+		facades.Storage().Delete(fileImage.Url)
+		facades.Orm().Query().Delete(&file)
+		facades.Orm().Query().Delete(&fileImage)
+	}
+
+	if x, err := facades.Orm().Query().Delete(&data_keamanan); err != nil || x.RowsAffected == 0 {
 		return ErrorSystem(ctx, "Data Tidak Ada / Data Tidak Dapat Dihapus")
 	}
 

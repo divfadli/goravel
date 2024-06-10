@@ -8,7 +8,7 @@ import (
 type PostKeamanan struct {
 	IdKejadianKeamanan int     `form:"id_kejadian_keamanan" json:"id_kejadian_keamanan"`
 	Tanggal            string  `form:"tanggal" json:"tanggal" binding:"required"`
-	JenisKejadianId     string  `form:"jenis_kejadian_id" json:"jenis_kejadian_id" binding:"required"`
+	JenisKejadianId    string  `form:"jenis_kejadian_id" json:"jenis_kejadian_id" binding:"required"`
 	NamaKapal          string  `form:"nama_kapal" json:"nama_kapal"`
 	SumberBerita       string  `form:"sumber_berita" json:"sumber_berita" binding:"required"`
 	LinkBerita         string  `form:"link_berita" json:"link_berita" binding:"required"`
@@ -35,7 +35,7 @@ func (r *PostKeamanan) Authorize(ctx http.Context) error {
 func (r *PostKeamanan) Rules(ctx http.Context) map[string]string {
 	return map[string]string{
 		"tanggal":            "required",
-		"jenis_kejadian_id":   "required",
+		"jenis_kejadian_id":  "required",
 		"sumber_berita":      "required",
 		"link_berita":        "required",
 		"lokasi_kejadian":    "required",
@@ -52,19 +52,19 @@ func (r *PostKeamanan) Rules(ctx http.Context) map[string]string {
 
 func (r *PostKeamanan) Messages(ctx http.Context) map[string]string {
 	return map[string]string{
-		"tanggal.required":            "Tanggal Cannot be Empty",
-		"jenis_kejadian_id.required":   "Type Kejadian ID Cannot be Empty",
-		"sumber_berita.required":      "Sumber Berita Cannot be Empty",
-		"link_berita.required":        "Link Berita Cannot be Empty",
-		"lokasi_kejadian.required":    "Lokasi Kejadian Cannot be Empty",
-		"muatan.required":             "Muatan Cannot be Empty",
-		"latitude.required":           "Latitude Cannot be Empty",
-		"longitude.required":          "Longitude Cannot be Empty",
-		"kategori_sumber.required":    "Kategori Sumber Cannot be Empty",
-		"tindak_lanjut.required":      "Tindak Lanjut Cannot be Empty",
-		"informasi_kategori.required": "Informasi Kategori Cannot be Empty",
-		"zona.required":               "Zona Cannot be Empty",
-		"nik.required":                "NIK Cannot be Empty",
+		"tanggal.required":            "Tanggal Tidak Boleh Kosong!!",
+		"jenis_kejadian_id.required":  "Jenis Kejadian ID Tidak Boleh Kosong!!",
+		"sumber_berita.required":      "Sumber Berita Tidak Boleh Kosong!!",
+		"link_berita.required":        "Link Berita Tidak Boleh Kosong!!",
+		"lokasi_kejadian.required":    "Lokasi Kejadian Tidak Boleh Kosong!!",
+		"muatan.required":             "Muatan Tidak Boleh Kosong!!",
+		"latitude.required":           "Latitude Tidak Boleh Kosong!!",
+		"longitude.required":          "Longitude Tidak Boleh Kosong!!",
+		"kategori_sumber.required":    "Kategori Sumber Tidak Boleh Kosong!!",
+		"tindak_lanjut.required":      "Tindak Lanjut Tidak Boleh Kosong!!",
+		"informasi_kategori.required": "Informasi Kategori Tidak Boleh Kosong!!",
+		"zona.required":               "Zona Tidak Boleh Kosong!!",
+		"nik.required":                "NIK Tidak Boleh Kosong!!",
 	}
 }
 

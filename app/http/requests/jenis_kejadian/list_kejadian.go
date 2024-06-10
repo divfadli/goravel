@@ -21,7 +21,7 @@ func (r *ListKejadian) Rules(ctx http.Context) map[string]string {
 
 func (r *ListKejadian) Messages(ctx http.Context) map[string]string {
 	return map[string]string{
-		"klasifikasi_name.required": "Klasifikasi Name tidak boleh kosong!!",
+		"klasifikasi_name.required": "Klasifikasi Nama Tidak Boleh Kosong!!",
 	}
 }
 

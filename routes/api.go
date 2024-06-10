@@ -8,13 +8,15 @@ import (
 )
 
 func Api() {
+	generates := controllers.NewGenerateLaporan()
+	facades.Route().Get("generate", generates.Index)
 	facades.Route().Prefix("api/").Group(func(r route.Router) {
 		r.Prefix("user").Group(func(user route.Router) {
 			userController := controllers.NewUserController()
 
 			user.Get("users", userController.Show)
 			user.Post("login", userController.Login)
-			// user.Post("register", userController.Register)
+			user.Post("register", userController.Register)
 			// user.Middleware(middleware.Jwt(), middleware.Cors()).Get("info", userController.Info)
 		})
 
@@ -31,7 +33,7 @@ func Api() {
 
 				keamanan.Post("storeKejadianKeamanan", KejadianKeamananController.StoreKejadianKeamanan)
 				keamanan.Post("listKejadianKeamanan", KejadianKeamananController.ListKejadianKeamanan)
-				// keamanan.Get("showDetailKejadianKeamanan", KejadianKeamananController.ShowDetailKejadianKeamanan)
+				keamanan.Get("showDetailKejadianKeamanan", KejadianKeamananController.ShowDetailKejadianKeamanan)
 				keamanan.Delete("deleteKejadianKeamanan", KejadianKeamananController.DeleteKejadianKeamanan)
 			})
 		})
