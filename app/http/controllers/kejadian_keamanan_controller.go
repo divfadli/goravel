@@ -92,14 +92,7 @@ func (r *KejadianKeamananController) StoreKejadianKeamanan(ctx http.Context) htt
 			var fileImageKeamanan []models.ImageKeamanan
 			facades.Orm().Query().Where("kejadian_keamanan_id = ?", data_keamanan.IdKejadianKeamanan).Find(&fileImageKeamanan)
 
-			for _, file := range fileImageKeamanan {
-				var fileImage models.FileImage
-				facades.Orm().Query().Where("id_file_image=?", file.FileImageID).First(&fileImage)
-				facades.Storage().Delete(fileImage.Url)
-				facades.Orm().Query().Delete(&file)
-				facades.Orm().Query().Delete(&fileImage)
-			}
-
+			var fileImage []models.FileImage
 			for _, fileHeader := range files {
 				file, err := fileHeader.Open()
 				if err != nil {
@@ -122,15 +115,25 @@ func (r *KejadianKeamananController) StoreKejadianKeamanan(ctx http.Context) htt
 					return Error(ctx, http.StatusInternalServerError, err.Error())
 				}
 
+				fileImage = append(fileImage, models.FileImage{
+					Filename:  newfileIdentificator,
+					Extension: filepath.Ext(newfileIdentificator),
+					Url:       folder,
+				})
+			}
+
+			for _, file := range fileImageKeamanan {
 				var fileImage models.FileImage
-				fileImage.Filename = newfileIdentificator
-				fileImage.Extension = filepath.Ext(newfileIdentificator)
-				fileImage.Url = folder
+				facades.Orm().Query().Where("id_file_image=?", file.FileImageID).First(&fileImage)
+				facades.Storage().Delete(fileImage.Url)
+				facades.Orm().Query().Delete(&file)
+				facades.Orm().Query().Delete(&fileImage)
+			}
 
-				facades.Orm().Query().Create(&fileImage)
-
+			facades.Orm().Query().Create(&fileImage)
+			for _, file := range fileImage {
 				var fileImageKeamanan models.ImageKeamanan
-				fileImageKeamanan.FileImageID = fileImage.IdFileImage
+				fileImageKeamanan.FileImageID = file.IdFileImage
 				fileImageKeamanan.KejadianKeamananID = data_keamanan.IdKejadianKeamanan
 
 				facades.Orm().Query().Create(&fileImageKeamanan)
@@ -254,9 +257,7 @@ func (r *KejadianKeamananController) ListKejadianKeamanan(ctx http.Context) http
 	query = query.Where("tanggal between ? AND ?",
 		tanggal_awal, tanggal_akhir)
 
-	if err := query.Order("tanggal asc").Find(&data_keamanan); err != nil || len(data_keamanan) == 0 {
-		return ErrorSystem(ctx, "Data Tidak Ada")
-	}
+	query.Order("tanggal asc").Find(&data_keamanan)
 
 	var results []models.KejadianKeamananImage
 	for _, data := range data_keamanan {
@@ -312,7 +313,11 @@ func (r *KejadianKeamananController) DeleteKejadianKeamanan(ctx http.Context) ht
 	}
 
 	var data_keamanan models.KejadianKeamanan
-	facades.Orm().Query().Where("id_kejadian_keamanan=? AND is_locked is false", req.IdKejadianKeamanan).First(&data_keamanan)
+	if err := facades.Orm().Query().
+		Where("id_kejadian_keamanan=? AND is_locked is false", req.IdKejadianKeamanan).
+		First(&data_keamanan); err != nil || data_keamanan.IdKejadianKeamanan == 0 {
+		return ErrorSystem(ctx, "Data Tidak Ada")
+	}
 
 	var fileImageKeamanan []models.ImageKeamanan
 	facades.Orm().Query().Where("kejadian_keamanan_id = ?", data_keamanan.IdKejadianKeamanan).Find(&fileImageKeamanan)
@@ -326,7 +331,7 @@ func (r *KejadianKeamananController) DeleteKejadianKeamanan(ctx http.Context) ht
 	}
 
 	if x, err := facades.Orm().Query().Delete(&data_keamanan); err != nil || x.RowsAffected == 0 {
-		return ErrorSystem(ctx, "Data Tidak Ada / Data Tidak Dapat Dihapus")
+		return ErrorSystem(ctx, "Gagal Menghapus Data!!")
 	}
 
 	return Success(ctx, "Data Berhasil Dihapus")

@@ -1,6 +1,8 @@
 package routes
 
 import (
+	"fmt"
+
 	"github.com/goravel/framework/contracts/http"
 	"github.com/goravel/framework/contracts/route"
 	"github.com/goravel/framework/facades"
@@ -13,6 +15,7 @@ func Web() {
 	facades.Route().Static("/img", "./public/img")
 	facades.Route().Static("/css", "./public/css")
 	facades.Route().Static("/api/files/", "./storage/app")
+	facades.Route().Static("/plugin", "./plugins/custom")
 
 	facades.Route().Get("/map", func(ctx http.Context) http.Response {
 		return ctx.Response().View().Make("map.tmpl", map[string]any{
@@ -37,7 +40,7 @@ func Web() {
 	})
 
 	// Register
-	facades.Route().Get("register", func(ctx http.Context) http.Response {
+	facades.Route().Get("/register", func(ctx http.Context) http.Response {
 		registerURL := "/api/user/register"
 		return ctx.Response().View().Make("register.tmpl", map[string]any{
 			"registerURL": registerURL,
@@ -86,30 +89,39 @@ func Web() {
 		r.Prefix("keamanan").Group(func(pelanggaran route.Router) {
 			// Pelanggaran
 			pelanggaran.Get("", func(ctx http.Context) http.Response {
+				dataKeamananURL := "/api/kejadian/keamanan/listKejadianKeamanan"
+				deleteKejadianKeamananURL := "/api/kejadian/keamanan/deleteKejadianKeamanan"
 				// Retrieve cached user data
-				userInfo := facades.Cache().Get("user_data")
+				// userInfo := facades.Cache().Get("user_data")
 
 				// Check if data is available in cache
-				if userInfo != nil {
-					return ctx.Response().View().Make("index.tmpl", map[string]interface{}{
-						"title":       "Pelanggaran | Rekapitulasi",
-						"pageheading": "Pelanggaran",
-						"version":     support.Version,
-						"data":        userInfo,
-					})
-				}
+				// if userInfo != nil {
+				return ctx.Response().View().Make("kejadian_keamanan.tmpl", map[string]interface{}{
+					"title":                     "Kejadian Keamanan",
+					"pageheading":               "Pelanggaran",
+					"version":                   support.Version,
+					"dataKeamananURL":           dataKeamananURL,
+					"deleteKejadianKeamananURL": deleteKejadianKeamananURL,
+					// "data":        userInfo,
+				})
+				// }
 
 				// For instance, you might redirect the user to the login page
-				return ctx.Response().Redirect(http.StatusFound, "/login")
+				// return ctx.Response().Redirect(http.StatusFound, "/login")
 			})
 
 			pelanggaran.Get("form_kejadian_keamanan", func(ctx http.Context) http.Response {
+				idKejadianKeamanan := ctx.Request().Query("id_kejadian_keamanan")
+				fmt.Println("MASUK")
 				storeKejadianKeamanan := "/api/kejadian/keamanan/storeKejadianKeamanan"
+				getKejadianKeamanan := "/api/kejadian/keamanan/showDetailKejadianKeamanan"
 				return ctx.Response().View().Make("form_kejadian_keamanan.tmpl", map[string]interface{}{
-					"title":               "Form Kejadian Keamanan",
-					"pageheading":         "Form Pelanggaran",
-					"kejadianKeamananURL": storeKejadianKeamanan,
-					"version":             support.Version,
+					"title":                  "Form Kejadian Keamanan",
+					"pageheading":            "Form Pelanggaran",
+					"kejadianKeamananURL":    storeKejadianKeamanan,
+					"getKejadianKeamananURL": getKejadianKeamanan,
+					"version":                support.Version,
+					"idKejadianKeamanan":     idKejadianKeamanan,
 				})
 			})
 		})

@@ -80,7 +80,7 @@ func SanitizeGet(ctx http.Context, err error) http.Response {
 		for i, fe := range ve {
 			out[i] = ErrorMessage{Field: fe.Field(), Message: getErrorMsg(fe)}
 		}
-		return ctx.Response().Json(http.StatusUnprocessableEntity, gin.H{"errorcode_": http.StatusUnprocessableEntity, "errormsg_": out})
+		return ctx.Response().Json(http.StatusUnprocessableEntity, gin.H{"code": http.StatusUnprocessableEntity, "message": out})
 	}
 
 	return nil
