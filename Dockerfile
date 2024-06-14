@@ -6,11 +6,12 @@ ENV GO111MODULE=on \
     GOOS=linux
 
 WORKDIR /build
+COPY go.mod go.sum ./
+RUN go mod download
 COPY . .
-RUN go mod tidy
 RUN go build --ldflags "-extldflags -static" -o main .
 
-FROM alpine:latest
+FROM ghcr.io/surnet/alpine-wkhtmltopdf:3.20.0-0.12.6-full
 
 WORKDIR /www
 
