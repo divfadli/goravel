@@ -21,6 +21,12 @@ func Web() {
 		})
 	})
 
+	facades.Route().Get("/approval", func(ctx http.Context) http.Response {
+		return ctx.Response().View().Make("approval.tmpl", map[string]any{
+			"version": support.Version,
+		})
+	})
+
 	// Login
 	facades.Route().Get("login", func(ctx http.Context) http.Response {
 		loginURL := "/api/user/login"
@@ -41,6 +47,8 @@ func Web() {
 	facades.Route().Get("/register", func(ctx http.Context) http.Response {
 		registerURL := "/api/user/register"
 		return ctx.Response().View().Make("register.tmpl", map[string]any{
+			"title":       "Approval | Rekapitulasi",
+			"pageheading": "Approval Laporan",
 			"registerURL": registerURL,
 			"version":     support.Version,
 		})
