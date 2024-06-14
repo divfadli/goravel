@@ -85,10 +85,6 @@ func (r *KejadianKeamananController) StoreKejadianKeamanan(ctx http.Context) htt
 			data_keamanan.Zona = req.Zona
 			data_keamanan.CreatedBy = req.Nik
 
-			if err := facades.Orm().Query().Save(&data_keamanan); err != nil {
-				return ErrorSystem(ctx, "Data Gagal Diubah")
-			}
-
 			var fileImageKeamanan []models.ImageKeamanan
 			facades.Orm().Query().Where("kejadian_keamanan_id = ?", data_keamanan.IdKejadianKeamanan).Find(&fileImageKeamanan)
 
@@ -122,6 +118,10 @@ func (r *KejadianKeamananController) StoreKejadianKeamanan(ctx http.Context) htt
 				})
 			}
 
+			if err := facades.Orm().Query().Save(&data_keamanan); err != nil {
+				return ErrorSystem(ctx, "Data Gagal Diubah")
+			}
+
 			for _, file := range fileImageKeamanan {
 				var fileImage models.FileImage
 				facades.Orm().Query().Where("id_file_image=?", file.FileImageID).First(&fileImage)
@@ -143,7 +143,6 @@ func (r *KejadianKeamananController) StoreKejadianKeamanan(ctx http.Context) htt
 		}
 	} else {
 		data_keamanan.Tanggal = carbon.Parse(req.Tanggal).ToDateStruct()
-		fmt.Println(data_keamanan.Tanggal)
 		data_keamanan.JenisKejadianId = req.JenisKejadianId
 		data_keamanan.NamaKapal = req.NamaKapal
 		data_keamanan.SumberBerita = req.SumberBerita
@@ -173,16 +172,7 @@ func (r *KejadianKeamananController) StoreKejadianKeamanan(ctx http.Context) htt
 		data_keamanan.Zona = req.Zona
 		data_keamanan.CreatedBy = req.Nik
 
-		if err := facades.Orm().Query().
-			Where("klasifikasi_name = ? AND id_jenis_kejadian = ?", "Keamanan Laut", req.JenisKejadianId).
-			First(&kejadian); err != nil || kejadian.IDJenisKejadian == "" {
-			return Error(ctx, http.StatusNotFound, "Data Jenis Kejadian Tidak Ditemukan!!")
-		}
-
-		if err := facades.Orm().Query().Create(&data_keamanan); err != nil {
-			return ErrorSystem(ctx, "Data Gagal Ditambahkan")
-		}
-
+		var fileImage []models.FileImage
 		for _, fileHeader := range files {
 			file, err := fileHeader.Open()
 			if err != nil {
@@ -205,15 +195,28 @@ func (r *KejadianKeamananController) StoreKejadianKeamanan(ctx http.Context) htt
 				return Error(ctx, http.StatusInternalServerError, err.Error())
 			}
 
-			var fileImage models.FileImage
-			fileImage.Filename = newfileIdentificator
-			fileImage.Extension = filepath.Ext(newfileIdentificator)
-			fileImage.Url = folder
+			fileImage = append(fileImage, models.FileImage{
+				Filename:  newfileIdentificator,
+				Extension: filepath.Ext(newfileIdentificator),
+				Url:       folder,
+			})
+		}
 
-			facades.Orm().Query().Create(&fileImage)
+		if err := facades.Orm().Query().
+			Where("klasifikasi_name = ? AND id_jenis_kejadian = ?", "Keamanan Laut", req.JenisKejadianId).
+			First(&kejadian); err != nil || kejadian.IDJenisKejadian == "" {
+			return Error(ctx, http.StatusNotFound, "Data Jenis Kejadian Tidak Ditemukan!!")
+		}
 
+		if err := facades.Orm().Query().Create(&data_keamanan); err != nil {
+			return ErrorSystem(ctx, "Data Gagal Ditambahkan")
+		}
+
+		facades.Orm().Query().Create(&fileImage)
+
+		for _, file := range fileImage {
 			var fileImageKeamanan models.ImageKeamanan
-			fileImageKeamanan.FileImageID = fileImage.IdFileImage
+			fileImageKeamanan.FileImageID = file.IdFileImage
 			fileImageKeamanan.KejadianKeamananID = data_keamanan.IdKejadianKeamanan
 
 			facades.Orm().Query().Create(&fileImageKeamanan)
@@ -222,7 +225,7 @@ func (r *KejadianKeamananController) StoreKejadianKeamanan(ctx http.Context) htt
 		pesan = "Data Berhasil Ditambahkan"
 	}
 	return Success(ctx, http.Json{
-		"Success": pesan,
+		"message": pesan,
 	})
 }
 

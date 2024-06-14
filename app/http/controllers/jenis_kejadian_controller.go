@@ -71,7 +71,7 @@ func (r *JenisKejadianController) PostKejadian(ctx http.Context) http.Response {
 	}
 
 	return Success(ctx, http.Json{
-		"Success": pesan,
+		"message": pesan,
 	})
 }
 
@@ -85,8 +85,12 @@ func (r *JenisKejadianController) ListKejadian(ctx http.Context) http.Response {
 	// 	return sanitize
 	// }
 	var data []models.JenisKejadian
+	query := facades.Orm().Query()
+	if req.KlasifikasiName != "" {
+		query = query.Where("klasifikasi_name =? AND deleted_at IS NULL", req.KlasifikasiName)
+	}
 
-	if err := facades.Orm().Query().Where("klasifikasi_name =? AND deleted_at IS NULL", req.KlasifikasiName).Find(&data); err != nil || len(data) == 0 {
+	if err := query.Find(&data); err != nil || len(data) == 0 {
 		return ErrorSystem(ctx, "Data Tidak Ada")
 	}
 

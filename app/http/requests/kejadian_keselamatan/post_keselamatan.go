@@ -13,9 +13,9 @@ type PostKeselamatan struct {
 	SumberBerita          string  `form:"sumber_berita" json:"sumber_berita" binding:"required"`
 	LinkBerita            string  `form:"link_berita" json:"link_berita" binding:"required"`
 	LokasiKejadian        string  `form:"lokasi_kejadian" json:"lokasi_kejadian" binding:"required"`
-	KorbanTewas           int     `form:"korban_tewas" json:"korban_tewas" binding:"required"`
-	KorbanSelamat         int     `form:"korban_selamat" json:"korban_selamat" binding:"required"`
-	KorbanHilang          int     `form:"korban_hilang" json:"korban_hilang" binding:"required"`
+	KorbanTewas           int     `form:"korban_tewas" json:"korban_tewas"`
+	KorbanSelamat         int     `form:"korban_selamat" json:"korban_selamat"`
+	KorbanHilang          int     `form:"korban_hilang" json:"korban_hilang"`
 	Latitude              float64 `form:"latitude" json:"latitude" binding:"required"`
 	Longitude             float64 `form:"longitude" json:"longitude" binding:"required"`
 	Penyebab              string  `form:"penyebab" json:"penyebab" binding:"required"`
@@ -42,9 +42,6 @@ func (r *PostKeselamatan) Rules(ctx http.Context) map[string]string {
 		"penyebab":          "required",
 		"latitude":          "required",
 		"longitude":         "required",
-		"korban_tewas":      "required",
-		"korban_selamat":    "required",
-		"korban_hilang":     "required",
 		"kategori_sumber":   "required",
 		"tindak_lanjut":     "required",
 		"keterangan":        "required",
@@ -63,9 +60,6 @@ func (r *PostKeselamatan) Messages(ctx http.Context) map[string]string {
 		"penyebab.required":          "Penyebab Tidak Boleh Kosong!!",
 		"latitude.required":          "Latitude Tidak Boleh Kosong!!",
 		"longitude.required":         "Longitude Tidak Boleh Kosong!!",
-		"korban_tewas.required":      "Korban Tewas Tidak Boleh Kosong!!",
-		"korban_selamat.required":    "Korban Selamat Tidak Boleh Kosong!!",
-		"korban_hilang.required":     "Korban Hilang Tidak Boleh Kosong!!",
 		"kategori_sumber.required":   "Kategori Sumber Tidak Boleh Kosong!!",
 		"tindak_lanjut.required":     "Tindak Lanjut Tidak Boleh Kosong!!",
 		"keterangan.required":        "Keterangan Tidak Boleh Kosong!!",

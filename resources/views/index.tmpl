@@ -1,24 +1,18 @@
 {{ define "index.tmpl"}}
 
 {{ template "templates/layout.tmpl" .}}
-{{ template "templates/heading_content.tmpl" . }}
+{{ template "layouts/script.tmpl" . }}
 <!-- Start about-info Area -->
 <section class="price-area section-gap">
-
   <section id="peta_indonesia" class="about-info-area section-gap">
     <div class="container">
-
       <div class="title text-center">
         <h1 class="mb-10">Peta Lokasi Kejadian</h1>
         <br>
       </div>
-
       <div class="row align-items-center">
-
         <div id="map" style="width:100%;height:420px;"></div>
-        <script>(g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})
-        ({key: "AIzaSyDkYiyUDkeJm28qaoaYuhfPPfiPJq8Vl-E", v: "weekly"});</script>
-
+        
         <!-- Script LeafletJS -->
         <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
         <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
@@ -32,13 +26,13 @@
                 'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
             id: 'mapbox/streets-v11'
           });
-          
-          var map = new L.Map('map',{
-            center:{ lat: -2.548926, lng: 118.0148634},
+
+          var map = new L.Map('map', {
+            center: { lat: -2.548926, lng: 118.0148634 },
             zoom: 4,
-            layers:peta1,
+            layers: peta1,
             drawControl: true
-          })
+          });
 
           async function initMap() {
             await getDataKeamanan();
@@ -47,11 +41,9 @@
               "Grayscale": peta1,
             };
 
-            var overlays = {
-            };
+            var overlays = {};
 
             L.control.layers(baseLayers).addTo(map);
-
 
             // FeatureGroup is to store editable layers
             var drawnItems = new L.FeatureGroup();
@@ -72,27 +64,14 @@
             map.addControl(drawControl);
           }
 
-
           function setMarkers(map, locations) {
-            console.log(locations)
-            <!--  
+            console.log(locations);
             locations.forEach((a) => {
-            marker = new L.marker([a.Latitude, a.Longitude]).bindPopup(a.NamaKapal).addTo(map);
+              new L.marker([a.latitude, a.longitude]).bindPopup(a.nama_kapal).addTo(map);
             });
-            -->
           }
 
-          function getInfoCallback(map, content) {
-              var infowindow = new google.maps.InfoWindow({
-                content: content
-              });
-              return function() {
-                infowindow.setContent(content);
-                infowindow.open(map, this);
-              };
-            }
-
-          async function getDataKeamanan(){
+          async function getDataKeamanan() {
             return new Promise((resolve, reject) => {
               $.ajax({
                 url: "{{.dataKeamananURL}}",
@@ -100,16 +79,16 @@
                 data: {
                   nik: "99999",
                   tanggal_awal: "2024-03-01",
-                  tanggal_akhir: "2024-03-10"
-                },
+                  tanggal_akhir: "2024-10-10"
+                },  
                 success: function(response) {
-                  setMarkers(map, response.data.data_kejadian_keamanan)
+                  setMarkers(map, response.data.data_kejadian_keamanan);
                   resolve();
                 },
                 error: function(response) {
                   Swal.fire({
                     type: 'error',
-                    title: 'Opps!',
+                    title: 'Oops!',
                     text: response.responseJSON.message
                   });
                   reject(response);
@@ -123,15 +102,8 @@
 
         <link href="https://api.mapbox.com/mapbox-gl-js/v3.2.0/mapbox-gl.css" rel="stylesheet">
         <script src="https://api.mapbox.com/mapbox-gl-js/v3.2.0/mapbox-gl.js"></script>
-      </div>
-
-
-    </div>
   </section>
   <!-- End about-info Area -->
 
-
-
   {{ template "layouts/footer.tmpl" . }}
-
-  {{ end }}
+{{ end }}

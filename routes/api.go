@@ -5,18 +5,25 @@ import (
 	"github.com/goravel/framework/facades"
 
 	"goravel/app/http/controllers"
+	pdf "goravel/app/http/controllers/generator"
 )
 
 func Api() {
-	generates := controllers.NewGenerateLaporan()
-	facades.Route().Get("generate", generates.Index)
-	facades.Route().Prefix("api/").Group(func(r route.Router) {
+	generates := pdf.NewPdf("")
+	facades.Route().Post("generate", generates.Index)
+	facades.Route().Prefix("api").Group(func(r route.Router) {
 		r.Prefix("user").Group(func(user route.Router) {
 			userController := controllers.NewUserController()
 
 			user.Get("users", userController.Show)
 			user.Post("login", userController.Login)
 			user.Post("register", userController.Register)
+			user.Get("dataPegawai", userController.FindPegawai)
+
+			user.Prefix("role").Group(func(role route.Router) {
+				role.Get("getRole", userController.GetRole)
+				role.Post("storeRole", userController.StoreRole)
+			})
 			// user.Middleware(middleware.Jwt(), middleware.Cors()).Get("info", userController.Info)
 		})
 
@@ -29,14 +36,22 @@ func Api() {
 			kejadian.Delete("deleteKejadian", jenisKejadianController.DeleteKejadian)
 
 			kejadian.Prefix("keamanan").Group(func(keamanan route.Router) {
-				KejadianKeamananController := controllers.NewKejadianKeamananController()
+				kejadianKeamananController := controllers.NewKejadianKeamananController()
 
-				keamanan.Post("storeKejadianKeamanan", KejadianKeamananController.StoreKejadianKeamanan)
-				keamanan.Post("listKejadianKeamanan", KejadianKeamananController.ListKejadianKeamanan)
-				keamanan.Get("showDetailKejadianKeamanan", KejadianKeamananController.ShowDetailKejadianKeamanan)
-				keamanan.Delete("deleteKejadianKeamanan", KejadianKeamananController.DeleteKejadianKeamanan)
+				keamanan.Post("storeKejadianKeamanan", kejadianKeamananController.StoreKejadianKeamanan)
+				keamanan.Post("listKejadianKeamanan", kejadianKeamananController.ListKejadianKeamanan)
+				keamanan.Get("showDetailKejadianKeamanan", kejadianKeamananController.ShowDetailKejadianKeamanan)
+				keamanan.Delete("deleteKejadianKeamanan", kejadianKeamananController.DeleteKejadianKeamanan)
+			})
+
+			kejadian.Prefix("keselamatan").Group(func(keselamatan route.Router) {
+				kejadianKeselamatanController := controllers.NewKejadianKeselamatanController()
+
+				keselamatan.Post("storeKejadianKeselamatan", kejadianKeselamatanController.StoreKejadianKeselamatan)
+				keselamatan.Post("listKejadianKeselamatan", kejadianKeselamatanController.ListKejadianKeselamatan)
+				keselamatan.Get("showDetailKejadianKeselamatan", kejadianKeselamatanController.ShowDetailKejadianKeselamatan)
+				keselamatan.Delete("deleteKejadianKeselamatan", kejadianKeselamatanController.DeleteKejadianKeselamatan)
 			})
 		})
 	})
-
 }

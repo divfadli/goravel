@@ -11,11 +11,11 @@ type Karyawan struct {
 	Gender       string      `json:"gender" gorm:"default:not null" column:"gender"`
 	Agama        string      `json:"agama" gorm:"default:not null" column:"agama"`
 	TanggalLahir carbon.Date `json:"tanggal_lahir" gorm:"default:not null" column:"tanggal_lahir"`
-	UserID       int         `json:"user_id" gorm:"default:not null" column:"user_id"`
-	User         Akun        `gorm:"foreign_key:user_id"`
-	JabatanID    int         `json:"jabatan_id" gorm:"default:not null" column:"jabatan_id"`
-	Jabatan      Jabatan     `gorm:"foreign_key:JabatanID"`
-	IDAtasan     *int        `json:"id_atasan" gorm:"default:null" column:"id_atasan"`
+	UserID       int         `json:"user_id" gorm:"default:0" column:"user_id"`
+	User         Akun        `json:"user" gorm:"foreign_key:user_id"`
+	JabatanID    int         `json:"jabatan_id" gorm:"default:0" column:"jabatan_id"`
+	Jabatan      Jabatan     `json:"jabatan" gorm:"foreign_key:JabatanID"`
+	IDAtasan     *int        `json:"id_atasan" gorm:"default:0" column:"id_atasan"`
 	orm.Timestamps
 }
 

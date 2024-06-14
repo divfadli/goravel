@@ -1,0 +1,94 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
+header {
+    background-color: #0077b6;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.header-container {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.logo-container {
+    margin-right: 20px;
+}
+
+.logo-container img {
+    width: 80px;
+    height: 80px;
+}
+
+.title-container {
+    flex-grow: 1;
+    text-align: center;
+}
+
+.title-container h1 {
+    color: white;
+    margin: 0;
+}
+
+main {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px;
+}
+
+.left-section {
+    width: 45%;
+}
+
+.left-section table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.left-section th,
+.left-section td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.left-section tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+.right-section {
+    width: 45%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.images-container {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.image-placeholder {
+    width: 30%;
+    height: 150px;
+    background-color: #ccc;
+}
+
+#map {
+    width: 100%;
+    height: 300px;
+}
+
+#map iframe {
+    width: 100%;
+    height: 100%;
+}

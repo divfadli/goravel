@@ -15,8 +15,8 @@ import (
 
 // SuccessResponse general success response
 type SuccessResponse struct {
-	Message string `json:"message"`
-	Data    any    `json:"data"`
+	Status string `json:"status"`
+	Data   any    `json:"data"`
 }
 
 // ErrorResponse general error response
@@ -41,8 +41,8 @@ func getErrorMsg(fe validator.FieldError) string {
 // Success response is successful
 func Success(ctx http.Context, data any) http.Response {
 	return ctx.Response().Success().Json(&SuccessResponse{
-		Message: "success",
-		Data:    data,
+		Status: "success",
+		Data:   data,
 	})
 }
 

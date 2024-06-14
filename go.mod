@@ -3,6 +3,7 @@ module goravel
 go 1.20
 
 require (
+	github.com/SebastiaanKlippert/go-wkhtmltopdf v1.9.2
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-playground/validator/v10 v10.19.0
 	github.com/golang-module/carbon/v2 v2.2.8

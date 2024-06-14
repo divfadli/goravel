@@ -6,7 +6,11 @@ import (
 
 	"fmt"
 	"log"
+	"strings"
 
+	template "html/template"
+
+	wkhtml "github.com/SebastiaanKlippert/go-wkhtmltopdf"
 	"github.com/unidoc/unioffice/presentation"
 	"github.com/unidoc/unioffice/schema/soo/pml"
 )
@@ -86,4 +90,56 @@ func (r *GenerateLaporan) Index(ctx http.Context) http.Response {
 	}
 	ppt.SaveToFile("mod.pptx")
 	return nil
+}
+
+func (r *GenerateLaporan) TestingConvert(ctx http.Context) http.Response {
+	data := struct {
+		Title string
+	}{
+		Title: "Sample PDF from Template",
+	}
+	tmpl, err := template.ParseFiles("template/sample.html")
+	if err != nil {
+		log.Fatal("X", err)
+	}
+
+	fmt.Println("STEP-1")
+
+	var htmlContent strings.Builder
+	err = tmpl.Execute(&htmlContent, data)
+	if err != nil {
+		log.Fatal("Y", err)
+	}
+	fmt.Println("STEP-2")
+
+	pdfg, err := wkhtml.NewPDFGenerator()
+	if err != nil {
+		log.Fatal("A", err)
+	}
+	fmt.Println("STEP-3")
+
+	// Add the generated HTML content to the PDF generator
+	page := wkhtml.NewPageReader(strings.NewReader(htmlContent.String()))
+	pdfg.AddPage(page)
+
+	fmt.Println("STEP-4")
+	// Generate the PDF
+	err = pdfg.Create()
+	if err != nil {
+		log.Fatal("B", err)
+	}
+	fmt.Println("STEP-5")
+
+	// Save the PDF to a file
+	outputFileName := "output_template.pdf"
+	err = pdfg.WriteFile(outputFileName)
+	if err != nil {
+		log.Fatal("C", err)
+	}
+	fmt.Println("STEP-6")
+
+	return ctx.Response().Success().Json(http.Json{
+		"message": "PDF generated successfully",
+		"file":    outputFileName,
+	})
 }

@@ -6,7 +6,7 @@ import (
 )
 
 type ListKejadian struct {
-	KlasifikasiName string `form:"klasifikasi_name" json:"klasifikasi_name" binding:"required"`
+	KlasifikasiName string `form:"klasifikasi_name" json:"klasifikasi_name"`
 }
 
 func (r *ListKejadian) Authorize(ctx http.Context) error {
@@ -14,15 +14,11 @@ func (r *ListKejadian) Authorize(ctx http.Context) error {
 }
 
 func (r *ListKejadian) Rules(ctx http.Context) map[string]string {
-	return map[string]string{
-		"klasifikasi_name": "required",
-	}
+	return map[string]string{}
 }
 
 func (r *ListKejadian) Messages(ctx http.Context) map[string]string {
-	return map[string]string{
-		"klasifikasi_name.required": "Klasifikasi Nama Tidak Boleh Kosong!!",
-	}
+	return map[string]string{}
 }
 
 func (r *ListKejadian) Attributes(ctx http.Context) map[string]string {

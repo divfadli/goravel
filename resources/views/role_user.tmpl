@@ -1,0 +1,153 @@
+{{ define "role_user.tmpl"}}
+
+{{ template "templates/layout.tmpl" .}}
+<input type="hidden" class="form-control" id="tanggal_awal" name="tanggal_awal"/>
+<input type="hidden" class="form-control" id="tanggal_akhir" name="tanggal_akhir"/>
+<input type="hidden" class="form-control" id="nik" name="nik" value="99999" />
+
+    <div class="card-body col-md-12 col-lg-12">
+        <div class="card card-custom gutter-b">
+            <div class="card-body py-10">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-inline">
+                            <div class="ml-auto">   
+                                <a href="/kejadian/keselamatan/form_kejadian_keselamatan" class="btn btn-primary py-2 px-4 font-weight-bolder font-size-m">
+                                    <i class="flaticon2-plus icon-sm"></i>Tambah Data
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="row" style="margin-top:20px">
+                    <div class="col-md-12">
+                        <div class="table-responsive">
+                            <table class="table table-head-custom table-head-bg table-hover text-center display nowrap" role="grid" id="kt_datatable">
+                                <thead>
+                                    <tr class="text-center" role="row">
+                                        <th>Nama User</th>
+                                        <th>Username</th>
+                                        <th>Role</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+ {{ template "layouts/script.tmpl" . }}
+
+<script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+
+{{ template "layouts/script_datatables.tmpl" . }}
+
+<script type="text/javascript">
+    let table = $('#kt_datatable').DataTable({
+        dom: '<"pull-left"f>tip',
+        scrollY: '80vh',
+        scrollX: true,
+        scrollCollapse: true,
+        searching: true,
+        columnDefs: [{
+            className: 'dt-body-nowarp',
+            targets: "_all"
+        }],
+        processing: true,
+        bLengthChange: true,
+        language: {
+            search: "Filter"
+        }
+    });
+</script>
+
+<script type="text/javascript">
+    searchDataKaryawanRole();
+    function searchDataKaryawanRole() {
+        $.ajax({
+            url: {{.dataKeselamatanURL}},
+            method: "POST",
+            data: {
+                nik: nik, 
+                tanggal_awal: tanggal_awal,
+                tanggal_akhir: tanggal_akhir,
+                zona: zona,
+                key: key
+            },
+            success: function(result) {
+                arr_data = result.data.data_kejadian_keselamatan
+                table.clear().draw();
+                if (arr_data.length >0){
+                    arr_data.forEach((x,i)=>{
+                        var nama_user = `<span class="font-weight-bold font-size-sm text-dark-50">${x.nama_user}</span>`
+                        var nama_kapal = `<span class="font-weight-bold font-size-sm text-dark-50">${x.nama_kapal}</span>`
+                        var jenis_pelanggaran = `<span class="font-weight-bold font-size-sm text-dark-50">${x.jenis_kejadian.nama_kejadian}</span>`
+                        var lokasi_kejadian = `<span class="font-weight-bold font-size-sm text-dark-50">${x.lokasi_kejadian}</span>`
+                        var zona = `<span class="font-weight-bold font-size-sm text-dark-50">${x.zona}</span>`
+                        var url = window.location.href + `form_kejadian_keselamatan?id_kejadian_keselamatan=${x.id_kejadian_keselamatan}`
+                        var action = `  <a href="${url}" class="btn btn-icon my-2 btn-sm btn-warning">
+                                            <i class="flaticon2-edit">Edit</i>
+                                        </a>
+                                        <button type="button" onclick="deleteKejadianKeselamatan('${x.id_kejadian_keselamatan}')" class="btn btn-icon my-2 btn-sm btn-danger">
+                                            <i class="flaticon2-trash">Delete</i>
+                                        </button>`
+                        table.row.add([tanggal, nama_kapal, jenis_pelanggaran, lokasi_kejadian, zona, action]).draw(false)
+                    })
+                }
+            },
+            error: function(data) {
+                table.clear().draw();
+                Swal.fire('Gagal!', 'Data Tidak Ada!!', 'error');
+            }
+        });
+    }
+        
+</script>
+
+<script>
+    function deleteKejadianKeselamatan(id_kejadian_keselamatan){
+        var data = {
+            id_kejadian_keselamatan: id_kejadian_keselamatan
+        }
+        Swal.fire({
+            title: 'Apakah anda yakin ingin Menghapus Data Kecelakaan ini?',
+            text: "Anda tidak akan dapat mengembalikan data ini!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Ya, Hapus!',
+            cancelButtonText: 'Batal'
+        }).then(function(result){
+            console.log(result)
+            if (result.value) {
+                $.ajax({
+                    url: {{.deleteKejadianKeselamatanURL}},
+                    type: "DELETE",
+                    contentType: "application/json",
+                    dataType: "json",
+                    data: JSON.stringify(data),
+                    success: function(result) {
+                        Swal.fire('Berhasil!', 'Data berhasil dihapus.', 'success');
+                        searchDataKeselamatan()
+                    },
+                    error: function(err){
+                        Swal.fire('Gagal!', 'Gagal Menghapus Data.', 'error');
+                    }
+                });
+            }
+        });
+
+    }
+</script>
+{{ end }}

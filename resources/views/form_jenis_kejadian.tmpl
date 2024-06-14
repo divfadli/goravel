@@ -2,12 +2,13 @@
 
 {{ template "templates/layout.tmpl" .}}
 
-    <form id="form-jenis-kejadian" action="{{.jenisKejadianURL}}" method="post">
+    <form id="form-jenis-kejadian" action="{{.storeJenisKejadianURL}}" method="post">
         <div class="card-body col-md-12 col-lg-12">
 
             <div class="card card-custom gutter-b">
                 <div class="card-body">
                     <div class="col-md-6">
+                        <input type="hidden" id="id_jenis_kejadian" name="id_jenis_kejadian" value="" />
                         <div class="form-group row">
                             <label class="col-sm-4 col-form-label" for="klasifikasi_name">Nama Klasifikasi</label>
                             <div class="col-sm-8">
@@ -42,6 +43,32 @@
 
     {{ template "layouts/script.tmpl" . }}
 
+<script>
+    var id_jenis_kejadian = {{.idJenisKejadian}};
+
+    if (id_jenis_kejadian !== null && id_jenis_kejadian !== "" && id_jenis_kejadian !== "<nil>") {
+        getJenisKejadian(id_jenis_kejadian);
+    }
+
+    async function getJenisKejadian(id) {
+        try {
+            const response = await $.ajax({
+                url: window.location.origin + {{ .getJenisKejadianURL }} + "?id_jenis_kejadian=" + id,
+                type: 'GET'
+            });
+
+            const data = response.data.data_jenis_kejadian;
+            if (data !== null) {
+                $("#id_jenis_kejadian").val(data.id_jenis_kejadian)
+                $("#klasifikasi_name").val(data.klasifikasi_name);
+                $("#klasifikasi_name").prop('disabled',true);
+                $("#nama_kejadian").val(data.nama_kejadian);
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+</script>
 
     <script>
         $(document).ready(function() {
@@ -53,13 +80,19 @@
                     url: $(this).attr("action"),
                     method: "POST",
                     data: {
+                        id_jenis_kejadian: $("#id_jenis_kejadian").val(),
                         nama_kejadian: $("#nama_kejadian").val(), 
                         klasifikasi_name: $("#klasifikasi_name").val(),
                         nik: "99999"
                     },
-                    success: function(data) {
-                        window.location.href = "/dashboard";
+                    success: function(response) {
+                        Swal.fire('Success!', response.data.message, response.status).then(() => {
+                           window.location.href = "/jenis_kejadian";
+                        });
                     },
+                    error: function(response) {
+                        Swal.fire('Gagal!', response.responseJSON.message, 'error');
+                    }
                 });
                 
             });  

@@ -1,8 +1,8 @@
-{{ define "form_kejadian_keamanan.tmpl"}}
+{{ define "form_kejadian_keselamatan.tmpl"}}
 
 {{ template "templates/layout.tmpl" .}}
 
-    <form id="form-kejadian-keamanan" action="{{.kejadianKeamananURL}}" method="post" enctype="multipart/form-data">
+    <form id="form-kejadian-keselamatan" action="{{.kejadianKeselamatanURL}}" method="post" enctype="multipart/form-data">
         <div class="card-body col-md-12 col-lg-12">
             <div class="card card-custom gutter-b">
                 <div class="card-body">
@@ -11,7 +11,7 @@
                             <input type="hidden" id="latitude" name="latitude" />
                             <input type="hidden" id="longitude" name="longitude" />
                             <input type="hidden" id="nik" name="nik" value="99999" />
-                            <input type="hidden" id="id_kejadian_keamanan" name="id_kejadian_keamanan" value="" />
+                            <input type="hidden" id="id_kejadian_keselamatan" name="id_kejadian_keselamatan" value="" />
                             <div class="form-group row">
                                 <label class="col-sm-4 col-form-label" for="tanggal_kejadian">Tanggal</label>
                                 <div class="col-sm-8">
@@ -20,9 +20,9 @@
                                 </div>
                             </div>
                             <div class="form-group row">
-                                <label class="col-sm-4 col-form-label" for="jenis_pelanggaran">Jenis Pelanggaran</label>
+                                <label class="col-sm-4 col-form-label" for="jenis_kecelakaan">Jenis Kecelakaan</label>
                                 <div class="col-sm-8">
-                                    <select name="jenis_kejadian_id" id="jenis_pelanggaran" data-error="Pilih Jenis Pelanggaran" class="form-control form-control-sm" required>
+                                    <select name="jenis_kejadian_id" id="jenis_kecelakaan" data-error="Pilih Jenis Kecelakaan" class="form-control form-control-sm" required>
                                     </select>
                                 </div>
                             </div>
@@ -31,20 +31,6 @@
                                 <div class="col-sm-8">
                                     <input type="text" id="nama_kapal" name="nama_kapal" class="form-control form-control-sm" required
                                     oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Nama Kapal harus diisi..!!')">
-                                </div>
-                            </div>
-                            <div class="form-group row">
-                                <label class="col-sm-4 col-form-label" for="imo_kapal">IMO Kapal</label>
-                                <div class="col-sm-8">
-                                    <input type="text" id="imo_kapal" name="imo_kapal" class="form-control form-control-sm" required
-                                    oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('IMO Kapal harus diisi..!!')">
-                                </div>
-                            </div>
-                            <div class="form-group row">
-                                <label class="col-sm-4 col-form-label" for="mmsi_kapal">MMSI Kapal</label>
-                                <div class="col-sm-8">
-                                    <input type="text" id="mmsi_kapal" name="mmsi_kapal" class="form-control form-control-sm" required
-                                    oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('MMSI Kapal harus diisi..!!')">
                                 </div>
                             </div>
                             <div class="form-group row">
@@ -61,32 +47,46 @@
                                     style="font-size:1em;" oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Link Berita harus diisi..!!')"></textarea>
                                 </div>
                             </div>
-                            <div class="form-group row">
-                                <label class="col-sm-4 col-form-label" for="muatan">Muatan</label>
+                             <div class="form-group row">
+                                <label class="col-sm-4 col-form-label" for="korban_tewas">Korban Tewas</label>
                                 <div class="col-sm-8">
-                                    <textarea id="muatan" name="muatan" class="form-control form-control-sm" required 
-                                    style="font-size:1em;" oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Muatan harus diisi..!!')"></textarea>
+                                    <input type="number" value="0" min="0" id="korban_tewas" name="korban_tewas" class="form-control form-control-sm" required
+                                    oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Korban Tewas harus diisi..!!')">
                                 </div>
                             </div>
                             <div class="form-group row">
-                                <label class="col-sm-4 col-form-label" for="asal">Asal</label>
+                                <label class="col-sm-4 col-form-label" for="korban_selamat">Korban Selamat</label>
                                 <div class="col-sm-8">
-                                    <input type="text" id="asal" name="asal" class="form-control form-control-sm" required
-                                    oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Asal harus diisi..!!')">
+                                    <input type="number" value="0" min="0" id="korban_selamat" name="korban_selamat" class="form-control form-control-sm" required
+                                    oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Korban Selamat harus diisi..!!')">
                                 </div>
                             </div>
                             <div class="form-group row">
-                                <label class="col-sm-4 col-form-label" for="bendera">Bendera</label>
+                                <label class="col-sm-4 col-form-label" for="korban_hilang">Korban Hilang</label>
                                 <div class="col-sm-8">
-                                    <input type="text" id="bendera" name="bendera" class="form-control form-control-sm" required
-                                    oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Bendera harus diisi..!!')">
+                                    <input type="number" value="0" min="0" id="korban_hilang" name="korban_hilang" class="form-control form-control-sm" required
+                                    oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Korban Hilang harus diisi..!!')">
                                 </div>
                             </div>
                             <div class="form-group row">
-                                <label class="col-sm-4 col-form-label" for="tujuan">Tujuan</label>
+                                <label class="col-sm-4 col-form-label" for="penyebab">Penyebab</label>
                                 <div class="col-sm-8">
-                                    <input type="text" id="tujuan" name="tujuan" class="form-control form-control-sm" required
-                                    oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Tujuan harus diisi..!!')">
+                                    <textarea id="penyebab" name="penyebab" class="form-control form-control-sm" required 
+                                    style="font-size:1em;" oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Penyebab harus diisi..!!')"></textarea>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-sm-4 col-form-label" for="pelabuhan_asal">Pelabuhan Asal</label>
+                                <div class="col-sm-8">
+                                    <input type="text" id="pelabuhan_asal" name="pelabuhan_asal" class="form-control form-control-sm" required
+                                    oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Pelabuhan Asal harus diisi..!!')">
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-sm-4 col-form-label" for="pelabuhan_tujuan">Pelabuhan Tujuan</label>
+                                <div class="col-sm-8">
+                                    <input type="text" id="pelabuhan_tujuan" name="pelabuhan_tujuan" class="form-control form-control-sm" required
+                                    oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Pelabuhan Tujuan harus diisi..!!')">
                                 </div>
                             </div>
                             <div class="form-group row">
@@ -149,7 +149,7 @@
                             <div class="form-group row">
                                 <label class="col-sm-4 col-form-label" for="informasi_kategori">Informasi Kategori</label>
                                 <div class="col-sm-8">
-                                    <textarea id="informasi_kategori" name="informasi_kategori" class="form-control form-control-sm" required 
+                                    <textarea id="informasi_kategori" name="keterangan" class="form-control form-control-sm" required 
                                     style="font-size:1em;" oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Informasi Kategori harus diisi..!!')"></textarea>
                                 </div>
                             </div>
@@ -169,7 +169,7 @@
         </div>
         <div class="card-footer text-right">
             <button type="submit" class="btn btn-primary">Save</button>
-            <button type="button" id="btn_batal" class="btn btn-danger" onclick="document.location='/kejadian/keamanan'">Cancel</button>
+            <button type="button" id="btn_batal" class="btn btn-danger" onclick="document.location='/kejadian/keselamatan'">Cancel</button>
         </div>
         <!-- /.box-footer -->
     </form>
@@ -177,45 +177,46 @@
  {{ template "layouts/script.tmpl" . }}
 
 <script>
-    var id_kejadian_keamanan = {{.idKejadianKeamanan}};
+    var id_kejadian_keselamatan = {{.idKejadianKeselamatan}};
     var jenisPelanggaranSelected = null;
 
     const fileInput = document.querySelector('#file_input');
     const fileList = document.querySelector('#file-list');
 
-    if (id_kejadian_keamanan !== null && id_kejadian_keamanan !== "" && id_kejadian_keamanan !== "<nil>") {
-        getKejadianKeamanan(id_kejadian_keamanan);
+    if (id_kejadian_keselamatan !== null && id_kejadian_keselamatan !== "" && id_kejadian_keselamatan !== "<nil>") {
+        getKejadianKeselamatan(id_kejadian_keselamatan);
     }
 
     fileInput.addEventListener('change', handleFileSelect);
 
-    async function getKejadianKeamanan(id) {
+    async function getKejadianKeselamatan(id) {
         try {
             const response = await $.ajax({
-                url: window.location.origin + {{ .getKejadianKeamananURL }} + "?id_kejadian_keamanan=" + id,
+                url: window.location.origin + {{ .getKejadianKeselamatanURL }} + "?id_kejadian_keselamatan=" + id,
                 type: 'GET'
             });
 
-            const data = response.data.data_kejadian_keamanan;
+            const data = response.data.data_kejadian_keselamatan;
             if (data !== null) {
-                $("#id_kejadian_keamanan").val(data.id_kejadian_keamanan);
+                $("#id_kejadian_keselamatan").val(data.id_kejadian_keselamatan);
                 $("#tanggal_kejadian").val(data.tanggal);
-                $("#jenis_pelanggaran").val(data.jenis_kejadian_id);
-                $("#jenis_pelanggaran").prop('disabled',true);
+                $("#jenis_kecelakaan").val(data.jenis_kejadian_id);
+                $("#jenis_kecelakaan").prop('disabled',true);
                 $("#nama_kapal").val(data.nama_kapal);
                 $("#sumber_berita").val(data.sumber_berita);
                 $("#link_berita").val(data.link_berita);
                 $("#lokasi_kejadian").val(`${data.latitude} ${data.longitude}`);
                 search_location()
-                $("#muatan").val(data.muatan);
-                $("#asal").val(data.asal);
+                $("#penyebab").val(data.penyebab);
+                $("#pelabuhan_asal").val(data.pelabuhan_asal);
                 $("#bendera").val(data.bendera);
-                $("#tujuan").val(data.tujuan);
-                $("#kategori_sumber").val(data.kategori_sumber);
+                $("#pelabuhan_tujuan").val(data.pelabuhan_tujuan);
+                $("#kategori_sumber").val(data.tipe_sumber_kejadian);
                 $("#tindak_lanjut").val(data.tindak_lanjut);
-                $("#imo_kapal").val(data.imo_kapal);
-                $("#mmsi_kapal").val(data.mmsi_kapal);
-                $("#informasi_kategori").val(data.informasi_kategori);
+                $("#korban_tewas").val(data.korban.korban_tewas);
+                $("#korban_selamat").val(data.korban.korban_selamat);
+                $("#korban_hilang").val(data.korban.korban_hilang);
+                $("#informasi_kategori").val(data.keterangan);
                 $("#zona").val(data.zona);
 
                 const container = new DataTransfer();
@@ -294,15 +295,15 @@
                 url: window.location.origin + '/api/kejadian/listKejadian',
                 type: 'POST',
                 data: {
-                    klasifikasi_name: "Keamanan Laut"
+                    klasifikasi_name: "Keselamatan Laut"
                 },
                 success: function(response) {
-                    $("#jenis_pelanggaran").empty();
-                    var awal = `<option value="" selected disabled hidden> Pilih </option>`
-                    $("#jenis_pelanggaran").append(awal);
+                    $("#jenis_kecelakaan").empty();
+                    var awal = `<option value="" selected disabled hidden> Pilih Jenis Kecelakaan </option>`
+                    $("#jenis_kecelakaan").append(awal);
 
                     response.data.data_jenis_kejadian.forEach((x, i) => {
-                        $("#jenis_pelanggaran").append("<option value='" + x.id_jenis_kejadian + "'>" + x.nama_kejadian + "</option>");
+                        $("#jenis_kecelakaan").append("<option value='" + x.id_jenis_kejadian + "'>" + x.nama_kejadian + "</option>");
                     });
 
                 },
@@ -394,11 +395,11 @@
 
     <script>
         $(document).ready(function() {
-            $("#form-kejadian-keamanan").submit(function(e) {
+            $("#form-kejadian-keselamatan").submit(function(e) {
                 e.preventDefault();
 
                 var formData = new FormData(this);
-                formData.append("jenis_kejadian_id", $('#jenis_pelanggaran').val());
+                formData.append("jenis_kejadian_id", $('#jenis_kecelakaan').val());
 
                 $.ajax({
                     url: $(this).attr("action"),
@@ -408,14 +409,16 @@
                     contentType: false,
                     success: function(response) {
                         Swal.fire('Success!', response.data.message, response.status).then(() => {
-                           window.location.href = '/kejadian/keamanan';
+                           window.location.href = '/kejadian/keselamatan';
                         });
                     },
                     error: function(response) {
+                        console.log(response);
                         Swal.fire('Gagal!', response.responseJSON.message, 'error');
                     }
                 });
             });
+
         });
     </script>
 

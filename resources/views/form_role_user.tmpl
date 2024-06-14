@@ -1,0 +1,151 @@
+{{ define "form_role_user.tmpl"}}
+
+{{ template "templates/layout.tmpl" .}}
+
+    <form id="form-role-user" action="{{.storeRolePegawai}}" method="post">
+        <div class="card-body col-md-12 col-lg-12">
+
+            <div class="card card-custom gutter-b">
+                <div class="card-body">
+                    <div class="col-md-6">
+                        <input type="hidden" id="emp_no" name="emp_no" value="" />
+                        <input type="hidden" id="id_user" name="id_user" value="" />
+
+                        <div class="form-group row">
+                            <label class="col-sm-4 col-form-label" for="nama_user">Nama Pegawai</label>
+                            <div class="col-sm-8">
+                                <select class="form-control select2" id="kt_select2_6" name="key_pegawai" style="width: 100% !important;">
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group row">
+                            <label class="col-sm-4 col-form-label" for="nama_role">Nama Role</label>
+                            <div class="col-sm-8">
+                                    <select name="role_id" id="set_id_role" data-error="Pilih Role" class="form-control form-control-sm" required>
+                                    </select>
+                                <div class="help-block with-errors"></div>
+                            </div>
+                        </div>
+
+                        
+                    </div>
+                </div>
+                <!-- /.box-body -->
+            </div>
+        </div>
+
+        <div class="card-footer text-right">
+            <button type="submit" class="btn btn-primary">Save</button>
+            <button type="button" id="btn_batal" class="btn btn-danger" onclick="document.location='/dashboard'">Cancel</button>
+        </div>
+        <!-- /.box-footer -->
+    </form>
+
+    {{ template "layouts/script.tmpl" . }}
+
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+
+<script>
+    var id_user = {{.idUser}};
+
+    if (id_user !== null && id_user !== "" && id_user !== "<nil>") {
+        $("#id_user").val(id_user)
+    }
+
+    $("#kt_select2_6").on('change', function() {
+        $('#emp_no').val($('#kt_select2_6 option:selected').val())
+        console.log($('#emp_no').val())
+    });
+
+    $("#kt_select2_6").select2({
+        placeholder: "Masukkan Nama Pegawai",
+        allowClear: true,
+        ajax: {
+            url: window.location.origin + "{{.dataPegawaiURL}}",
+            dataType: 'json',
+            delay: 200,
+            data: function(params) {
+                return {
+                    key_pegawai: params.term,
+                    page: params.page
+                };
+            },
+            processResults: function(respon) {
+                console.log(respon)
+                return {
+                    results: $.map(respon.data.data_karyawan, function(result) {
+                        return {
+                            id: result.emp_no,
+                            text: result.emp_no + ' - ' + result.name
+                        };
+                    })
+                };
+            },
+            cache: true
+        },
+        escapeMarkup: function(markup) {
+            return markup;
+        },
+        minimumInputLength: 5
+    });
+
+
+</script>
+
+<script>
+    getRole()
+
+    function getRole(){
+    console.log("XX")
+        $.ajax({
+            url: window.location.origin + {{.getRoleURL}},
+            type: 'GET',
+            success: function(response) {
+            console.log(response);
+                $("#set_id_role").empty();
+                var awal = `<option value="" selected disabled hidden> Pilih Role</option>`
+                $("#set_id_role").append(awal);
+
+                response.data.data_role.forEach((x, i) => {
+                    $("#set_id_role").append("<option value='" + x.id_role + "'>" + x.name + "</option>");
+                });
+
+            },
+            error: function(response) {
+                Swal.fire('Gagal!', 'Data Tidak Ada!!', 'error');
+            }
+        });
+    }
+</script>
+
+<script>
+    $("#form-role-user").submit(function(e) {
+        e.preventDefault();
+
+        $.ajax({
+            url: $(this).attr("action"),
+            method: "POST",
+            data: {
+                id_user: $('#id_user').val(),
+                role_id: $('#set_id_role').val(),
+                emp_no: $('#emp_no').val(),
+            },
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                Swal.fire('Success!', response.data.message, response.status).then(() => {
+                    window.location.href = '/dashboard';
+                });
+            },
+            error: function(response) {
+                console.log(response);
+                Swal.fire('Gagal!', response.responseJSON.message, 'error');
+            }
+        });
+    });
+</script>
+
+{{ end }}

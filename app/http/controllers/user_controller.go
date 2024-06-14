@@ -24,11 +24,99 @@ func (r *UserController) Show(ctx http.Context) http.Response {
 		"Hello": "Goravel",
 	})
 }
+
+func (r *UserController) GetRole(ctx http.Context) http.Response {
+	var role []models.Role
+
+	if err := facades.Orm().Query().Find(&role); err != nil || role == nil {
+		return ErrorSystem(ctx, "Data Tidak Ada")
+	}
+
+	return Success(ctx, http.Json{
+		"data_role": role,
+	})
+}
+
+func (r *UserController) StoreRole(ctx http.Context) http.Response {
+	var req RequestUser.PostRole
+
+	if chekRequestErr := ctx.Request().Bind(&req); chekRequestErr != nil {
+		return SanitizeGet(ctx, chekRequestErr)
+	}
+
+	var role models.Role
+	role.Name = req.Name
+
+	if err := facades.Orm().Query().Create(&role); err != nil {
+		return ErrorSystem(ctx, "Data Gagal Save!!")
+	}
+
+	return Success(ctx, http.Json{
+		"message": "Data Berhasil Disimpan!!",
+	})
+}
+
+func (r *UserController) StoreRolePegawai(ctx http.Context) http.Response {
+	var req RequestUser.PostRolePegawai
+
+	if chekRequestErr := ctx.Request().Bind(&req); chekRequestErr != nil {
+		return SanitizeGet(ctx, chekRequestErr)
+	}
+
+	var akun models.Akun
+	var pesan string
+
+	if req.IDUser != 0 {
+		facades.Orm().Query().Where("id_user=?", req.IDUser).First(&akun)
+
+		akun.RoleID = req.RoleID
+
+		if err := facades.Orm().Query().Save(&akun); err != nil {
+			return ErrorSystem(ctx, "Data Gagal Save!!")
+		}
+		pesan = "Data Berhasil Disimpan!!"
+	} else {
+		facades.Orm().Query().
+			Join("inner join public.karyawan kry on id_user = kry.user_id").
+			Where("kry.emp_no=?", req.EmpNo).First(&akun)
+
+		akun.RoleID = req.RoleID
+
+		if err := facades.Orm().Query().Save(&akun); err != nil {
+			return ErrorSystem(ctx, "Data Gagal Ditambahkan!!")
+		}
+		pesan = "Data Berhasil Ditambah!!"
+	}
+
+	return Success(ctx, http.Json{
+		"message": pesan,
+	})
+}
+
+func (r *UserController) FindPegawai(ctx http.Context) http.Response {
+	var req RequestUser.GetPegawai
+
+	if chekRequestErr := ctx.Request().Bind(&req); chekRequestErr != nil {
+		return SanitizeGet(ctx, chekRequestErr)
+	}
+
+	var pegawai []models.Karyawan
+
+	facades.Orm().Query().
+		Join("inner join public.jabatan jb on jb.id_jabatan = jabatan_id").
+		Join("inner join public.akun acc on acc.id_user = user_id").
+		With("Jabatan").With("User").Where("(acc.role_id IS NULL) OR (acc.role_id = 0)").Find(&pegawai)
+
+	return Success(ctx, http.Json{
+		"data_karyawan": pegawai,
+	})
+}
+
 func (r *UserController) Login(ctx http.Context) http.Response {
 	var req RequestUser.Login
 
-	if sanitize := SanitizePost(ctx, &req); sanitize != nil {
-		return sanitize
+	if chekRequestErr := ctx.Request().Bind(&req); chekRequestErr != nil {
+		return SanitizeGet(ctx, chekRequestErr)
 	}
 
 	var user models.Akun
