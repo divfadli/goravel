@@ -22,6 +22,8 @@ crossorigin=""/>
                     integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
 
                 <script type="text/javascript">
+                    var locationsKeamanan = [];
+                    var locationsKeselamatan = [];
                     var peta1 = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png');
 
                     var map = new L.Map('map', {
@@ -30,11 +32,35 @@ crossorigin=""/>
                         layers: peta1
                     });
 
-                    function setMarkers(map, locations) {
-                        console.log(locations);
+                    var baseMaps = {
+                        "OpenStreetMap": peta1
+                    };
+
+                    var overlayMaps = {
+                        "Pelanggaran": L.layerGroup(locationsKeamanan),
+                        "Keselamatan": L.layerGroup(locationsKeselamatan)
+                    };
+
+                    var layerControl = L.control.layers(baseMaps, overlayMaps).addTo(map);
+
+                    function setMarkers(map, locations, initial) {
                         locations.forEach((a) => {
-                            new L.marker([a.latitude, a.longitude]).bindPopup(a.nama_kapal).addTo(map);
+                            var marker = new L.marker([a.latitude, a.longitude]).bindPopup(a.nama_kapal);
+                            if (initial == 1) {
+                                locationsKeamanan.push(marker);
+                            } else if (initial == 2) {
+                                locationsKeselamatan.push(marker);
+                            }
+                            marker.addTo(map);
                         });
+
+                        // Update layer control
+                        map.removeControl(layerControl);
+                        overlayMaps = {
+                            "Pelanggaran": L.layerGroup(locationsKeamanan),
+                            "Keselamatan": L.layerGroup(locationsKeselamatan)
+                        };
+                        layerControl = L.control.layers(baseMaps, overlayMaps).addTo(map);
                     }
 
                     async function getDataKeamanan() {
@@ -48,7 +74,33 @@ crossorigin=""/>
                                     tanggal_akhir: "2024-10-10"
                                 },
                                 success: function(response) {
-                                    setMarkers(map, response.data.data_kejadian_keamanan);
+                                    setMarkers(map, response.data.data_kejadian_keamanan, 1);
+                                    resolve();
+                                },
+                                error: function(response) {
+                                    Swal.fire({
+                                        type: 'error',
+                                        title: 'Oops!',
+                                        text: response.responseJSON.message
+                                    });
+                                    reject(response);
+                                }
+                            });
+                        });
+                    }
+
+                    async function getDataKeselamatan() {
+                        return new Promise((resolve, reject) => {
+                            $.ajax({
+                                url: "{{.dataKeselamatanURL}}",
+                                method: "POST",
+                                data: {
+                                    nik: {{.data.nik }},
+                                    tanggal_awal: "2024-03-01",
+                                    tanggal_akhir: "2024-10-10"
+                                },
+                                success: function(response) {
+                                    setMarkers(map, response.data.data_kejadian_keselamatan, 2);
                                     resolve();
                                 },
                                 error: function(response) {
@@ -65,6 +117,7 @@ crossorigin=""/>
 
                     // Call the function to get data and set markers
                     getDataKeamanan();
+                    getDataKeselamatan();
                 </script>
             </div>
         </div>

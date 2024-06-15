@@ -72,6 +72,7 @@ func Web() {
 		// Retrieve cached user data
 		userInfo := facades.Cache().Get("user_data")
 		dataKeamananURL := "/api/kejadian/keamanan/listKejadianKeamanan"
+		dataKeselamatanURL := "/api/kejadian/keselamatan/listKejadianKeselamatan"
 		// fmt.Println(userInfo)
 
 		// // Check if data is available in cache
@@ -81,6 +82,7 @@ func Web() {
 				"pageheading":     "Dashboard",
 				"version":         support.Version,
 				"dataKeamananURL": dataKeamananURL,
+				"dataKeselamatanURL": dataKeselamatanURL,
 				"data":            userInfo,
 			})
 		}
