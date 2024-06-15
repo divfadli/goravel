@@ -138,48 +138,43 @@
                     <tbody>
                         <tr>
                             <td>Jenis & Nama Kapal</td>
-                            <td>KM Cahaya Yamaker</td>
+                            <td>{{.NamaKapal}}</td>
                         </tr>
                         <tr>
                             <td>Kejadian</td>
-                            <td>Penyelundupan Barang</td>
+                            <td>{{.Kejadian}}</td>
                         </tr>
                         <tr>
                             <td>Penyebab</td>
-                            <td>-</td>
+                            <td>{{.Penyebab}}</td>
                         </tr>
                         <tr>
                             <td>Lokasi Kejadian</td>
-                            <td>Perairan Nunukan, Provinsi Kalimantan Utara</td>
+                            <td>{{.Lokasi}}</td>
                         </tr>
                         <tr>
                             <td>ABK</td>
-                            <td>-</td>
+                            <td>{{.ABK}}</td>
                         </tr>
                         <tr>
                             <td>Muatan</td>
-                            <td>50 Karung Ballpress (42 karung ballpress berisi pakaian bekas layak pakai dan 8 karung
-                                ballpress berisi sepatu bekas layak pakai berbagai merek branded) dan 2 orang ABK</td>
+                            <td>{{.Muatan}}</td>
                         </tr>
                         <tr>
                             <td>Instansi Penindak</td>
-                            <td>Lanal Nunukan, Bea Cukai Nunukan</td>
+                            <td>{{.InstansiPenindak}}</td>
                         </tr>
                         <tr>
                             <td>Keterangan</td>
-                            <td>Kapal beserta 2 Anak Buah Kapal (ABK) tersebut dibawa ke dermaga terdekat guna
-                                dilaksanakan pembongkaran dan pemeriksaan. Barang bukti ballpress curah tersebut
-                                diserahkan kepada pihak Bea Cukai Nunukan untuk proses lebih lanjut.</td>
+                            <td>{{.Keterangan}}</td>
                         </tr>
                         <tr>
                             <td>Waktu</td>
-                            <td>5/25/2024</td>
+                            <td>{{.Waktu}}</td>
                         </tr>
                         <tr>
                             <td>Sumber Berita</td>
-                            <td>https://lantamal13-koarmada2.tnial.mil.id/berita/23139/50-KARUNG-BALLPRESS-ASAL-TAWAU-MALAYSIA-BERHASILDIAMANKAN-OLEH-TIM-SFQR-LANAL-NUNUKAN/
-                                https://holopis.com/2024/05/27/tni-al-gagalkan-penyelundupan-thrifting-di-nunukan/
-                            </td>
+                            <td>{{.SumberBerita}}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -197,7 +192,7 @@
         </main>
     </div>
     <script>
-        var map = L.map('map').setView([-6.2088, 106.8456], 12); // Set the initial view to Jakarta
+        var map = L.map('map').setView([{{.Latitude}}, {{.Longitude}}], 12); // Set the initial view to Jakarta
 
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 10,

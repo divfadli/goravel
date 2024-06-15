@@ -3,15 +3,18 @@ package generator
 import (
 	"bytes"
 	"fmt"
+	"goravel/app/models"
 	"html/template"
 	"io/ioutil"
 	"log"
 	"os"
+	"os/exec"
 	"strconv"
 	"time"
 
-	"github.com/SebastiaanKlippert/go-wkhtmltopdf"
 	"github.com/goravel/framework/contracts/http"
+	"github.com/goravel/framework/facades"
+	"github.com/jung-kurt/gofpdf"
 )
 
 type Pdf struct {
@@ -39,8 +42,8 @@ func (r *Pdf) ParseTemplate(templateFileName string, data interface{}) error {
 	return nil
 }
 
-// generate pdf function
-func (r *Pdf) GeneratePDF(pdfPath string, args []string) (bool, error) {
+// generate slide function
+func (r *Pdf) GenerateSlide(slidePath string) (bool, error) {
 	t := time.Now().Unix()
 	// write whole the body
 
@@ -55,62 +58,27 @@ func (r *Pdf) GeneratePDF(pdfPath string, args []string) (bool, error) {
 		panic(err1)
 	}
 
-	f, err := os.Open("cloneTemplate/" + strconv.FormatInt(int64(t), 10) + ".html")
-	if f != nil {
-		defer f.Close()
+	// Define the input HTML file and output image file
+	inputFile := "cloneTemplate/" + strconv.FormatInt(int64(t), 10) + ".html"
+
+	// Check if the input file exists
+	if _, err := os.Stat(inputFile); os.IsNotExist(err) {
+		fmt.Printf("Error: Input file %s does not exist\n", inputFile)
+		panic(err)
 	}
+
+	// Construct the command
+	cmd := exec.Command("wkhtmltoimage", "--javascript-delay", "500", inputFile, slidePath)
+
+	// Set the command's standard output and error to the current process's standard output and error
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	// Run the command
+	err := cmd.Run()
 	if err != nil {
-		log.Fatal(err)
-	}
-
-	pdfg, err := wkhtmltopdf.NewPDFGenerator()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Use arguments to customize PDF generation process
-	for _, arg := range args {
-		switch arg {
-		case "low-quality":
-			pdfg.LowQuality.Set(true)
-		case "no-pdf-compression":
-			pdfg.NoPdfCompression.Set(true)
-		case "grayscale":
-			pdfg.Grayscale.Set(true)
-			// Add other arguments as needed
-		}
-	}
-
-	page := wkhtmltopdf.NewPageReader(f)
-	page.EnableLocalFileAccess.Set(true) // Enable local file access
-	page.EnablePlugins.Set(true)
-	page.EnableTocBackLinks.Set(true)
-	page.EnableForms.Set(true)
-
-	pdfg.AddPage(page)
-
-	pdfg.PageSize.Set(wkhtmltopdf.PageSizeA4)
-	pdfg.Orientation.Set(wkhtmltopdf.OrientationPortrait)
-	pdfg.Dpi.Set(300)
-
-	// Retry mechanism
-	maxRetries := 3
-	for i := 0; i < maxRetries; i++ {
-		err = pdfg.Create()
-		if err == nil {
-			break
-		}
-		log.Printf("Attempt %d: Failed to create PDF: %v", i+1, err)
-		time.Sleep(2 * time.Second) // Wait before retrying
-	}
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = pdfg.WriteFile(pdfPath)
-	if err != nil {
-		log.Fatal(err)
+		fmt.Printf("Error: %v\n", err)
+		panic(err)
 	}
 
 	dir, err := os.Getwd()
@@ -128,7 +96,7 @@ func (r *Pdf) Index(ctx http.Context) http.Response {
 	templatePath := "templates/sample.html"
 
 	//path for download pdf
-	outputPath := "storage/example.pdf"
+	outputPath := "storage/example.png"
 
 	//html template data
 	templateData := struct {
@@ -146,15 +114,100 @@ func (r *Pdf) Index(ctx http.Context) http.Response {
 	}
 
 	if err := r.ParseTemplate(templatePath, templateData); err == nil {
-
-		// Generate PDF with custom arguments
-		args := []string{"no-pdf-compression"}
-
 		// Generate PDF
-		ok, _ := r.GeneratePDF(outputPath, args)
+		ok, _ := r.GenerateSlide(outputPath)
 		fmt.Println(ok, "pdf generated successfully")
 	} else {
 		fmt.Println(err)
 	}
+	return nil
+}
+
+func (r *Pdf) GenerateKeamanan(ctx http.Context) http.Response {
+	//html template path
+	templatePath := "templates/keamanan.html"
+
+	var data_keamanan []models.KejadianKeamanan
+	query := facades.Orm().Query().
+		Join("inner join public.jenis_kejadian k on k.id_jenis_kejadian = jenis_kejadian_id ").
+		With("JenisKejadian")
+	query.Order("tanggal asc").Find(&data_keamanan)
+
+	var images []string
+	for _, data := range data_keamanan {
+		// path for download pdf
+		outputPath := fmt.Sprintf("storage/%d.png", data.IdKejadianKeamanan)
+
+		// html template data
+		templateData := struct {
+			Title            string
+			NamaKapal        string
+			Kejadian         string
+			Penyebab         string
+			Lokasi           string
+			ABK              string
+			Muatan           string
+			InstansiPenindak string
+			Keterangan       string
+			Waktu            string
+			SumberBerita     string
+			Latitude         float64
+			Longitude        float64
+		}{
+			Title:            data.JenisKejadian.NamaKejadian,
+			NamaKapal:        data.NamaKapal,
+			Kejadian:         data.JenisKejadian.NamaKejadian,
+			Penyebab:         "-",
+			Lokasi:           data.LokasiKejadian,
+			ABK:              "-",
+			Muatan:           data.Muatan,
+			InstansiPenindak: "-",
+			Keterangan:       "-",
+			Waktu:            data.Tanggal.ToDateString(),
+			SumberBerita:     data.SumberBerita,
+			Latitude:         data.Latitude,
+			Longitude:        data.Longitude,
+		}
+
+		if err := r.ParseTemplate(templatePath, templateData); err == nil {
+			// Generate Image
+			r.GenerateSlide(outputPath)
+			images = append(images, outputPath)
+		} else {
+			fmt.Println(err)
+		}
+	}
+
+	// Create a new PDF document
+	pdf := gofpdf.New("L", "mm", "A4", "")
+
+	for _, image := range images {
+		// Add a new page to the PDF
+		pdf.AddPage()
+
+		// Get the image dimensions
+		options := gofpdf.ImageOptions{
+			ReadDpi: true,
+		}
+		info := pdf.RegisterImageOptions(image, options)
+		width, height := info.Extent()
+
+		// Calculate the position to center the image on the page
+		pageWidth, pageHeight := pdf.GetPageSize()
+		x := (pageWidth - width) / 2
+		y := (pageHeight - height) / 2
+
+		// Add the image to the PDF
+		pdf.ImageOptions(image, x, y, width, height, false, options, 0, "")
+	}
+
+	// Save the PDF to a file
+	err := pdf.OutputFileAndClose("storage/output.pdf")
+	if err != nil {
+		log.Fatalf("Error saving PDF: %s", err)
+	}
+
+	fmt.Println("PDF created successfully!")
+
 	return nil
 }

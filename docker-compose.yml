@@ -7,3 +7,20 @@ services:
     ports:
       - "3000:3000"
     restart: always
+    depends_on:
+      - postgres
+      - redis
+  postgres:
+    image: postgres:16.3-alpine
+    restart: always
+    # set shared memory limit when using docker-compose
+    shm_size: 128mb
+    environment:
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+  redis:
+    image: redis:6.2-alpine
+    restart: always
+    ports:
+      - '6379:6379'
