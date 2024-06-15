@@ -1,165 +1,132 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <title>Hello, world!</title>
     <style>
+        @page {
+            size: A4;
+            margin: 1cm;
+        }
+
         body {
-            font-family: Arial, sans-serif;
             margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            min-height: 100vh;
         }
 
         .container {
-            padding: 20px;
-            width: 80%;
-            max-width: 800px;
-        }
-
-        .title {
-            text-align: center;
-            font-size: 24px;
-            margin-bottom: 20px;
-        }
-
-        .section {
-            margin-bottom: 20px;
-        }
-
-        .section-title {
-            font-size: 18px;
-            margin-bottom: 10px;
-        }
-
-        .paragraph {
-            text-align: justify;
-            margin-bottom: 20px;
-        }
-
-        .table-title {
-            font-size: 16px;
-            margin-bottom: 10px;
-            font-weight: bold;
-            text-align: center;
-        }
-
-        .table-container {
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-
-        table,
-        th,
-        td {
-            border: 1px solid #ddd;
-        }
-
-        th,
-        td {
-            padding: 8px;
-            text-align: left;
-        }
-
-        th {
-            background-color: #f2f2f2;
+            margin: 0 auto;
         }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <div class="title">LAPORAN
-            REKAPITULASI KEAMANAN DAN KESELAMATAN LAUT
-            DI WILAYAH PERAIRAN INDONESIA
-            BULAN {{.BulanCapital}} {{.Tahun}}
-        </div>
-        <div class="paragraph">
-            Berikut disampaikan laporan rekapitulasi keamanan dan keselamatan laut di wilayah perairan Indonesia
-            Bulan {{.Bulan}} {{.Tahun}} sebagai berikut:
-        </div>
-        <div class="section">
-            <div class="section-title">1. Keamanan di Laut Wilayah Perairan Indonesia</div>
-            <div class="paragraph">
-                Keamanan laut yang terjadi di wilayah perairan Indonesia pada bulan {{.Bulan}} {{.Tahun}} adalah
-                sebanyak {{.JumlahKejadianKeamanan}} kejadian dengan rincian seperti yang tertuang dalam tabel sebagai
-                berikut:
-            </div>
-            <div class="table-container">
-                <div class="table-title">Tabel Rekapitulasi Keamanan Laut di Wilayah Perairan Indonesia</div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>KEAMANAN LAUT</th>
-                            <th>JUMLAH KEJADIAN</th>
-                            <th>LOKASI KEJADIAN</th>
-                            <th>WILAYAH / ZONA</th>
-                            <th>AKSI APARAT / INSTANSI</th>
-                            <th>KETERANGAN</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {{range $val := .KejadianKeamanan}}
-                        <tr>
-                            <td>{{$val.JenisKejadian.NamaKejadian}}</td>
-                            <td>1 Kejadian</td>
-                            <td>{{$val.LokasiKejadian}}</td>
-                            <td>{{$val.Zona}}</td>
-                            <td>{{$val.TindakLanjut}}</td>
-                            <td>Ini keterangan</td>
-                        </tr>
-                        {{end}}
-                    </tbody>
-                </table>
+        <div class="row align-items-center custom-bg-blue mb-3">
+            <div class="col text-center">
+                <h2>LAPORAN REKAPITULASI KEAMANAN DAN KESELAMATAN LAUT DI WILAYAH PERAIRAN INDONESIA BULAN
+                    {{.BulanCapital}} {{.Tahun}}</h2>
             </div>
         </div>
-        <div class="section">
-            <div class="section-title">2. Keselamatan di Laut Wilayah Perairan Indonesia</div>
-            <div class="paragraph">
-                Pada bulan {{.Bulan}} {{.Tahun}} terdapat {{.JumlahKejadianKeselamatan}} kejadian yang mengalami
-                kecelakaan yang terjadi di wilayah perairan Indonesia, dengan detail rekapitulasi yang tertuang dalam
-                tabel sebagai berikut:
-            </div>
-            <div class="table-container">
-                <div class="table-title">Tabel Rekapitulasi Keselamatan Laut di Wilayah Perairan Indonesia</div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>KESELAMATAN LAUT</th>
-                            <th>JUMLAH KEJADIAN</th>
-                            <th>LOKASI KEJADIAN</th>
-                            <th>WILAYAH / ZONA</th>
-                            <th>AKSI APARAT / INSTANSI</th>
-                            <th>KETERANGAN</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {{range $val := .KejadianKeselamatan}}
-                        <tr>
-                            <td>{{$val.JenisKejadian.NamaKejadian}}</td>
-                            <td>1 Kejadian</td>
-                            <td>{{$val.LokasiKejadian}}</td>
-                            <td>{{$val.Zona}}</td>
-                            <td>{{$val.TindakLanjut}}</td>
-                            <td>{{$val.Keterangan}}</td>
-                        </tr>
-                        {{end}}
-                    </tbody>
-                </table>
+        <br>
+        <div class="row align-items-center mb-3">
+            <div class="col">
+                <p class="lead">Berikut disampaikan laporan rekapitulasi keamanan dan keselamatan laut di wilayah
+                    perairan Indonesia Bulan {{.Bulan}} {{.Tahun}} sebagai berikut:</p>
+                <br>
+                <h5>1. Keamanan di Laut Wilayah Perairan Indonesia</h5>
+                <p class="lead">Keamanan laut yang terjadi di wilayah perairan Indonesia pada bulan {{.Bulan}}
+                    {{.Tahun}} adalah sebanyak {{.JumlahKejadianKeamanan}} kejadian dengan rincian seperti yang tertuang
+                    dalam tabel sebagai berikut:</p>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm">
+                        <thead>
+                            <tr>
+                                <th colspan="6" style="text-align: center;">
+                                    Tabel Rekapitulasi Keamanan Laut di Wilayah Perairan Indonesia
+                                </th>
+                            </tr>
+                            <tr>
+                                <th style="text-align: center;">KEAMANAN LAUT</th>
+                                <th style="text-align: center;">JUMLAH KEJADIAN</th>
+                                <th style="text-align: center;">LOKASI KEJADIAN</th>
+                                <th style="text-align: center;">WILAYAH / ZONA</th>
+                                <th style="text-align: center;">AKSI APARAT / INSTANSI</th>
+                                <th style="text-align: center;">KETERANGAN</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{range $val := .KejadianKeamanan}}
+                            <tr>
+                                <td>{{$val.JenisKejadian.NamaKejadian}}</td>
+                                <td>1 Kejadian</td>
+                                <td>{{$val.LokasiKejadian}}</td>
+                                <td>{{$val.Zona}}</td>
+                                <td>{{$val.TindakLanjut}}</td>
+                                <td>Ini keterangan</td>
+                            </tr>
+                            {{end}}
+                        </tbody>
+                    </table>
+                </div>
+                <br>
+                <h5>2. Keselamatan di Laut Wilayah Perairan Indonesia</h5>
+                <p class="lead">Pada bulan {{.Bulan}} {{.Tahun}} terdapat {{.JumlahKejadianKeselamatan}} kejadian yang
+                    mengalami kecelakaan yang terjadi di wilayah perairan Indonesia, dengan detail rekapitulasi yang
+                    tertuang dalam tabel sebagai berikut:</p>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm">
+                        <thead>
+                            <tr>
+                                <th colspan="6" style="text-align: center;">
+                                    Tabel Rekapitulasi Keselamatan Laut di Wilayah Perairan Indonesia
+                                </th>
+                            </tr>
+                            <tr>
+                                <th style="text-align: center;">KESELAMATAN LAUT</th>
+                                <th style="text-align: center;">JUMLAH KEJADIAN</th>
+                                <th style="text-align: center;">LOKASI KEJADIAN</th>
+                                <th style="text-align: center;">WILAYAH / ZONA</th>
+                                <th style="text-align: center;">AKSI APARAT / INSTANSI</th>
+                                <th style="text-align: center;">KETERANGAN</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{range $val := .KejadianKeselamatan}}
+                            <tr>
+                                <td>{{$val.JenisKejadian.NamaKejadian}}</td>
+                                <td>1 Kejadian</td>
+                                <td>{{$val.LokasiKejadian}}</td>
+                                <td>{{$val.Zona}}</td>
+                                <td>{{$val.TindakLanjut}}</td>
+                                <td>{{$val.Keterangan}}</td>
+                            </tr>
+                            {{end}}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
 </body>
 
 </html>

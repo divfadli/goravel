@@ -297,7 +297,7 @@ func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 	// Save the PDF to a file
 	err := pdf.OutputFileAndClose("storage/output-laporan-bulanan.pdf")
 	if err != nil {
-		log.Fatalf("Error saving PDF: %s", err)
+		fmt.Printf("Error saving PDF: %s", err)
 	}
 
 	fmt.Println("PDF created successfully!")
