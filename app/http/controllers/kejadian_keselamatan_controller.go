@@ -78,11 +78,11 @@ func (r *KejadianKeselamatanController) StoreKejadianKeselamatan(ctx http.Contex
 			data_keselamatan.TipeSumberKejadian = req.KategoriSumber
 
 			if req.PelabuhanAsal != "" {
-				data_keselamatan.PelabuhanAsal = &req.PelabuhanAsal
+				data_keselamatan.PelabuhanAsal = req.PelabuhanAsal
 			}
 
 			if req.PelabuhanTujuan != "" {
-				data_keselamatan.PelabuhanTujuan = &req.PelabuhanTujuan
+				data_keselamatan.PelabuhanTujuan = req.PelabuhanTujuan
 			}
 
 			data_keselamatan.TindakLanjut = req.TindakLanjut
@@ -169,11 +169,11 @@ func (r *KejadianKeselamatanController) StoreKejadianKeselamatan(ctx http.Contex
 		data_keselamatan.TipeSumberKejadian = req.KategoriSumber
 
 		if req.PelabuhanAsal != "" {
-			data_keselamatan.PelabuhanAsal = &req.PelabuhanAsal
+			data_keselamatan.PelabuhanAsal = req.PelabuhanAsal
 		}
 
 		if req.PelabuhanTujuan != "" {
-			data_keselamatan.PelabuhanTujuan = &req.PelabuhanTujuan
+			data_keselamatan.PelabuhanTujuan = req.PelabuhanTujuan
 		}
 
 		data_keselamatan.TindakLanjut = req.TindakLanjut

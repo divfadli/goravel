@@ -21,8 +21,8 @@ type KejadianKeselamatan struct {
 	Longitude             float64         `json:"longitude" gorm:"default:0" column:"longitude"`
 	Penyebab              string          `json:"penyebab" gorm:"default:not null" column:"penyebab"`
 	TipeSumberKejadian    string          `json:"tipe_sumber_kejadian" gorm:"default:not null" column:"tipe_sumber_kejadian"`
-	PelabuhanAsal         *string         `json:"pelabuhan_asal" gorm:"default:null" column:"pelabuhan_asal"`
-	PelabuhanTujuan       *string         `json:"pelabuhan_tujuan" gorm:"default:null" column:"pelabuhan_tujuan"`
+	PelabuhanAsal         string          `json:"pelabuhan_asal" gorm:"default:null" column:"pelabuhan_asal"`
+	PelabuhanTujuan       string          `json:"pelabuhan_tujuan" gorm:"default:null" column:"pelabuhan_tujuan"`
 	TindakLanjut          string          `json:"tindak_lanjut" gorm:"default:not null" column:"tindak_lanjut"`
 	Keterangan            string          `json:"keterangan" gorm:"default:not null" column:"keterangan"`
 	Zona                  string          `json:"zona" gorm:"default:not null" column:"zona"`
