@@ -68,7 +68,7 @@ func (r *Pdf) GenerateSlide(slidePath string) (bool, error) {
 	}
 
 	// Construct the command
-	cmd := exec.Command("wkhtmltoimage", "--javascript-delay", "500", inputFile, slidePath)
+	cmd := exec.Command("wkhtmltoimage", "--enable-local-file-access", "--javascript-delay", "500", inputFile, slidePath)
 
 	// Set the command's standard output and error to the current process's standard output and error
 	cmd.Stdout = os.Stdout
@@ -133,11 +133,22 @@ func (r *Pdf) GenerateKeamanan(ctx http.Context) http.Response {
 		With("JenisKejadian")
 	query.Order("tanggal asc").Find(&data_keamanan)
 
-	var images []string
+	var results []models.KejadianKeamananImage
 	for _, data := range data_keamanan {
+		var data_keamanan_image []models.FileImage
+		facades.Orm().Query().Join("inner join public.image_keamanan imk ON id_file_image = imk.file_image_id").
+			Where("imk.kejadian_keamanan_id=?", data.IdKejadianKeamanan).Find(&data_keamanan_image)
+
+		results = append(results, models.KejadianKeamananImage{
+			KejadianKeamanan: data,
+			FileImage:        data_keamanan_image,
+		})
+	}
+
+	var images []string
+	for _, data := range results {
 		// path for download pdf
 		outputPath := fmt.Sprintf("storage/%d.png", data.IdKejadianKeamanan)
-
 		// html template data
 		templateData := struct {
 			Title            string
@@ -153,6 +164,7 @@ func (r *Pdf) GenerateKeamanan(ctx http.Context) http.Response {
 			SumberBerita     string
 			Latitude         float64
 			Longitude        float64
+			Images           []models.FileImage
 		}{
 			Title:            data.JenisKejadian.NamaKejadian,
 			NamaKapal:        data.NamaKapal,
@@ -167,6 +179,7 @@ func (r *Pdf) GenerateKeamanan(ctx http.Context) http.Response {
 			SumberBerita:     data.SumberBerita,
 			Latitude:         data.Latitude,
 			Longitude:        data.Longitude,
+			Images:           data.FileImage,
 		}
 
 		if err := r.ParseTemplate(templatePath, templateData); err == nil {
