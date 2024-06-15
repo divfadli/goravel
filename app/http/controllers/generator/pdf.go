@@ -93,6 +93,58 @@ func (r *Pdf) GenerateSlide(slidePath string) (bool, error) {
 	return true, nil
 }
 
+// generate laporan function
+func (r *Pdf) GenerateLaporan(laporanPath string) (bool, error) {
+	t := time.Now().Unix()
+	// write whole the body
+
+	if _, err := os.Stat("cloneTemplate/"); os.IsNotExist(err) {
+		errDir := os.Mkdir("cloneTemplate/", 0777)
+		if errDir != nil {
+			fmt.Printf("Error: %v\n", errDir)
+			return false, errDir
+		}
+	}
+	err1 := ioutil.WriteFile("cloneTemplate/"+strconv.FormatInt(int64(t), 10)+".html", []byte(r.body), 0644)
+	if err1 != nil {
+		fmt.Printf("Error: %v\n", err1)
+		return false, err1
+	}
+
+	// Define the input HTML file and output image file
+	inputFile := "cloneTemplate/" + strconv.FormatInt(int64(t), 10) + ".html"
+
+	// Check if the input file exists
+	if _, err := os.Stat(inputFile); os.IsNotExist(err) {
+		fmt.Printf("Error: Input file %s does not exist\n", inputFile)
+		return false, err
+	}
+
+	// Construct the command
+	cmd := exec.Command("wkhtmltopdf", "--disable-smart-shrinking", "--page-size", "A4", "--javascript-delay", "1000", inputFile, laporanPath)
+
+	// Set the command's standard output and error to the current process's standard output and error
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	// Run the command
+	err := cmd.Run()
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return false, err
+	}
+
+	dir, err := os.Getwd()
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return false, err
+	}
+
+	defer os.RemoveAll(dir + "/cloneTemplate")
+
+	return true, nil
+}
+
 func (r *Pdf) Index(ctx http.Context) http.Response {
 	//html template path
 	templatePath := "templates/sample.html"
@@ -294,5 +346,52 @@ func (r *Pdf) GenerateKeamanan(ctx http.Context) http.Response {
 
 	fmt.Println("PDF created successfully!")
 
+	return nil
+}
+
+func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
+	//html template path
+	templatePath := "templates/laporan-bulanan.html"
+
+	var data_keamanan []models.KejadianKeamanan
+	query := facades.Orm().Query().
+		Join("inner join public.jenis_kejadian k on k.id_jenis_kejadian = jenis_kejadian_id ").
+		With("JenisKejadian")
+	query.Order("tanggal asc").Find(&data_keamanan)
+
+	var data_keselamatan []models.KejadianKeselamatan
+	query = facades.Orm().Query().
+		Join("inner join public.jenis_kejadian k on k.id_jenis_kejadian = jenis_kejadian_id ").
+		With("JenisKejadian")
+	query.Order("tanggal asc").Find(&data_keselamatan)
+
+	outputPath := "storage/output-laporan-bulanan.pdf"
+
+	// html template data
+	templateData := struct {
+		Bulan                     string
+		BulanCapital              string
+		Tahun                     string
+		JumlahKejadianKeamanan    int
+		JumlahKejadianKeselamatan int
+		KejadianKeamanan          []models.KejadianKeamanan
+		KejadianKeselamatan       []models.KejadianKeselamatan
+	}{
+		Bulan:                     "Mei",
+		BulanCapital:              "MEI",
+		Tahun:                     "2024",
+		JumlahKejadianKeamanan:    len(data_keamanan),
+		JumlahKejadianKeselamatan: len(data_keselamatan),
+		KejadianKeamanan:          data_keamanan,
+		KejadianKeselamatan:       data_keselamatan,
+	}
+
+	if err := r.ParseTemplate(templatePath, templateData); err == nil {
+		r.GenerateLaporan(outputPath)
+	} else {
+		fmt.Println(err)
+	}
+
+	fmt.Println("PDF created successfully!")
 	return nil
 }
