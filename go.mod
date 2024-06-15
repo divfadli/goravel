@@ -9,6 +9,7 @@ require (
 	github.com/golang-module/carbon/v2 v2.2.8
 	github.com/goravel/framework v1.13.9
 	github.com/goravel/gin v1.1.7
+	github.com/jung-kurt/gofpdf v1.16.2
 	github.com/stretchr/testify v1.8.4
 	github.com/unidoc/unioffice v1.4.0
 	google.golang.org/grpc v1.58.2

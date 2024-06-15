@@ -14,6 +14,7 @@ import (
 
 	"github.com/goravel/framework/contracts/http"
 	"github.com/goravel/framework/facades"
+	"github.com/jung-kurt/gofpdf"
 )
 
 type Pdf struct {
@@ -132,6 +133,7 @@ func (r *Pdf) GenerateKeamanan(ctx http.Context) http.Response {
 		With("JenisKejadian")
 	query.Order("tanggal asc").Find(&data_keamanan)
 
+	var images []string
 	for _, data := range data_keamanan {
 		// path for download pdf
 		outputPath := fmt.Sprintf("storage/%d.png", data.IdKejadianKeamanan)
@@ -168,13 +170,44 @@ func (r *Pdf) GenerateKeamanan(ctx http.Context) http.Response {
 		}
 
 		if err := r.ParseTemplate(templatePath, templateData); err == nil {
-			// Generate PDF
-			ok, _ := r.GenerateSlide(outputPath)
-			fmt.Println(ok, "pdf generated successfully")
+			// Generate Image
+			r.GenerateSlide(outputPath)
+			images = append(images, outputPath)
 		} else {
 			fmt.Println(err)
 		}
 	}
+
+	// Create a new PDF document
+	pdf := gofpdf.New("L", "mm", "A4", "")
+
+	for _, image := range images {
+		// Add a new page to the PDF
+		pdf.AddPage()
+
+		// Get the image dimensions
+		options := gofpdf.ImageOptions{
+			ReadDpi: true,
+		}
+		info := pdf.RegisterImageOptions(image, options)
+		width, height := info.Extent()
+
+		// Calculate the position to center the image on the page
+		pageWidth, pageHeight := pdf.GetPageSize()
+		x := (pageWidth - width) / 2
+		y := (pageHeight - height) / 2
+
+		// Add the image to the PDF
+		pdf.ImageOptions(image, x, y, width, height, false, options, 0, "")
+	}
+
+	// Save the PDF to a file
+	err := pdf.OutputFileAndClose("storage/output.pdf")
+	if err != nil {
+		log.Fatalf("Error saving PDF: %s", err)
+	}
+
+	fmt.Println("PDF created successfully!")
 
 	return nil
 }
