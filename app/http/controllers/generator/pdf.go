@@ -6,7 +6,6 @@ import (
 	"goravel/app/models"
 	"html/template"
 	"io/ioutil"
-	"log"
 	"os"
 	"os/exec"
 	"strconv"
@@ -50,12 +49,14 @@ func (r *Pdf) GenerateSlide(slidePath string) (bool, error) {
 	if _, err := os.Stat("cloneTemplate/"); os.IsNotExist(err) {
 		errDir := os.Mkdir("cloneTemplate/", 0777)
 		if errDir != nil {
-			log.Fatal(err)
+			fmt.Printf("Error: %v\n", errDir)
+			return false, errDir
 		}
 	}
 	err1 := ioutil.WriteFile("cloneTemplate/"+strconv.FormatInt(int64(t), 10)+".html", []byte(r.body), 0644)
 	if err1 != nil {
-		panic(err1)
+		fmt.Printf("Error: %v\n", err1)
+		return false, err1
 	}
 
 	// Define the input HTML file and output image file
@@ -64,11 +65,11 @@ func (r *Pdf) GenerateSlide(slidePath string) (bool, error) {
 	// Check if the input file exists
 	if _, err := os.Stat(inputFile); os.IsNotExist(err) {
 		fmt.Printf("Error: Input file %s does not exist\n", inputFile)
-		panic(err)
+		return false, err
 	}
 
 	// Construct the command
-	cmd := exec.Command("wkhtmltoimage", "--javascript-delay", "500", inputFile, slidePath)
+	cmd := exec.Command("wkhtmltoimage", "--enable-local-file-access", "--javascript-delay", "500", inputFile, slidePath)
 
 	// Set the command's standard output and error to the current process's standard output and error
 	cmd.Stdout = os.Stdout
@@ -78,12 +79,13 @@ func (r *Pdf) GenerateSlide(slidePath string) (bool, error) {
 	err := cmd.Run()
 	if err != nil {
 		fmt.Printf("Error: %v\n", err)
-		panic(err)
+		return false, err
 	}
 
 	dir, err := os.Getwd()
 	if err != nil {
-		panic(err)
+		fmt.Printf("Error: %v\n", err)
+		return false, err
 	}
 
 	defer os.RemoveAll(dir + "/cloneTemplate")
@@ -133,11 +135,22 @@ func (r *Pdf) GenerateKeamanan(ctx http.Context) http.Response {
 		With("JenisKejadian")
 	query.Order("tanggal asc").Find(&data_keamanan)
 
-	var images []string
+	var results []models.KejadianKeamananImage
 	for _, data := range data_keamanan {
+		var data_keamanan_image []models.FileImage
+		facades.Orm().Query().Join("inner join public.image_keamanan imk ON id_file_image = imk.file_image_id").
+			Where("imk.kejadian_keamanan_id=?", data.IdKejadianKeamanan).Find(&data_keamanan_image)
+
+		results = append(results, models.KejadianKeamananImage{
+			KejadianKeamanan: data,
+			FileImage:        data_keamanan_image,
+		})
+	}
+
+	var images []string
+	for _, data := range results {
 		// path for download pdf
 		outputPath := fmt.Sprintf("storage/%d.png", data.IdKejadianKeamanan)
-
 		// html template data
 		templateData := struct {
 			Title            string
@@ -153,6 +166,7 @@ func (r *Pdf) GenerateKeamanan(ctx http.Context) http.Response {
 			SumberBerita     string
 			Latitude         float64
 			Longitude        float64
+			Images           []models.FileImage
 		}{
 			Title:            data.JenisKejadian.NamaKejadian,
 			NamaKapal:        data.NamaKapal,
@@ -167,14 +181,18 @@ func (r *Pdf) GenerateKeamanan(ctx http.Context) http.Response {
 			SumberBerita:     data.SumberBerita,
 			Latitude:         data.Latitude,
 			Longitude:        data.Longitude,
+			Images:           data.FileImage,
 		}
 
 		if err := r.ParseTemplate(templatePath, templateData); err == nil {
 			// Generate Image
-			r.GenerateSlide(outputPath)
-			images = append(images, outputPath)
+			success, _ := r.GenerateSlide(outputPath)
+			if success {
+				images = append(images, outputPath)
+			}
 		} else {
-			fmt.Println(err)
+			fmt.Printf("Error: %v\n", err)
+			return nil
 		}
 	}
 
@@ -202,9 +220,9 @@ func (r *Pdf) GenerateKeamanan(ctx http.Context) http.Response {
 	}
 
 	// Save the PDF to a file
-	err := pdf.OutputFileAndClose("storage/output.pdf")
+	err := pdf.OutputFileAndClose("storage/laporan-keamanan-mingguan.pdf")
 	if err != nil {
-		log.Fatalf("Error saving PDF: %s", err)
+		fmt.Printf("Error saving PDF: %s", err)
 	}
 
 	fmt.Println("PDF created successfully!")

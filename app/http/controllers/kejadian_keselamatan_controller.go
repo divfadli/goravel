@@ -123,7 +123,7 @@ func (r *KejadianKeselamatanController) StoreKejadianKeselamatan(ctx http.Contex
 				fileImage = append(fileImage, models.FileImage{
 					Filename:  newfileIdentificator,
 					Extension: filepath.Ext(newfileIdentificator),
-					Url:       folder,
+					Url:       facades.Storage().Url(folder),
 				})
 			}
 
@@ -207,7 +207,7 @@ func (r *KejadianKeselamatanController) StoreKejadianKeselamatan(ctx http.Contex
 			fileImage = append(fileImage, models.FileImage{
 				Filename:  newfileIdentificator,
 				Extension: filepath.Ext(newfileIdentificator),
-				Url:       folder,
+				Url:       facades.Storage().Url(folder),
 			})
 		}
 
