@@ -127,30 +127,49 @@ func (r *Pdf) Index(ctx http.Context) http.Response {
 
 func (r *Pdf) GenerateKeamanan(ctx http.Context) http.Response {
 	//html template path
-	templatePath := "templates/keamanan.html"
+	templateKeamananPath := "templates/keamanan.html"
+	templateKeselamatanPath := "templates/keselamatan.html"
 
 	var data_keamanan []models.KejadianKeamanan
-	query := facades.Orm().Query().
+	query1 := facades.Orm().Query().
 		Join("inner join public.jenis_kejadian k on k.id_jenis_kejadian = jenis_kejadian_id ").
 		With("JenisKejadian")
-	query.Order("tanggal asc").Find(&data_keamanan)
+	query1.Order("tanggal asc").Find(&data_keamanan)
 
-	var results []models.KejadianKeamananImage
+	var result_keamanan []models.KejadianKeamananImage
 	for _, data := range data_keamanan {
 		var data_keamanan_image []models.FileImage
 		facades.Orm().Query().Join("inner join public.image_keamanan imk ON id_file_image = imk.file_image_id").
 			Where("imk.kejadian_keamanan_id=?", data.IdKejadianKeamanan).Find(&data_keamanan_image)
 
-		results = append(results, models.KejadianKeamananImage{
+		result_keamanan = append(result_keamanan, models.KejadianKeamananImage{
 			KejadianKeamanan: data,
 			FileImage:        data_keamanan_image,
 		})
 	}
 
+	var data_keselamatan []models.KejadianKeselamatan
+	query2 := facades.Orm().Query().
+		Join("inner join public.jenis_kejadian k on k.id_jenis_kejadian = jenis_kejadian_id ").
+		With("JenisKejadian")
+	query2.Order("tanggal asc").Find(&data_keselamatan)
+
+	var result_keselamatan []models.KejadianKeselamatanImage
+	for _, data := range data_keselamatan {
+		var data_keselamatan_image []models.FileImage
+		facades.Orm().Query().Join("inner join public.image_keselamatan imk ON id_file_image = imk.file_image_id").
+			Where("imk.kejadian_keselamatan_id=?", data.IdKejadianKeselamatan).Find(&data_keselamatan_image)
+
+		result_keselamatan = append(result_keselamatan, models.KejadianKeselamatanImage{
+			KejadianKeselamatan: data,
+			FileImage:           data_keselamatan_image,
+		})
+	}
+
 	var images []string
-	for _, data := range results {
+	for _, data := range result_keamanan {
 		// path for download pdf
-		outputPath := fmt.Sprintf("storage/%d.png", data.IdKejadianKeamanan)
+		outputPath := fmt.Sprintf("storage/temp/pelanggaran%d.png", data.IdKejadianKeamanan)
 		// html template data
 		templateData := struct {
 			Title            string
@@ -175,16 +194,64 @@ func (r *Pdf) GenerateKeamanan(ctx http.Context) http.Response {
 			Lokasi:           data.LokasiKejadian,
 			ABK:              "-",
 			Muatan:           data.Muatan,
-			InstansiPenindak: "-",
-			Keterangan:       "-",
+			InstansiPenindak: data.SumberBerita,
+			Keterangan:       data.TindakLanjut,
 			Waktu:            data.Tanggal.ToDateString(),
-			SumberBerita:     data.SumberBerita,
+			SumberBerita:     data.LinkBerita,
 			Latitude:         data.Latitude,
 			Longitude:        data.Longitude,
 			Images:           data.FileImage,
 		}
 
-		if err := r.ParseTemplate(templatePath, templateData); err == nil {
+		if err := r.ParseTemplate(templateKeamananPath, templateData); err == nil {
+			// Generate Image
+			success, _ := r.GenerateSlide(outputPath)
+			if success {
+				images = append(images, outputPath)
+			}
+		} else {
+			fmt.Printf("Error: %v\n", err)
+			return nil
+		}
+	}
+
+	for _, data := range result_keselamatan {
+		// path for download pdf
+		outputPath := fmt.Sprintf("storage/temp/kecelakaan%d.png", data.IdKejadianKeselamatan)
+		// html template data
+		templateData := struct {
+			Title            string
+			NamaKapal        string
+			Kejadian         string
+			Penyebab         string
+			Lokasi           string
+			Korban           string
+			Perpindahan      string
+			Keterangan       string
+			Waktu            string
+			InstansiPenindak string
+			SumberBerita     string
+			Latitude         float64
+			Longitude        float64
+			Images           []models.FileImage
+		}{
+			Title:            data.JenisKejadian.NamaKejadian,
+			NamaKapal:        data.NamaKapal,
+			Kejadian:         data.JenisKejadian.NamaKejadian,
+			Penyebab:         data.Penyebab,
+			Lokasi:           data.LokasiKejadian,
+			Korban:           "-",
+			Perpindahan:      data.PelabuhanAsal + "-" + data.PelabuhanTujuan,
+			Keterangan:       data.TindakLanjut,
+			Waktu:            data.Tanggal.ToDateString(),
+			InstansiPenindak: data.SumberBerita,
+			SumberBerita:     data.LinkBerita,
+			Latitude:         data.Latitude,
+			Longitude:        data.Longitude,
+			Images:           data.FileImage,
+		}
+
+		if err := r.ParseTemplate(templateKeselamatanPath, templateData); err == nil {
 			// Generate Image
 			success, _ := r.GenerateSlide(outputPath)
 			if success {
