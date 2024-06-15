@@ -229,3 +229,49 @@ func (r *Pdf) GenerateKeamanan(ctx http.Context) http.Response {
 
 	return nil
 }
+
+func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
+	//html template path
+	templatePath := "templates/laporan-bulanan.html"
+
+	var data_keamanan []models.KejadianKeamanan
+	query := facades.Orm().Query().
+		Join("inner join public.jenis_kejadian k on k.id_jenis_kejadian = jenis_kejadian_id ").
+		With("JenisKejadian")
+	query.Order("tanggal asc").Find(&data_keamanan)
+
+	var data_keselamatan []models.KejadianKeselamatan
+	query = facades.Orm().Query().
+		Join("inner join public.jenis_kejadian k on k.id_jenis_kejadian = jenis_kejadian_id ").
+		With("JenisKejadian")
+	query.Order("tanggal asc").Find(&data_keselamatan)
+
+	outputPath := "storage/laporan-mei.png"
+
+	// html template data
+	templateData := struct {
+		Bulan                     string
+		BulanCapital              string
+		Tahun                     string
+		JumlahKejadianKeamanan    int
+		JumlahKejadianKeselamatan int
+		KejadianKeamanan          []models.KejadianKeamanan
+		KejadianKeselamatan       []models.KejadianKeselamatan
+	}{
+		Bulan:                     "Mei",
+		BulanCapital:              "MEI",
+		Tahun:                     "2024",
+		JumlahKejadianKeamanan:    len(data_keamanan),
+		JumlahKejadianKeselamatan: len(data_keselamatan),
+		KejadianKeamanan:          data_keamanan,
+		KejadianKeselamatan:       data_keselamatan,
+	}
+
+	if err := r.ParseTemplate(templatePath, templateData); err == nil {
+		r.GenerateSlide(outputPath)
+	} else {
+		fmt.Println(err)
+	}
+
+	return nil
+}

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .container {
+            padding: 20px;
+            width: 80%;
+            max-width: 800px;
+        }
+
+        .title {
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .section {
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .paragraph {
+            text-align: justify;
+            margin-bottom: 20px;
+        }
+
+        .table-title {
+            font-size: 16px;
+            margin-bottom: 10px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        table,
+        th,
+        td {
+            border: 1px solid #ddd;
+        }
+
+        th,
+        td {
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="title">LAPORAN
+            REKAPITULASI KEAMANAN DAN KESELAMATAN LAUT
+            DI WILAYAH PERAIRAN INDONESIA
+            BULAN {{.BulanCapital}} {{.Tahun}}
+        </div>
+        <div class="paragraph">
+            Berikut disampaikan laporan rekapitulasi keamanan dan keselamatan laut di wilayah perairan Indonesia
+            Bulan {{.Bulan}} {{.Tahun}} sebagai berikut:
+        </div>
+        <div class="section">
+            <div class="section-title">1. Keamanan di Laut Wilayah Perairan Indonesia</div>
+            <div class="paragraph">
+                Keamanan laut yang terjadi di wilayah perairan Indonesia pada bulan {{.Bulan}} {{.Tahun}} adalah
+                sebanyak {{.JumlahKejadianKeamanan}} kejadian dengan rincian seperti yang tertuang dalam tabel sebagai
+                berikut:
+            </div>
+            <div class="table-container">
+                <div class="table-title">Tabel Rekapitulasi Keamanan Laut di Wilayah Perairan Indonesia</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>KEAMANAN LAUT</th>
+                            <th>JUMLAH KEJADIAN</th>
+                            <th>LOKASI KEJADIAN</th>
+                            <th>WILAYAH / ZONA</th>
+                            <th>AKSI APARAT / INSTANSI</th>
+                            <th>KETERANGAN</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{range $val := .KejadianKeamanan}}
+                        <tr>
+                            <td>{{$val.JenisKejadian.NamaKejadian}}</td>
+                            <td>1 Kejadian</td>
+                            <td>{{$val.LokasiKejadian}}</td>
+                            <td>{{$val.Zona}}</td>
+                            <td>{{$val.TindakLanjut}}</td>
+                            <td>Ini keterangan</td>
+                        </tr>
+                        {{end}}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="section">
+            <div class="section-title">2. Keselamatan di Laut Wilayah Perairan Indonesia</div>
+            <div class="paragraph">
+                Pada bulan {{.Bulan}} {{.Tahun}} terdapat {{.JumlahKejadianKeselamatan}} kejadian yang mengalami
+                kecelakaan yang terjadi di wilayah perairan Indonesia, dengan detail rekapitulasi yang tertuang dalam
+                tabel sebagai berikut:
+            </div>
+            <div class="table-container">
+                <div class="table-title">Tabel Rekapitulasi Keselamatan Laut di Wilayah Perairan Indonesia</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>KESELAMATAN LAUT</th>
+                            <th>JUMLAH KEJADIAN</th>
+                            <th>LOKASI KEJADIAN</th>
+                            <th>WILAYAH / ZONA</th>
+                            <th>AKSI APARAT / INSTANSI</th>
+                            <th>KETERANGAN</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{range $val := .KejadianKeselamatan}}
+                        <tr>
+                            <td>{{$val.JenisKejadian.NamaKejadian}}</td>
+                            <td>1 Kejadian</td>
+                            <td>{{$val.LokasiKejadian}}</td>
+                            <td>{{$val.Zona}}</td>
+                            <td>{{$val.TindakLanjut}}</td>
+                            <td>{{$val.Keterangan}}</td>
+                        </tr>
+                        {{end}}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
