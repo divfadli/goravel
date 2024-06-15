@@ -3,6 +3,7 @@ package generator
 import (
 	"bytes"
 	"fmt"
+	"goravel/app/models"
 	"html/template"
 	"io/ioutil"
 	"log"
@@ -12,6 +13,7 @@ import (
 	"time"
 
 	"github.com/goravel/framework/contracts/http"
+	"github.com/goravel/framework/facades"
 )
 
 type Pdf struct {
@@ -117,5 +119,62 @@ func (r *Pdf) Index(ctx http.Context) http.Response {
 	} else {
 		fmt.Println(err)
 	}
+	return nil
+}
+
+func (r *Pdf) GenerateKeamanan(ctx http.Context) http.Response {
+	//html template path
+	templatePath := "templates/keamanan.html"
+
+	var data_keamanan []models.KejadianKeamanan
+	query := facades.Orm().Query().
+		Join("inner join public.jenis_kejadian k on k.id_jenis_kejadian = jenis_kejadian_id ").
+		With("JenisKejadian")
+	query.Order("tanggal asc").Find(&data_keamanan)
+
+	for _, data := range data_keamanan {
+		// path for download pdf
+		outputPath := fmt.Sprintf("storage/%d.png", data.IdKejadianKeamanan)
+
+		// html template data
+		templateData := struct {
+			Title            string
+			NamaKapal        string
+			Kejadian         string
+			Penyebab         string
+			Lokasi           string
+			ABK              string
+			Muatan           string
+			InstansiPenindak string
+			Keterangan       string
+			Waktu            string
+			SumberBerita     string
+			Latitude         float64
+			Longitude        float64
+		}{
+			Title:            data.JenisKejadian.NamaKejadian,
+			NamaKapal:        data.NamaKapal,
+			Kejadian:         data.JenisKejadian.NamaKejadian,
+			Penyebab:         "-",
+			Lokasi:           data.LokasiKejadian,
+			ABK:              "-",
+			Muatan:           data.Muatan,
+			InstansiPenindak: "-",
+			Keterangan:       "-",
+			Waktu:            data.Tanggal.ToDateString(),
+			SumberBerita:     data.SumberBerita,
+			Latitude:         data.Latitude,
+			Longitude:        data.Longitude,
+		}
+
+		if err := r.ParseTemplate(templatePath, templateData); err == nil {
+			// Generate PDF
+			ok, _ := r.GenerateSlide(outputPath)
+			fmt.Println(ok, "pdf generated successfully")
+		} else {
+			fmt.Println(err)
+		}
+	}
+
 	return nil
 }

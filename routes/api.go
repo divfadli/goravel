@@ -10,7 +10,8 @@ import (
 
 func Api() {
 	generates := pdf.NewPdf("")
-	facades.Route().Post("generate", generates.Index)
+	facades.Route().Static("storage", "./storage")
+	facades.Route().Get("generate-keamanan", generates.GenerateKeamanan)
 	facades.Route().Prefix("api").Group(func(r route.Router) {
 		r.Prefix("user").Group(func(user route.Router) {
 			userController := controllers.NewUserController()
