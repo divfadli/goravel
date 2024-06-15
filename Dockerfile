@@ -11,7 +11,9 @@ RUN go mod download
 COPY . .
 RUN go build --ldflags "-extldflags -static" -o main .
 
-FROM ghcr.io/surnet/alpine-wkhtmltopdf:3.20.0-0.12.6-full
+FROM ubuntu:24.04
+# Install wkhtmltopdf
+RUN apt update && apt install wkhtmltopdf -y
 
 WORKDIR /www
 
@@ -21,5 +23,6 @@ COPY --from=builder /build/public/ /www/public/
 COPY --from=builder /build/storage/ /www/storage/
 COPY --from=builder /build/resources/ /www/resources/
 COPY --from=builder /build/.env /www/.env
+COPY --from=builder /build/templates/ /www/templates/
 
 ENTRYPOINT ["/www/main"]
