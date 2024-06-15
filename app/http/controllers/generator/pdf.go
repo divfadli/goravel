@@ -273,5 +273,33 @@ func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 		fmt.Println(err)
 	}
 
+	// Create a new PDF document
+	pdf := gofpdf.New("P", "mm", "A4", "")
+
+	// Add a new page to the PDF
+	pdf.AddPage()
+
+	// Get the image dimensions
+	options := gofpdf.ImageOptions{
+		ReadDpi: true,
+	}
+	info := pdf.RegisterImageOptions(outputPath, options)
+	width, height := info.Extent()
+
+	// Calculate the position to center the image on the page
+	pageWidth, pageHeight := pdf.GetPageSize()
+	x := (pageWidth - width) / 2
+	y := (pageHeight - height) / 2
+
+	// Add the image to the PDF
+	pdf.ImageOptions(outputPath, x, y, width, height, false, options, 0, "")
+
+	// Save the PDF to a file
+	err := pdf.OutputFileAndClose("storage/output-laporan-bulanan.pdf")
+	if err != nil {
+		log.Fatalf("Error saving PDF: %s", err)
+	}
+
+	fmt.Println("PDF created successfully!")
 	return nil
 }
