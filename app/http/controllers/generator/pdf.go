@@ -93,6 +93,58 @@ func (r *Pdf) GenerateSlide(slidePath string) (bool, error) {
 	return true, nil
 }
 
+// generate laporan function
+func (r *Pdf) GenerateLaporan(laporanPath string) (bool, error) {
+	t := time.Now().Unix()
+	// write whole the body
+
+	if _, err := os.Stat("cloneTemplate/"); os.IsNotExist(err) {
+		errDir := os.Mkdir("cloneTemplate/", 0777)
+		if errDir != nil {
+			fmt.Printf("Error: %v\n", errDir)
+			return false, errDir
+		}
+	}
+	err1 := ioutil.WriteFile("cloneTemplate/"+strconv.FormatInt(int64(t), 10)+".html", []byte(r.body), 0644)
+	if err1 != nil {
+		fmt.Printf("Error: %v\n", err1)
+		return false, err1
+	}
+
+	// Define the input HTML file and output image file
+	inputFile := "cloneTemplate/" + strconv.FormatInt(int64(t), 10) + ".html"
+
+	// Check if the input file exists
+	if _, err := os.Stat(inputFile); os.IsNotExist(err) {
+		fmt.Printf("Error: Input file %s does not exist\n", inputFile)
+		return false, err
+	}
+
+	// Construct the command
+	cmd := exec.Command("wkhtmltopdf", "--disable-smart-shrinking", "--page-size", "A4", "--javascript-delay", "1000", inputFile, laporanPath)
+
+	// Set the command's standard output and error to the current process's standard output and error
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	// Run the command
+	err := cmd.Run()
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return false, err
+	}
+
+	dir, err := os.Getwd()
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return false, err
+	}
+
+	defer os.RemoveAll(dir + "/cloneTemplate")
+
+	return true, nil
+}
+
 func (r *Pdf) Index(ctx http.Context) http.Response {
 	//html template path
 	templatePath := "templates/sample.html"
@@ -246,7 +298,7 @@ func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 		With("JenisKejadian")
 	query.Order("tanggal asc").Find(&data_keselamatan)
 
-	outputPath := "storage/laporan-mei.png"
+	outputPath := "storage/output-laporan-bulanan.pdf"
 
 	// html template data
 	templateData := struct {
@@ -268,36 +320,9 @@ func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 	}
 
 	if err := r.ParseTemplate(templatePath, templateData); err == nil {
-		r.GenerateSlide(outputPath)
+		r.GenerateLaporan(outputPath)
 	} else {
 		fmt.Println(err)
-	}
-
-	// Create a new PDF document
-	pdf := gofpdf.New("P", "mm", "A4", "")
-
-	// Add a new page to the PDF
-	pdf.AddPage()
-
-	// Get the image dimensions
-	options := gofpdf.ImageOptions{
-		ReadDpi: true,
-	}
-	info := pdf.RegisterImageOptions(outputPath, options)
-	width, height := info.Extent()
-
-	// Calculate the position to center the image on the page
-	pageWidth, pageHeight := pdf.GetPageSize()
-	x := (pageWidth - width) / 2
-	y := (pageHeight - height) / 2
-
-	// Add the image to the PDF
-	pdf.ImageOptions(outputPath, x, y, width, height, false, options, 0, "")
-
-	// Save the PDF to a file
-	err := pdf.OutputFileAndClose("storage/output-laporan-bulanan.pdf")
-	if err != nil {
-		fmt.Printf("Error saving PDF: %s", err)
 	}
 
 	fmt.Println("PDF created successfully!")
