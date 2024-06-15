@@ -133,18 +133,6 @@ func (r *Pdf) GenerateKeamanan(ctx http.Context) http.Response {
 		With("JenisKejadian")
 	query.Order("tanggal asc").Find(&data_keamanan)
 
-	var results []models.KejadianKeamananImage
-	for _, data := range data_keamanan {
-		var data_keamanan_image []models.FileImage
-		facades.Orm().Query().Join("inner join public.image_keamanan imk ON id_file_image = imk.file_image_id").
-			Where("imk.kejadian_keamanan_id=?", data.IdKejadianKeamanan).Find(&data_keamanan_image)
-
-		results = append(results, models.KejadianKeamananImage{
-			KejadianKeamanan: data,
-			FileImage:        data_keamanan_image,
-		})
-	}
-
 	var images []string
 	for _, data := range data_keamanan {
 		// path for download pdf
