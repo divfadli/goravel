@@ -22,9 +22,22 @@ func Web() {
 	})
 
 	facades.Route().Get("/approval", func(ctx http.Context) http.Response {
-		return ctx.Response().View().Make("approval.tmpl", map[string]any{
-			"version": support.Version,
-		})
+		// Retrieve cached user data
+		userInfo := facades.Cache().Get("user_data")
+
+		// Check if data is available in cache
+		if userInfo != nil {
+			return ctx.Response().View().Make("approval.tmpl", map[string]interface{}{
+				"title":       "Approval | Rekapitulasi",
+				"pageheading": "Approval Laporan",
+				"version":     support.Version,
+				"data":        userInfo,
+			})
+		}
+
+		// For instance, you might redirect the user to the login page
+		return ctx.Response().Redirect(http.StatusFound, "/login")
+
 	})
 
 	// Login
@@ -76,146 +89,198 @@ func Web() {
 		// For instance, you might redirect the user to the login page
 		return ctx.Response().Redirect(http.StatusFound, "/login")
 	})
-
+	
 	facades.Route().Prefix("role_user").Group(func(router route.Router) {
+		// Retrieve cached user data
 		router.Get("", func(ctx http.Context) http.Response {
+			userInfo := facades.Cache().Get("user_data")
 			dataRoleURL := "/api/role/listRole"
 			deleteRoleURL := "/api/role/deleteRole"
-			return ctx.Response().View().Make("role_user.tmpl", map[string]interface{}{
-				"title":         "Role User | Rekapitulasi",
-				"pageheading":   "Role",
-				"version":       support.Version,
-				"dataRoleURL":   dataRoleURL,
-				"deleteRoleURL": deleteRoleURL,
-			})
+			if userInfo != nil {
+				return ctx.Response().View().Make("role_user.tmpl", map[string]interface{}{
+					"title":         "Role User | Rekapitulasi",
+					"pageheading":   "Role",
+					"version":       support.Version,
+					"dataRoleURL":   dataRoleURL,
+					"deleteRoleURL": deleteRoleURL,
+					"data":          userInfo,
+				})
+			}
+
+			facades.Auth().Logout(ctx)
+			// For instance, you might redirect the user to the login page
+			return ctx.Response().Redirect(http.StatusFound, "/login")
 		})
 		router.Get("form_role_user", func(ctx http.Context) http.Response {
+			userInfo := facades.Cache().Get("user_data")
 			idUser := ctx.Request().Query("id_user")
 
 			dataPegawaiURL := "/api/user/dataPegawai"
 			dataRoleURL := "/api/user/role/getRole"
 			storeRolePegawai := "/api/user/storeRolePegawai"
 
-			return ctx.Response().View().Make("form_role_user.tmpl", map[string]interface{}{
-				"title":            "Role User | Rekapitulasi",
-				"pageheading":      "Role",
-				"version":          support.Version,
-				"dataPegawaiURL":   dataPegawaiURL,
-				"getRoleURL":       dataRoleURL,
-				"storeRolePegawai": storeRolePegawai,
-				"idUser":           idUser,
-			})
+			if userInfo != nil {
+				return ctx.Response().View().Make("form_role_user.tmpl", map[string]interface{}{
+					"title":            "Role User | Rekapitulasi",
+					"pageheading":      "Role",
+					"version":          support.Version,
+					"dataPegawaiURL":   dataPegawaiURL,
+					"getRoleURL":       dataRoleURL,
+					"storeRolePegawai": storeRolePegawai,
+					"idUser":           idUser,
+					"data":             userInfo,
+				})
+			}
+
+			facades.Auth().Logout(ctx)
+			// For instance, you might redirect the user to the login page
+			return ctx.Response().Redirect(http.StatusFound, "/login")
 		})
 	})
 
 	facades.Route().Prefix("jenis_kejadian").Group(func(r route.Router) {
+		// Retrieve cached user data
+		
 		r.Get("", func(ctx http.Context) http.Response {
+			userInfo := facades.Cache().Get("user_data")
 			dataJenisKejadianURL := "/api/kejadian/listKejadian"
 			deleteJenisKejadianURL := "/api/kejadian/deleteKejadian"
-			return ctx.Response().View().Make("jenis_kejadian.tmpl", map[string]interface{}{
-				"title":                  "Jenis Kejadian | Rekapitulasi",
-				"pageheading":            "Kejadian",
-				"version":                support.Version,
-				"dataJenisKejadianURL":   dataJenisKejadianURL,
-				"deleteJenisKejadianURL": deleteJenisKejadianURL,
-			})
+
+			if userInfo != nil {
+				return ctx.Response().View().Make("jenis_kejadian.tmpl", map[string]interface{}{
+					"title":                  "Jenis Kejadian | Rekapitulasi",
+					"pageheading":            "Kejadian",
+					"version":                support.Version,
+					"dataJenisKejadianURL":   dataJenisKejadianURL,
+					"deleteJenisKejadianURL": deleteJenisKejadianURL,
+					"data":                   userInfo,
+				})
+			}
+			facades.Auth().Logout(ctx)
+			// For instance, you might redirect the user to the login page
+			return ctx.Response().Redirect(http.StatusFound, "/login")
 		})
 		r.Get("form_jenis_kejadian", func(ctx http.Context) http.Response {
+			userInfo := facades.Cache().Get("user_data")
 			idJenisKejadian := ctx.Request().Query("id_jenis_kejadian")
 
 			storeJenisKejadian := "/api/kejadian/storeKejadian"
 			getJenisKejadian := "/api/kejadian/showDetailKejadian"
-			return ctx.Response().View().Make("form_jenis_kejadian.tmpl", map[string]interface{}{
-				"title":                 "Form Jenis Kejadian | Rekapitulasi",
-				"pageheading":           "Form Jenis Kejadian",
-				"storeJenisKejadianURL": storeJenisKejadian,
-				"getJenisKejadianURL":   getJenisKejadian,
-				"idJenisKejadian":       idJenisKejadian,
-				"version":               support.Version,
-			})
+
+			if userInfo != nil {
+				return ctx.Response().View().Make("form_jenis_kejadian.tmpl", map[string]interface{}{
+					"title":                 "Form Jenis Kejadian | Rekapitulasi",
+					"pageheading":           "Form Jenis Kejadian",
+					"storeJenisKejadianURL": storeJenisKejadian,
+					"getJenisKejadianURL":   getJenisKejadian,
+					"idJenisKejadian":       idJenisKejadian,
+					"version":               support.Version,
+					"data":                  userInfo,
+				})
+			}
+			facades.Auth().Logout(ctx)
+			// For instance, you might redirect the user to the login page
+			return ctx.Response().Redirect(http.StatusFound, "/login")
 		})
 	})
 
 	// Rekap Data Kejadian
 	facades.Route().Prefix("kejadian").Group(func(r route.Router) {
-
 		r.Prefix("keamanan").Group(func(pelanggaran route.Router) {
 			// Pelanggaran
 			pelanggaran.Get("", func(ctx http.Context) http.Response {
+				userInfo := facades.Cache().Get("user_data")
 				dataKeamananURL := "/api/kejadian/keamanan/listKejadianKeamanan"
 				deleteKejadianKeamananURL := "/api/kejadian/keamanan/deleteKejadianKeamanan"
 				// Retrieve cached user data
-				// userInfo := facades.Cache().Get("user_data")
-
+				
 				// Check if data is available in cache
-				// if userInfo != nil {
-				return ctx.Response().View().Make("kejadian_keamanan.tmpl", map[string]interface{}{
-					"title":                     "Kejadian Keamanan",
-					"pageheading":               "Pelanggaran",
-					"version":                   support.Version,
-					"dataKeamananURL":           dataKeamananURL,
-					"deleteKejadianKeamananURL": deleteKejadianKeamananURL,
-					// "data":        userInfo,
-				})
-				// }
+				if userInfo != nil {
+					return ctx.Response().View().Make("kejadian_keamanan.tmpl", map[string]interface{}{
+						"title":                     "Kejadian Keamanan",
+						"pageheading":               "Pelanggaran",
+						"version":                   support.Version,
+						"dataKeamananURL":           dataKeamananURL,
+						"deleteKejadianKeamananURL": deleteKejadianKeamananURL,
+						"data":                      userInfo,
+					})
+				}
 
 				// For instance, you might redirect the user to the login page
-				// return ctx.Response().Redirect(http.StatusFound, "/login")
+				return ctx.Response().Redirect(http.StatusFound, "/login")
 			})
 
 			pelanggaran.Get("form_kejadian_keamanan", func(ctx http.Context) http.Response {
+				userInfo := facades.Cache().Get("user_data")
 				idKejadianKeamanan := ctx.Request().Query("id_kejadian_keamanan")
-
+				
 				storeKejadianKeamanan := "/api/kejadian/keamanan/storeKejadianKeamanan"
 				getKejadianKeamanan := "/api/kejadian/keamanan/showDetailKejadianKeamanan"
-				return ctx.Response().View().Make("form_kejadian_keamanan.tmpl", map[string]interface{}{
-					"title":                  "Form Kejadian Keamanan",
-					"pageheading":            "Form Pelanggaran",
-					"kejadianKeamananURL":    storeKejadianKeamanan,
-					"getKejadianKeamananURL": getKejadianKeamanan,
-					"version":                support.Version,
-					"idKejadianKeamanan":     idKejadianKeamanan,
-				})
+
+				// Check if data is available in cache
+				if userInfo != nil {
+					return ctx.Response().View().Make("form_kejadian_keamanan.tmpl", map[string]interface{}{
+						"title":                  "Form Kejadian Keamanan",
+						"pageheading":            "Form Pelanggaran",
+						"kejadianKeamananURL":    storeKejadianKeamanan,
+						"getKejadianKeamananURL": getKejadianKeamanan,
+						"version":                support.Version,
+						"idKejadianKeamanan":     idKejadianKeamanan,
+						"data":                   userInfo,
+					})
+				}
+
+				// For instance, you might redirect the user to the login page
+				return ctx.Response().Redirect(http.StatusFound, "/login")
 			})
 		})
 
 		r.Prefix("keselamatan").Group(func(kecelakaan route.Router) {
 			// Pelanggaran
 			kecelakaan.Get("", func(ctx http.Context) http.Response {
+				userInfo := facades.Cache().Get("user_data")
 				dataKeselamatanURL := "/api/kejadian/keselamatan/listKejadianKeselamatan"
 				deleteKejadianKeselamatanURL := "/api/kejadian/keselamatan/deleteKejadianKeselamatan"
-				// Retrieve cached user data
-				// userInfo := facades.Cache().Get("user_data")
-
+				
 				// Check if data is available in cache
-				// if userInfo != nil {
-				return ctx.Response().View().Make("kejadian_keselamatan.tmpl", map[string]interface{}{
-					"title":                        "Kejadian Keselamatan",
-					"pageheading":                  "Kecelakaan",
-					"version":                      support.Version,
-					"dataKeselamatanURL":           dataKeselamatanURL,
-					"deleteKejadianKeselamatanURL": deleteKejadianKeselamatanURL,
-					// "data":        userInfo,
-				})
-				// }
+				if userInfo != nil {
+					return ctx.Response().View().Make("kejadian_keselamatan.tmpl", map[string]interface{}{
+						"title":                        "Kejadian Keselamatan",
+						"pageheading":                  "Kecelakaan",
+						"version":                      support.Version,
+						"dataKeselamatanURL":           dataKeselamatanURL,
+						"deleteKejadianKeselamatanURL": deleteKejadianKeselamatanURL,
+						"data":                         userInfo,
+					})
+				}
 
 				// For instance, you might redirect the user to the login page
-				// return ctx.Response().Redirect(http.StatusFound, "/login")
+				return ctx.Response().Redirect(http.StatusFound, "/login")
 			})
 
 			kecelakaan.Get("form_kejadian_keselamatan", func(ctx http.Context) http.Response {
+				userInfo := facades.Cache().Get("user_data")
 				idKejadianKeselamatan := ctx.Request().Query("id_kejadian_keselamatan")
-
+				
 				storeKejadianKeselamatan := "/api/kejadian/keselamatan/storeKejadianKeselamatan"
 				getKejadianKeselamatan := "/api/kejadian/keselamatan/showDetailKejadianKeselamatan"
-				return ctx.Response().View().Make("form_kejadian_keselamatan.tmpl", map[string]interface{}{
-					"title":                     "Form Kejadian Keselamatan",
-					"pageheading":               "Form Kecelakaan",
-					"kejadianKeselamatanURL":    storeKejadianKeselamatan,
-					"getKejadianKeselamatanURL": getKejadianKeselamatan,
-					"version":                   support.Version,
-					"idKejadianKeselamatan":     idKejadianKeselamatan,
-				})
+
+				// Check if data is available in cache
+				if userInfo != nil {
+					return ctx.Response().View().Make("form_kejadian_keselamatan.tmpl", map[string]interface{}{
+						"title":                     "Form Kejadian Keselamatan",
+						"pageheading":               "Form Kecelakaan",
+						"kejadianKeselamatanURL":    storeKejadianKeselamatan,
+						"getKejadianKeselamatanURL": getKejadianKeselamatan,
+						"version":                   support.Version,
+						"idKejadianKeselamatan":     idKejadianKeselamatan,
+						"data":                      userInfo,
+					})
+
+				}
+				
+				// For instance, you might redirect the user to the login page
+				return ctx.Response().Redirect(http.StatusFound, "/login")
 			})
 		})
 		// facades.Route().Prefix().Static()

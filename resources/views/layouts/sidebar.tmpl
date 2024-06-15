@@ -1,61 +1,64 @@
 {{ define "layouts/sidebar.tmpl"}}
     <!-- Sidebar -->
-        <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+    <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
 
-            <!-- Sidebar - Brand -->
-            <a class="sidebar-brand d-flex align-items-center justify-content-center mt-3" href="/dashboard">
-                <div class="sidebar-brand-text mb-3">SIREKAP DATA KEAMANAN DAN KESELAMATAN</div>
+        <!-- Sidebar - Brand -->
+        <a class="sidebar-brand d-flex align-items-center justify-content-center mt-3" href="/dashboard">
+            <div class="sidebar-brand-text mb-3">SIREKAP DATA KEAMANAN DAN KESELAMATAN</div>
+        </a>
+
+        <!-- Divider -->
+        <hr class="sidebar-divider my-0">
+
+        <!-- Nav Item - Dashboard -->
+        <li class="nav-item active">
+            <a class="nav-link" href="/dashboard">
+                <i class="fas fa-fw fa-tachometer-alt"></i>
+                <span>Dashboard</span>
             </a>
+        </li>
 
-            <!-- Divider -->
-            <hr class="sidebar-divider my-0">
+        <!-- Divider -->
+        <hr class="sidebar-divider">
 
-            <!-- Nav Item - Dashboard -->
-            <li class="nav-item active">
-                <a class="nav-link" href="/dashboard">
-                    <i class="fas fa-fw fa-tachometer-alt"></i>
-                    <span>Dashboard</span></a>
-            </li>
-
-            <!-- Divider -->
-            <hr class="sidebar-divider">
-
-            <!-- Nav Item - Pages Collapse Menu -->
-            <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseRekapData"
-                    aria-expanded="true" aria-controls="collapseRekapData">
-                    <i class="fas fa-fw fa-history"></i>
-                    <span>Rekap Data</span>
-                </a>
-                <div id="collapseRekapData" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
-                    <div class="bg-info py-2 collapse-inner rounded">
-                        <a class="collapse-item" href="/kejadian/keamanan">Keamanan</a>
-                        <a class="collapse-item" href="/kejadian/keselamatan">Keselamatan</a>
-                    </div>
+        <!-- Nav Item - Pages Collapse Menu -->
+        <li class="nav-item">
+            <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseRekapData"
+               aria-expanded="true" aria-controls="collapseRekapData">
+                <i class="fas fa-fw fa-history"></i>
+                <span>Rekap Data</span>
+            </a>
+            <div id="collapseRekapData" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+                <div class="bg-info py-2 collapse-inner rounded">
+                    <a class="collapse-item" href="/kejadian/keamanan">Keamanan</a>
+                    <a class="collapse-item" href="/kejadian/keselamatan">Keselamatan</a>
                 </div>
-            </li>
+            </div>
+        </li>
 
+        <!-- Divider -->
+        <hr class="sidebar-divider">
+
+        <li class="nav-item">
+            <a href="#" class="nav-link">
+                <i class="fas fa-fw fa-list"></i>
+                <span>List Laporan</span>
+            </a>
+        </li>
+
+        {{ if .data.is_superior }}
             <!-- Divider -->
             <hr class="sidebar-divider">
 
             <li class="nav-item">
-                <a href="#" class="nav-link">
-                    <i class="fas fa-fw fa-list"></i>
-                    <span>List Laporan</span>
-                </a>
-            </li>
-
-            <!-- Divider -->
-            <hr class="sidebar-divider">
-
-            <li class="nav-item">
-                <a href="#" class="nav-link">
+                <a href="approval" class="nav-link">
                     <i class="fas fa-fw fa-check-square"></i>
                     <span>Approval Laporan</span>
                 </a>
             </li>
+        {{ end }}
 
-
+       
             <!-- Divider -->
             <hr class="sidebar-divider">
 
@@ -75,6 +78,6 @@
                     <span>Jenis Kejadian</span>
                 </a>
             </li>
-        </ul>
-        <!-- End of Sidebar -->
-{{end}}
+    </ul>
+    <!-- End of Sidebar -->
+{{ end }}

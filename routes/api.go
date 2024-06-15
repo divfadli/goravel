@@ -9,8 +9,10 @@ import (
 )
 
 func Api() {
+	laporan := controllers.NewLaporan()
+	facades.Route().Post("/storeLaporan", laporan.Create)
 	generates := pdf.NewPdf("")
-	facades.Route().Post("generate", generates.Index)
+	facades.Route().Post("generate", generates.GenerateKeamanan)
 	facades.Route().Prefix("api").Group(func(r route.Router) {
 		r.Prefix("user").Group(func(user route.Router) {
 			userController := controllers.NewUserController()
@@ -52,6 +54,13 @@ func Api() {
 				keselamatan.Get("showDetailKejadianKeselamatan", kejadianKeselamatanController.ShowDetailKejadianKeselamatan)
 				keselamatan.Delete("deleteKejadianKeselamatan", kejadianKeselamatanController.DeleteKejadianKeselamatan)
 			})
+		})
+
+		r.Prefix("approval").Group(func(router route.Router) {
+			approvalController := controllers.NewApproval()
+
+			router.Post("/storeApproval", approvalController.StoreApproval)
+			router.Get("/listApproval", approvalController.ListApproval)
 		})
 	})
 }

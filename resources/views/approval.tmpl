@@ -1,52 +1,139 @@
 {{ define "approval.tmpl" }}
 
 {{ template "templates/layout.tmpl" .}}
-    <div class="card">
-        <div class="card-header">
-            <h3><b>Nama Laporan</b></h3>
-        </div>
-        
-        <div class="card-body">
-            <div class="d-flex mb-9">
-                <div class="flex-shrink-0 mr-7 mt-lg-0 mt-3">
-                    <div class="symbol symbol-50 symbol-lg-120">
-                        <img src="/img/undraw_profile.svg" alt="pic"/>
-                    </div> 
-                </div> 
-                <div class="d-flex flex-column justify-content-center">
-                    <span class="label text-dark-75 text-hover-primary font-size-h5 font-weight-bold mr-3">
-                        Staff Datin
-                    </span>
-                    <span class="label label-lg font-weight-bold status_badge label-inline" id="status"> 
-                        Status
-                    </span>
-                </div>
-            </div>
-
-            <div class="d-flex flex-column mt-1">
-                <div class="d-flex">
-                    <span class="label text-dark-75 text-hover-primary font-size-h5 font-weight-bold mr-3">
-                        Laporan x
-                    </span>
-                </div>
-
-                <div class="d-flex align-items-center mt-2">
-                    <i class="fas fa-file-alt mr-2"></i>
-                    <span class="label text-dark-75 text-hover-primary font-size-h5 font-weight-bold mr-3">
-                        Dokumen
-                    </span>
-                </div>
-            </div>
-        </div>
-
-        <div class="card-footer">
-            <div class="text-right">
-                <button type="button" id="rejected" class="btn btn-danger">Rejected</button>
-                <button type="submit" class="btn btn-primary">Approved</button>
-            </div>
-        </div>
-    </div>
+<div class="create-card"></div>
 
 {{ template "layouts/footer.tmpl" . }}
 {{ template "layouts/script.tmpl" . }}
-{{ end }}
+
+<script>
+    var nik = {{.data.nik}};
+    document.addEventListener("DOMContentLoaded", function() {
+        getListApproval();
+    });
+
+    function getListApproval() {
+        $.ajax({
+            url: `${window.location.origin}/api/approval/listApproval`,
+            type: 'GET',
+            data: { nik: nik },
+            success: function(response) {
+                renderApprovalCards(response.data.data_laporan);
+            },
+            error: function() {
+                Swal.fire('Gagal!', 'Data Tidak Ada!!', 'error');
+            }
+        });
+    }
+
+    function renderApprovalCards(data) {
+        const container = document.querySelector(".create-card");
+        container.innerHTML = data.map((x, i) => `
+            <div class="card">
+                <div class="row">
+                    <div class="card-header">
+                        <h3><b>${x.jenis_laporan}</b></h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex mb-9">
+                            <div class="flex-shrink-0 mr-7 mt-lg-0 mt-3">
+                                <div class="symbol symbol-50 symbol-lg-120">
+                                    <img src="/img/undraw_profile.svg" alt="pic"/>
+                                </div> 
+                            </div> 
+                            <div class="d-flex flex-column justify-content-center">
+                                <span class="label text-dark-75 text-hover-primary font-size-h5 font-weight-bold mr-3">
+                                    Staff Datin
+                                </span>
+                                <span class="label label-lg font-weight-bold status_badge label-inline" id="status"> 
+                                    Waiting Approval
+                                </span>
+                            </div>
+                        </div>
+                        <div class="d-flex flex-column mt-1">
+                            <div class="d-flex">
+                                <span class="label text-dark-75 text-hover-primary font-size-h5 font-weight-bold mr-3">
+                                    ${x.nama_laporan}
+                                </span>
+                            </div>
+                            <div class="d-flex align-items-center mt-2">
+                                <a href="/api/files/${x.dokumen}">
+                                    <i class="fas fa-file-alt mr-2">
+                                        <span class="label text-dark-75 text-hover-primary font-size-h5 font-weight-bold mr-3">
+                                            Dokumen
+                                        </span>
+                                    </i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="text-right">
+                            <button type="button" class="btn btn-danger" onclick="storeApproval('Rejected', ${x.id_laporan})">Rejected</button>
+                            <button type="button" class="btn btn-primary" onclick="storeApproval('Approved', ${x.id_laporan})">Approved</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function storeApproval(status, id_laporan) {
+        if (status === "Rejected") {
+            Swal.fire({
+                title: 'Apakah anda yakin untuk menolak laporan ini?',
+                input: 'textarea',
+                text: "Mohon berikan alasan penolakan",
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: "Ya, Reject!",
+                confirmButtonColor: '#f42c02',
+                cancelButtonText: "Batalkan!",
+                inputValidator: (value) => {
+                    if (!value) {
+                        return 'Harap isi alasan penolakan!';
+                    }
+                }
+            }).then(function(result) {
+                if (result.value) {
+                    sendApprovalRequest(status, id_laporan, result.value);
+                }
+            });
+        } else {
+            Swal.fire({
+                title: 'Approve laporan ini?',
+                text: "Mohon untuk memvalidasi laporan kembali",
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: "Ya, Approve!",
+                cancelButtonText: "Batalkan!",
+            }).then(function(result) {
+                if (result.value) {
+                    sendApprovalRequest(status, id_laporan);
+                }
+            });
+        }
+    }
+
+    function sendApprovalRequest(status, id_laporan, keterangan = '') {
+        $.ajax({
+            url: `${window.origin}/api/approval/storeApproval`,
+            type: "POST",
+            data: {
+                nik: nik,
+                status: status,
+                id_laporan: id_laporan,
+                keterangan: keterangan
+            },
+            success: function() {
+                Swal.fire(`${status} Berhasil`, `Laporan berhasil di ${status.toLowerCase()}!!`, "success");
+                getListApproval()
+            },
+            error: function() {
+                Swal.fire('Gagal!', 'Terjadi kesalahan saat mengirim data.', 'error');
+            }
+        });
+    }
+
+</script>
+{{end}}

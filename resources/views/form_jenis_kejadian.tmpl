@@ -83,7 +83,7 @@
                         id_jenis_kejadian: $("#id_jenis_kejadian").val(),
                         nama_kejadian: $("#nama_kejadian").val(), 
                         klasifikasi_name: $("#klasifikasi_name").val(),
-                        nik: "99999"
+                        nik: {{.data.nik}}
                     },
                     success: function(response) {
                         Swal.fire('Success!', response.data.message, response.status).then(() => {

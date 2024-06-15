@@ -3,7 +3,7 @@
 {{ template "templates/layout.tmpl" .}}
 <input type="hidden" class="form-control" id="tanggal_awal" name="tanggal_awal"/>
 <input type="hidden" class="form-control" id="tanggal_akhir" name="tanggal_akhir"/>
-<input type="hidden" class="form-control" id="nik" name="nik" value="99999" />
+<input type="hidden" class="form-control" id="nik" name="nik" value={{.data.nik}} />
 
     <div class="card-body col-md-12 col-lg-12">
         <div class="card card-custom gutter-b">
@@ -19,7 +19,6 @@
                         </div>
                     </div>
                 </div>
-
 
                 <div class="row" style="margin-top:20px">
                     <div class="col-md-12">

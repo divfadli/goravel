@@ -1,0 +1,72 @@
+{{define "mapx.tmpl"}}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Leaflet with Highcharts</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <style>
+        #map {
+            height: 400px;
+        }
+        .chart-container {
+            width: 200px;
+            height: 200px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<script>
+    var map = L.map('map').setView([51.505, -0.09], 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+    }).addTo(map);
+
+    var marker = L.marker([51.5, -0.09]).addTo(map);
+
+    // Create a div element for the chart
+    var chartDiv = document.createElement('div');
+    chartDiv.className = 'chart-container';
+
+    // Generate a simple chart
+    Highcharts.chart(chartDiv, {
+        chart: {
+            type: 'bar'
+        },
+        title: {
+            text: 'Fruit Consumption'
+        },
+        xAxis: {
+            categories: ['Apples', 'Bananas', 'Oranges']
+        },
+        yAxis: {
+            title: {
+                text: 'Fruit eaten'
+            }
+        },
+        series: [{
+            name: 'Jane',
+            data: [1, 0, 4]
+        }, {
+            name: 'John',
+            data: [5, 7, 3]
+        }]
+    });
+
+    // Add the div to marker's popup
+    marker.bindPopup(chartDiv);
+
+</script>
+
+</body>
+</html>
+
+
+
+{{end}}

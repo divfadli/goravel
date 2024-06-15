@@ -15,7 +15,7 @@ type Karyawan struct {
 	User         Akun        `json:"user" gorm:"foreign_key:user_id"`
 	JabatanID    int         `json:"jabatan_id" gorm:"default:0" column:"jabatan_id"`
 	Jabatan      Jabatan     `json:"jabatan" gorm:"foreign_key:JabatanID"`
-	IDAtasan     *int        `json:"id_atasan" gorm:"default:0" column:"id_atasan"`
+	IDAtasan     *string     `json:"id_atasan" gorm:"default: null" column:"id_atasan"`
 	orm.Timestamps
 }
 

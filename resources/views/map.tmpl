@@ -8,8 +8,10 @@
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="https://code.highcharts.com/highcharts.js"></script>
     <style>
-        #map {
+        #map1, #map2, #map3 {
             height: 400px;
+            width: 32%;
+            display: inline-block;
         }
         .chart-container {
             width: 200px;
@@ -19,23 +21,21 @@
 </head>
 <body>
 
-<div id="map"></div>
+<div id="map1"></div>
+<div id="map2"></div>
+<div id="map3"></div>
 
 <script>
-    var map = L.map('map').setView([51.505, -0.09], 13);
-
+    var map1 = L.map('map1').setView([51.505, -0.09], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
-    }).addTo(map);
+    }).addTo(map1);
 
-    var marker = L.marker([51.5, -0.09]).addTo(map);
+    var marker1 = L.marker([51.5, -0.09]).addTo(map1);
+    var chartDiv1 = document.createElement('div');
+    chartDiv1.className = 'chart-container';
 
-    // Create a div element for the chart
-    var chartDiv = document.createElement('div');
-    chartDiv.className = 'chart-container';
-
-    // Generate a simple chart
-    Highcharts.chart(chartDiv, {
+    Highcharts.chart(chartDiv1, {
         chart: {
             type: 'bar'
         },
@@ -59,14 +59,92 @@
         }]
     });
 
-    // Add the div to marker's popup
-    marker.bindPopup(chartDiv);
+    marker1.bindPopup(chartDiv1);
+
+    var map2 = L.map('map2').setView([48.8566, 2.3522], 13); // Centered on Paris
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+    }).addTo(map2);
+
+    var marker2 = L.marker([48.8566, 2.3522]).addTo(map2);
+
+    var chartDiv2 = document.createElement('div');
+    chartDiv2.className = 'chart-container';
+    Highcharts.chart(chartDiv2, {
+        chart: {
+            type: 'line'
+        },
+        title: {
+            text: 'Monthly Average Temperature'
+        },
+        xAxis: {
+            categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+        },
+        yAxis: {
+            title: {
+                text: 'Temperature (°C)'
+            }
+        },
+        series: [{
+            name: 'Tokyo',
+            data: [7.0, 6.9, 9.5, 14.5, 18.4, 21.5, 25.2, 26.5, 23.3, 18.3, 13.9, 9.6]
+        }, {
+            name: 'New York',
+            data: [-0.2, 0.8, 5.7, 11.3, 17.0, 22.0, 24.8, 24.1, 20.1, 14.1, 8.6, 2.5]
+        }]
+    });
+
+    marker2.bindPopup(chartDiv2);
+
+    var map3 = L.map('map3').setView([40.7128, -74.0060], 13); // Centered on New York
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+    }).addTo(map3);
+
+    var marker3 = L.marker([40.7128, -74.0060]).addTo(map3);
+
+    var chartDiv3 = document.createElement('div');
+    chartDiv3.className = 'chart-container';
+
+    Highcharts.chart(chartDiv3, {
+        chart: {
+            type: 'pie'
+        },
+        title: {
+            text: 'Browser market shares in January, 2024'
+        },
+        series: [{
+            name: 'Brands',
+            colorByPoint: true,
+            data: [{
+                name: 'Chrome',
+                y: 61.41,
+                sliced: true,
+                selected: true
+            }, {
+                name: 'Internet Explorer',
+                y: 11.84
+            }, {
+                name: 'Firefox',
+                y: 10.85
+            }, {
+                name: 'Edge',
+                y: 4.67
+            }, {
+                name: 'Safari',
+                y: 4.18
+            }, {
+                name: 'Other',
+                y: 7.05
+            }]
+        }]
+    });
+
+    marker3.bindPopup(chartDiv3);
 
 </script>
 
 </body>
 </html>
-
-
 
 {{end}}

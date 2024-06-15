@@ -145,15 +145,15 @@ func (r *UserController) Login(ctx http.Context) http.Response {
 		is_superior = false
 	}
 
-	var role []models.MyRole
+	var role models.MyRole
 	facades.Orm().Query().Table("public.role").Where("id_role=?", user.RoleID).Scan(&role)
 	// facades.Orm().Query().Table("public.role").Where("emp_no=?", dataKaryawan.EmpNo).Scan(&roleKaryawan)
-	defaultRole := models.MyRole{
-		Name: "karyawan",
-	}
-	if role == nil {
-		role = append(role, defaultRole)
-	}
+	// defaultRole := models.MyRole{
+	// 	Name: "karyawan",
+	// }
+	// if role == nil {
+	// 	role = append(role, defaultRole)
+	// }
 
 	token_access, loginErr := facades.Auth().LoginUsingID(ctx, user.IDUser)
 	if loginErr != nil {
