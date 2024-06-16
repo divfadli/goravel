@@ -419,6 +419,18 @@ func (r *Pdf) GenerateKeamanan(ctx http.Context) http.Response {
 	return nil
 }
 
+type GroupingKeamanan struct {
+	NamaKejadian     string `json:"nama_kejadian"`
+	KejadianKeamanan []models.KejadianKeamanan
+	Jumlah           int `json:"jumlah"`
+}
+
+type GroupingKeselamatan struct {
+	NamaKejadian        string `json:"nama_kejadian"`
+	KejadianKeselamatan []models.KejadianKeselamatan
+	Jumlah              int `json:"jumlah"`
+}
+
 func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 	//html template path
 	templatePath := "templates/laporan-bulanan.html"
@@ -437,6 +449,47 @@ func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 
 	outputPath := "storage/output-laporan-bulanan.pdf"
 
+	// Group the incidents by 'jenis_kejadian_id'
+	groupedByJenisKeamanan := make(map[string][]models.KejadianKeamanan)
+	for _, kejadian := range data_keamanan {
+		groupedByJenisKeamanan[kejadian.JenisKejadian.NamaKejadian] = append(groupedByJenisKeamanan[kejadian.JenisKejadian.NamaKejadian], kejadian)
+	}
+
+	var groupKeamanan []GroupingKeamanan
+	// Print the grouped data
+	for jenisName, kejadianGroup := range groupedByJenisKeamanan {
+		jumlah := 0
+		fmt.Printf("Jenis Kejadian ID: %s\n", jenisName)
+		for _, _ = range kejadianGroup {
+			jumlah++
+		}
+		groupKeamanan = append(groupKeamanan, GroupingKeamanan{
+			NamaKejadian:     jenisName,
+			KejadianKeamanan: kejadianGroup,
+			Jumlah:           jumlah,
+		})
+	}
+
+	// Group the incidents by 'jenis_kejadian_id'
+	groupedByJenisKeselamatan := make(map[string][]models.KejadianKeselamatan)
+	for _, kejadian := range data_keselamatan {
+		groupedByJenisKeselamatan[kejadian.JenisKejadian.NamaKejadian] = append(groupedByJenisKeselamatan[kejadian.JenisKejadian.NamaKejadian], kejadian)
+	}
+
+	var groupKeselamatan []GroupingKeselamatan
+	// Print the grouped data
+	for jenisName, kejadianGroup := range groupedByJenisKeselamatan {
+		jumlah := 0
+		fmt.Printf("Jenis Kejadian ID: %s\n", jenisName)
+		for _, _ = range kejadianGroup {
+			jumlah++
+		}
+		groupKeselamatan = append(groupKeselamatan, GroupingKeselamatan{
+			NamaKejadian:        jenisName,
+			KejadianKeselamatan: kejadianGroup,
+			Jumlah:              jumlah,
+		})
+	}
 	// html template data
 	templateData := struct {
 		Bulan                     string
@@ -444,16 +497,16 @@ func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 		Tahun                     string
 		JumlahKejadianKeamanan    int
 		JumlahKejadianKeselamatan int
-		KejadianKeamanan          []models.KejadianKeamanan
-		KejadianKeselamatan       []models.KejadianKeselamatan
+		KejadianKeamanan          []GroupingKeamanan
+		KejadianKeselamatan       []GroupingKeselamatan
 	}{
 		Bulan:                     "Mei",
 		BulanCapital:              "MEI",
 		Tahun:                     "2024",
 		JumlahKejadianKeamanan:    len(data_keamanan),
 		JumlahKejadianKeselamatan: len(data_keselamatan),
-		KejadianKeamanan:          data_keamanan,
-		KejadianKeselamatan:       data_keselamatan,
+		KejadianKeamanan:          groupKeamanan,
+		KejadianKeselamatan:       groupKeselamatan,
 	}
 
 	if err := r.ParseTemplate(templatePath, templateData); err == nil {
@@ -462,6 +515,10 @@ func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 		fmt.Println(err)
 	}
 
-	fmt.Println("PDF created successfully!")
-	return nil
+	// fmt.Println("PDF created successfully!")
+	return ctx.Response().Success().Json(map[string]interface{}{
+		"Status": "success",
+		"data-1": groupKeamanan,
+		"data-2": groupKeselamatan,
+	})
 }
