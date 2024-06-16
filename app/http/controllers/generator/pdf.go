@@ -427,7 +427,7 @@ type GroupingKeamanan struct {
 
 type GroupingKeselamatan struct {
 	NamaKejadian        string `json:"nama_kejadian"`
-	KejadianKeselamatan []models.KejadianKeselamatan
+	KejadianKeselamatan []models.KejadianKeselamatanKorban
 	Jumlah              int `json:"jumlah"`
 }
 
@@ -481,12 +481,27 @@ func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 	for jenisName, kejadianGroup := range groupedByJenisKeselamatan {
 		jumlah := 0
 		fmt.Printf("Jenis Kejadian ID: %s\n", jenisName)
-		for _, _ = range kejadianGroup {
+		var list_korban []models.KejadianKeselamatanKorban
+
+		for _, data := range kejadianGroup {
+			var x models.ListKorban
+			err := json.Unmarshal(data.Korban, &x)
+			if err != nil {
+				return nil
+			}
+
+			temp := models.KejadianKeselamatanKorban{
+				KejadianKeselamatan: data,
+				ListKorban:          x,
+			}
+
+			list_korban = append(list_korban, temp)
 			jumlah++
 		}
+
 		groupKeselamatan = append(groupKeselamatan, GroupingKeselamatan{
 			NamaKejadian:        jenisName,
-			KejadianKeselamatan: kejadianGroup,
+			KejadianKeselamatan: list_korban,
 			Jumlah:              jumlah,
 		})
 	}
@@ -518,7 +533,7 @@ func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 	// fmt.Println("PDF created successfully!")
 	return ctx.Response().Success().Json(map[string]interface{}{
 		"Status": "success",
-		"data-1": groupKeamanan,
+		// "data-1":   groupKeamanan,
 		"data-2": groupKeselamatan,
 	})
 }

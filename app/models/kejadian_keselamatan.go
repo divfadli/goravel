@@ -36,10 +36,15 @@ type KejadianKeselamatanImage struct {
 	FileImage []FileImage `json:"file_image"`
 }
 
+type KejadianKeselamatanKorban struct {
+	KejadianKeselamatan `json:"kejadian_keselamatan"`
+	ListKorban          `json:"list_korban"`
+}
+
 type ListKorban struct {
-	KorbanTewas   int `json:"korban_tewas" gorm:"default:0"`
-	KorbanSelamat int `json:"korban_selamat" gorm:"default:0"`
-	KorbanHilang  int `json:"korban_hilang" gorm:"default:0"`
+	KorbanTewas   int `json:"korban_tewas"`
+	KorbanSelamat int `json:"korban_selamat"`
+	KorbanHilang  int `json:"korban_hilang"`
 }
 
 func (r *KejadianKeselamatan) TableName() string {
