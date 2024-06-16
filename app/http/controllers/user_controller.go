@@ -176,7 +176,7 @@ func (r *UserController) Login(ctx http.Context) http.Response {
 		"email":       user.Email,
 		"nik":         dataKaryawan.EmpNo,
 		"is_superior": is_superior,
-		"role":        role,
+		"role":        role.Name,
 	}
 	facades.Cache().Put("user_data", cachedData, 2*time.Hour)
 

@@ -57,7 +57,7 @@
                 </a>
             </li>
         {{ end }}
-
+        {{ if eq .data.role "Admin" }}
             <!-- Divider -->
             <hr class="sidebar-divider">
 
@@ -67,7 +67,7 @@
                     <span>Role Pengguna</span>
                 </a>
             </li>
-
+        {{ end }}
             <!-- Divider -->
             <hr class="sidebar-divider">
 
