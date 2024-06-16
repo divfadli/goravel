@@ -2,13 +2,16 @@ package generator
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"goravel/app/models"
 	"html/template"
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/goravel/framework/contracts/http"
@@ -222,6 +225,20 @@ func (r *Pdf) GenerateKeamanan(ctx http.Context) http.Response {
 	for _, data := range result_keamanan {
 		// path for download pdf
 		outputPath := fmt.Sprintf("storage/temp/pelanggaran%d.png", data.IdKejadianKeamanan)
+
+		var abk string
+		if strings.Contains(data.Muatan, "ABK") {
+			re := regexp.MustCompile(`\b\d+\s+orang\b`)
+			matches := re.FindAllString(data.Muatan, -1)
+			if len(matches) > 0 {
+				abk = matches[0]
+			} else {
+				abk = " - "
+			}
+		} else {
+			abk = " - "
+		}
+
 		// html template data
 		templateData := struct {
 			Title            string
@@ -244,7 +261,7 @@ func (r *Pdf) GenerateKeamanan(ctx http.Context) http.Response {
 			Kejadian:         data.JenisKejadian.NamaKejadian,
 			Penyebab:         "-",
 			Lokasi:           data.LokasiKejadian,
-			ABK:              "-",
+			ABK:              abk,
 			Muatan:           data.Muatan,
 			InstansiPenindak: data.SumberBerita,
 			Keterangan:       data.TindakLanjut,
@@ -270,6 +287,58 @@ func (r *Pdf) GenerateKeamanan(ctx http.Context) http.Response {
 	for _, data := range result_keselamatan {
 		// path for download pdf
 		outputPath := fmt.Sprintf("storage/temp/kecelakaan%d.png", data.IdKejadianKeselamatan)
+
+		var perpindahanAwal string
+		if data.PelabuhanAsal != "-" && data.PelabuhanAsal != "" {
+			perpindahanAwal = data.PelabuhanAsal
+		}
+		var perpindahanAkhir string
+		if data.PelabuhanTujuan != "-" && data.PelabuhanTujuan != "" {
+			perpindahanAwal = data.PelabuhanTujuan
+		}
+
+		var perpindahan string
+		if perpindahanAwal != "" && perpindahanAkhir != "" {
+			perpindahan = perpindahanAwal + " - " + perpindahanAkhir
+		} else if perpindahanAwal != "" && perpindahanAkhir == "" {
+			perpindahan = perpindahanAwal + " - "
+		} else if perpindahanAwal == "" && perpindahanAkhir != "" {
+			perpindahan = " - " + perpindahanAkhir
+		} else {
+			perpindahan = " - "
+		}
+
+		var korbanData models.ListKorban
+
+		var korban string
+		if err := json.Unmarshal(data.Korban, &korbanData); err != nil {
+			fmt.Println("ERROR", err)
+			return nil
+		}
+
+		if korbanData.KorbanHilang != 0 && korbanData.KorbanSelamat != 0 && korbanData.KorbanTewas != 0 {
+			korban = "Korban hilang " + strconv.Itoa(korbanData.KorbanHilang) + " orang, selamat " +
+				strconv.Itoa(korbanData.KorbanSelamat) + " orang, dan tewas " +
+				strconv.Itoa(korbanData.KorbanTewas) + " orang"
+		} else if korbanData.KorbanHilang != 0 && korbanData.KorbanSelamat != 0 && korbanData.KorbanTewas == 0 {
+			korban = "Korban hilang " + strconv.Itoa(korbanData.KorbanHilang) + " orang, dan selamat " +
+				strconv.Itoa(korbanData.KorbanSelamat) + " orang"
+		} else if korbanData.KorbanHilang != 0 && korbanData.KorbanSelamat == 0 && korbanData.KorbanTewas != 0 {
+			korban = "Korban hilang " + strconv.Itoa(korbanData.KorbanHilang) + " orang, dan tewas " +
+				strconv.Itoa(korbanData.KorbanTewas) + " orang"
+		} else if korbanData.KorbanHilang == 0 && korbanData.KorbanSelamat != 0 && korbanData.KorbanTewas != 0 {
+			korban = "Korban selamat " + strconv.Itoa(korbanData.KorbanSelamat) + " orang, dan tewas " +
+				strconv.Itoa(korbanData.KorbanTewas) + " orang"
+		} else if korbanData.KorbanHilang != 0 && korbanData.KorbanSelamat == 0 && korbanData.KorbanTewas == 0 {
+			korban = "Korban hilang " + strconv.Itoa(korbanData.KorbanHilang) + " orang"
+		} else if korbanData.KorbanHilang == 0 && korbanData.KorbanSelamat != 0 && korbanData.KorbanTewas == 0 {
+			korban = "Korban selamat " + strconv.Itoa(korbanData.KorbanSelamat) + " orang"
+		} else if korbanData.KorbanHilang == 0 && korbanData.KorbanSelamat == 0 && korbanData.KorbanTewas != 0 {
+			korban = "Korban tewas " + strconv.Itoa(korbanData.KorbanTewas) + " orang"
+		} else {
+			korban = "tidak ada korban jiwa"
+		}
+
 		// html template data
 		templateData := struct {
 			Title            string
@@ -292,8 +361,8 @@ func (r *Pdf) GenerateKeamanan(ctx http.Context) http.Response {
 			Kejadian:         data.JenisKejadian.NamaKejadian,
 			Penyebab:         data.Penyebab,
 			Lokasi:           data.LokasiKejadian,
-			Korban:           "-",
-			Perpindahan:      data.PelabuhanAsal + "-" + data.PelabuhanTujuan,
+			Korban:           korban,
+			Perpindahan:      perpindahan,
 			Keterangan:       data.TindakLanjut,
 			Waktu:            data.Tanggal.ToDateString(),
 			InstansiPenindak: data.SumberBerita,
@@ -339,6 +408,7 @@ func (r *Pdf) GenerateKeamanan(ctx http.Context) http.Response {
 	}
 
 	// Save the PDF to a file
+	// path := strconv.Itoa(req.TahunKe) + "/" + req.JenisLaporan + "/Bulan " + monthName(req.BulanKe)
 	err := pdf.OutputFileAndClose("storage/laporan-keamanan-mingguan.pdf")
 	if err != nil {
 		fmt.Printf("Error saving PDF: %s", err)

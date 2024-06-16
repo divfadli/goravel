@@ -5,7 +5,6 @@ integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
 crossorigin=""/>
 
 {{ template "templates/layout.tmpl" .}}
-{{ template "layouts/script.tmpl" . }}
 <!-- Start about-info Area -->
 <section class="price-area section-gap">
     <section id="peta_indonesia" class="about-info-area section-gap">
@@ -14,131 +13,288 @@ crossorigin=""/>
                 <h1 class="mb-10">Peta Lokasi Kejadian</h1>
                 <br>
             </div>
-            <div class="row align-items-center">
+            
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="form-inline">
+                        <input type="hidden" class="form-control" id="tanggal_awal" name="tanggal_awal"/>
+                        <input type="hidden" class="form-control" id="tanggal_akhir" name="tanggal_akhir"/>
+                        <div id="reportrange" style="background: #fff; cursor: pointer; padding: 5px 10px; border: 1px solid #ccc" class="selectbox">
+                            <i class="fa fa-calendar"></i>&nbsp;
+                            <span></span> <i class="caret"></i>
+                        </div>
+                        <div style="margin-right:10px">   
+                            <button onclick="searchData()" class="btn btn-primary">
+                                <i class="fas fa-search fa-sm"> Search</i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row align-items-center" style="margin-top:20px">
                 <div id="map" style="width:100%;height:420px;"></div>
+            </div>
 
-                <!-- Script LeafletJS -->
-                <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
-                    integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
-
-                <script type="text/javascript">
-                    var locationsKeamanan = [];
-                    var locationsKeselamatan = [];
-                    var osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                        maxZoom: 19,
-                        attribution: '© OpenStreetMap'
-                    });
-                    var osmHOT = L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
-                        maxZoom: 19,
-                        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Tiles style by <a href="https://www.hotosm.org/" target="_blank">Humanitarian OpenStreetMap Team</a> hosted by <a href="https://openstreetmap.fr/" target="_blank">OpenStreetMap France</a>'
-                    });
-                    var OpenTopoMap = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
-                        maxZoom: 17,
-                        attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
-                    });
-
-                    // Set default active layers
-                    var defaultBaseLayer = osm;
-                    var defaultOverlayLayers = [L.layerGroup(locationsKeamanan), L.layerGroup(locationsKeselamatan)];
-
-                    var map = new L.Map('map', {
-                        center: { lat: -2.548926, lng: 118.0148634 },
-                        zoom: 5,
-                        layers: [defaultBaseLayer,osmHOT,OpenTopoMap, ...defaultOverlayLayers]
-                    });
-
-                    var baseMaps = {
-                        "OpenStreetMap": osm,
-                        "OpenStreetMap.HOT": osmHOT,
-                        "OpenTopoMap": OpenTopoMap
-                    };
-
-                    var overlayMaps = {
-                        "Pelanggaran": L.layerGroup(locationsKeamanan),
-                        "Keselamatan": L.layerGroup(locationsKeselamatan)
-                    };
-
-                    var layerControl = L.control.layers(baseMaps, overlayMaps).addTo(map);
-
-                    function setMarkers(map, locations, initial) {
-                        locations.forEach((a) => {
-                            var marker = new L.marker([a.latitude, a.longitude]).bindPopup(a.nama_kapal);
-                            if (initial == 1) {
-                                locationsKeamanan.push(marker);
-                            } else if (initial == 2) {
-                                locationsKeselamatan.push(marker);
-                            }
-                            marker.addTo(map);
-                        });
-
-                        // Update layer control
-                        map.removeControl(layerControl);
-                        overlayMaps = {
-                            "Pelanggaran": L.layerGroup(locationsKeamanan),
-                            "Keselamatan": L.layerGroup(locationsKeselamatan)
-                        };
-                        layerControl = L.control.layers(baseMaps, overlayMaps).addTo(map);
-                    }
-
-                    async function getDataKeamanan() {
-                        return new Promise((resolve, reject) => {
-                            $.ajax({
-                                url: "{{.dataKeamananURL}}",
-                                method: "POST",
-                                data: {
-                                    nik: {{.data.nik }},
-                                    tanggal_awal: "2024-03-01",
-                                    tanggal_akhir: "2024-10-10"
-                                },
-                                success: function(response) {
-                                    setMarkers(map, response.data.data_kejadian_keamanan, 1);
-                                    resolve();
-                                },
-                                error: function(response) {
-                                    Swal.fire({
-                                        type: 'error',
-                                        title: 'Oops!',
-                                        text: response.responseJSON.message
-                                    });
-                                    reject(response);
-                                }
-                            });
-                        });
-                    }
-
-                    async function getDataKeselamatan() {
-                        return new Promise((resolve, reject) => {
-                            $.ajax({
-                                url: "{{.dataKeselamatanURL}}",
-                                method: "POST",
-                                data: {
-                                    nik: {{.data.nik }},
-                                    tanggal_awal: "2024-03-01",
-                                    tanggal_akhir: "2024-10-10"
-                                },
-                                success: function(response) {
-                                    setMarkers(map, response.data.data_kejadian_keselamatan, 2);
-                                    resolve();
-                                },
-                                error: function(response) {
-                                    Swal.fire({
-                                        type: 'error',
-                                        title: 'Oops!',
-                                        text: response.responseJSON.message
-                                    });
-                                    reject(response);
-                                }
-                            });
-                        });
-                    }
-
-                    // Call the function to get data and set markers
-                    getDataKeamanan();
-                    getDataKeselamatan();
-                </script>
+            <!-- Add two containers for the charts -->
+            <div class="row align-items-center" style="margin-top:20px">
+                <div id="container-keamanan" style="width:100%;height:400px;"></div>
+            </div>
+            <div class="row align-items-center" style="margin-top:20px">
+                <div id="container-keselamatan" style="width:100%;height:400px;"></div>
             </div>
         </div>
     </section>
 </section>
 {{ template "layouts/footer.tmpl" . }}
+{{ template "layouts/script.tmpl" . }}
+
+<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
+        integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
+
+<script src="https://code.highcharts.com/highcharts.js"></script> <!-- Add this line to include Highcharts -->
+
+<!-- BEGIN Declare Variable MAP -->
+<script>
+    const locationsKeamanan = [];
+    const locationsKeselamatan = [];
+
+    const osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap'
+    });
+    const osmHOT = L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Tiles style by <a href="https://www.hotosm.org/" target="_blank">Humanitarian OpenStreetMap Team</a> hosted by <a href="https://openstreetmap.fr/" target="_blank">OpenStreetMap France</a>'
+    });
+    const OpenTopoMap = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+        maxZoom: 17,
+        attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
+    });
+
+    // Set default active layers
+    const defaultBaseLayer = osm;
+    const defaultOverlayLayers = [L.layerGroup(locationsKeamanan), L.layerGroup(locationsKeselamatan)];
+
+    const map = new L.Map('map', {
+        center: { lat: -2.548926, lng: 118.0148634 },
+        zoom: 5,
+        layers: [defaultBaseLayer, osmHOT, OpenTopoMap, ...defaultOverlayLayers]
+    });
+
+    const baseMaps = {
+        "OpenStreetMap": osm,
+        "OpenStreetMap.HOT": osmHOT,
+        "OpenTopoMap": OpenTopoMap
+    };
+
+    let overlayMaps = {
+        "Pelanggaran": L.layerGroup(locationsKeamanan),
+        "Keselamatan": L.layerGroup(locationsKeselamatan)
+    };
+
+    let layerControl = L.control.layers(baseMaps, overlayMaps).addTo(map);
+</script>
+<!-- END -->
+
+<!-- BEGIN calendar -->
+<script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+
+<script type="text/javascript">
+    const start = moment().startOf('year');
+    const end = moment().endOf('year');
+    var years = [];
+
+    function cb(start, end) {
+        years = [];
+        $('#tanggal_awal').val(start.format('YYYY-MM-DD'));
+        $('#tanggal_akhir').val(end.format('YYYY-MM-DD'));
+
+        $('#reportrange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'));
+
+        // Update the year select options
+        for (let year = start.year(); year <= end.year(); year++) {
+            years.push(year);
+        }
+    }
+
+    $('#reportrange').daterangepicker({
+        startDate: start,
+        endDate: end,
+        ranges: {
+            'This Year': [moment().startOf('year'), moment().endOf('year')],
+            'Last Year': [moment().subtract(1, 'year').startOf('year'), moment().endOf('year')],
+            'Last 3 Year': [moment().subtract(2, 'year').startOf('year'), moment().endOf('year')],
+            'Last 5 Year': [moment().subtract(4, 'year').startOf('year'), moment().endOf('year')],
+        }
+    }, cb);
+
+    cb(start, end);
+</script>
+
+<script type="text/javascript">
+    function searchData() {
+        clearMarkers();
+        getDataAndRenderChart();
+    }
+</script>
+<!-- END -->
+
+<!-- BEGIN MAP -->
+<script type="text/javascript">
+    function clearMarkers() {
+        locationsKeamanan.forEach(marker => map.removeLayer(marker));
+        locationsKeselamatan.forEach(marker => map.removeLayer(marker));
+        locationsKeamanan.length = 0;
+        locationsKeselamatan.length = 0;
+    }
+
+    function setMarkers(map, locations, initial) {
+        locations.forEach((a) => {
+            const marker = new L.marker([a.latitude, a.longitude]).bindPopup(a.nama_kapal);
+            if (initial === 1) {
+                locationsKeamanan.push(marker);
+            } else if (initial === 2) {
+                locationsKeselamatan.push(marker);
+            }
+            marker.addTo(map);
+        });
+
+        // Update layer control
+        map.removeControl(layerControl);
+        overlayMaps = {
+            "Pelanggaran": L.layerGroup(locationsKeamanan),
+            "Keselamatan": L.layerGroup(locationsKeselamatan)
+        };
+        layerControl = L.control.layers(baseMaps, overlayMaps).addTo(map);
+    }
+</script>
+<!-- END -->
+
+<!-- BEGIN CALL -->
+<script type="text/javascript">
+    async function fetchData(url, initial) {
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: url,
+                method: "POST",
+                data: {
+                    nik: {{.data.nik }},
+                    tanggal_awal: $('#tanggal_awal').val(),
+                    tanggal_akhir: $('#tanggal_akhir').val()
+                },
+                success: function(response) {
+                    setMarkers(map, response.data[`data_kejadian_${initial === 1 ? 'keamanan' : 'keselamatan'}`], initial);
+                    resolve(response);
+                },
+                error: function(response) {
+                    Swal.fire({
+                        type: 'error',
+                        title: 'Oops!',
+                        text: response.responseJSON.message
+                    });
+                    reject(response);
+                }
+            });
+        });
+    }
+
+     async function jenisKejadianKeamanan() {
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: window.origin+ "/api/kejadian/listKejadian",
+                method: "POST",
+                data: {
+                    klasifikasi_name: "Keamanan Laut"
+                },
+                success: function(response) {
+                    resolve(response);
+                },
+                error: function(response) {
+                        Swal.fire({
+                            type: 'error',
+                            title: 'Oops!',
+                            text: response.responseJSON.message
+                        });
+                        reject(response);
+                    }
+            });
+        });
+    }
+
+    async function getDataAndRenderChart() {
+        try {
+            const jenisKejadian = await jenisKejadianKeamanan()
+            const kejadianKeamanan = await fetchData("{{.dataKeamananURL}}", 1);
+            const kejadianKeselamatan = await fetchData("{{.dataKeselamatanURL}}", 2);
+            console.log('jenisKejadian:', jenisKejadian);
+            console.log('kejadianKeamanan:', kejadianKeamanan);
+
+            if (!kejadianKeamanan.data || !kejadianKeamanan.data.data_kejadian_keamanan) {
+                throw new Error('data_kejadian_keamanan is undefined');
+            }
+
+            console.log('years:', years);
+            const x = kejadianKeamanan.data.data_kejadian_keamanan.reduce((acc, kejadian) => {
+                const nama_kejadian = kejadian.jenis_kejadian.nama_kejadian;
+                const tahun = new Date(kejadian.tanggal).getFullYear();
+                const key = `${nama_kejadian}-${tahun}`;
+                if (!acc[key]) {
+                    acc[key] = 0;
+                }
+                acc[key]++;
+                return acc
+            }, {});
+            console.log(x)
+
+            const data = Object.keys(x).map(key => {
+                const [nama_kejadian, tahun] = key.split('-');
+                return {
+                    periode: tahun,
+                    name: nama_kejadian,
+                    jumlah: x[key]
+                }
+            })
+            console.log('data:', data);
+
+            let uniqueKejadian = new Set();
+            data.forEach(a => {
+                uniqueKejadian.add(a.name);
+            })
+            console.log(uniqueKejadian)
+            
+            series = []
+            data.forEach(a =>{
+                for (let i = 0; i < years.length; i++) {
+                    if (a.periode == years[i]) {
+                        series.push({
+                            tahun: a.periode,
+                            name: a.name,
+                            jumlah: a.jumlah
+                        })
+                    }else{
+                        series.push({
+                            tahun: a.periode,
+                            name: a.name,
+                            jumlah: 0
+                        })
+                    }
+                }
+            })
+           console.log(series)
+
+
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+    }
+
+    getDataAndRenderChart();
+</script>
+
+<!-- END -->
+
 {{ end }}
