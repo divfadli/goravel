@@ -87,6 +87,7 @@
                                         <td>{{$val.NamaKejadian}}</td>
                                         <td>{{$val.Jumlah}}</td>
                                         {{if eq $index $val.Jumlah}}
+                                            <td>AAAA</td>
                                         {{end}}    
                                         <td>{{$set.LokasiKejadian}}</td>
                                         <td>{{$set.Zona}}</td>
@@ -154,10 +155,10 @@
                     terkait masing-masing pelanggaran yang dihimpun:</p>
                 <ol type="a" class="lead">
                     {{range $val := .KejadianKeamanan}}
-                        <li><i>{{$.val.NamaKejadian}}</i></li>
+                        <li><i>{{$val.NamaKejadian}}</i></li>
                         <ol>
-                        {{range $index,$set := $val.KejadianKeamanan}}
-                            <li>{{$.set.TindakLanjut}}</li>
+                        {{range $set := $val.KejadianKeamanan}}
+                            <li>{{$set.TindakLanjut}}</li>
                         {{end}}
                         </ol>
                     {{end}}
@@ -167,40 +168,87 @@
                     berdasarkan data yang dikumpulkan:</p>
                 <ol type="a" class="lead">
                     {{range $val := .KejadianKeamanan}}
-                        <li><i>{{$.val.NamaKejadian}}</i></li>
+                        <li><i>{{$val.NamaKejadian}}</i></li>
                         <ol>
                         {{range $index,$set := $val.KejadianKeamanan}}
-                            <li>{{$.set.InformasiKategori}}</li>
+                            <li>{{$set.InformasiKategori}}</li>
                         {{end}}
                         </ol>
                     {{end}}
+                </ol>
                 <h5>5. Kesimpulan</h5>
                 <p class="lead">Secara keseluruhan wilayah perairan yuridiksi nasional Indonesia sampai saat ini masih
                     rawan terhadap giat illegal (gakkum) dan kejadian kecelakaan dilaut. Terdapat sejumlah kejadian
                     keamanan dan keselamatan laut dengan jabaran sbb:</p>
                 <ol type="a" class="lead">
-                    <li>Keamanan sebanyak 31 kejadian, dengan pembagian area yakni:</li>
+                    {{$totalKejadianKeamananBarat := 0}}
+                    {{$totalKejadianKeamananTimur := 0}}
+                    {{$totalKejadianKeamananTengah := 0}}
+                    {{ $lengthKejadianKeamanan := len .KejadianKeamanan }}
+
+                    {{range $val := .KejadianKeamanan}}
+                        {{$totalKejadianKeamananBarat = add $totalKejadianKeamananBarat $val.JumlahZonaBarat}}
+                        {{$totalKejadianKeamananTimur = add $totalKejadianKeamananTimur $val.JumlahZonaTimur}}
+                        {{$totalKejadianKeamananTengah = add $totalKejadianKeamananTengah $val.JumlahZonaTengah}}
+                    {{end}}
+                    <li>Keamanan sebanyak {{.JumlahKejadianKeamanan}} kejadian, dengan pembagian area yakni:</li>
                     <ol>
-                        <li>Wilayah Barat 18 kejadian, dimana kegiatan Human Trafficking, IUU Fishing, Penyelundupan
-                            Barang, Penyelundupan Hewan, Penyelundupan Narkoba, dan Illegal Minning mendominasi kejadian
-                            tersebut.</li>
-                        <li>Wilayah Tengah 6 kejadian, dimana kegiatan Penyelundupan Narkoba, Penyelundupan BBM, IUU
-                            Fishing, Penyelundupan Barang, dan Penyelundupan Miras mendominasi kejadian tersebut.</li>
-                        <li>Wilayah Timur sebanyak 7 kejadian, dimana kegiatan IUU Fishing, Penyelundupan Miras,
-                            Human Trafficking, Penyelundupan Narkoba dan Pencurian mendominasi kejadian tersebut.</li>
+                        <li>Wilayah Barat {{$totalKejadianKeamananBarat}} kejadian, dimana kegiatan 
+                            {{range $index,$val := .KejadianKeamanan}}
+                                {{if ne $val.JumlahZonaBarat 0}}
+                                    {{ $val.NamaKejadian }}
+                                    {{if not (last $index $lengthKejadianKeamanan) }},{{end}}
+                                {{end}}
+                            {{end}}
+                            mendominasi kejadian tersebut.</li>
+                        <li>Wilayah Tengah {{$totalKejadianKeamananTengah}} kejadian, dimana kegiatan 
+                            {{ range $index, $val := .KejadianKeamanan }}
+                                {{ if ne $val.JumlahZonaTengah 0 }}
+                                    {{ $val.NamaKejadian }}
+                                    {{if not (last $index $lengthKejadianKeamanan) }},{{end}}
+                                {{ end }}
+                            {{ end }}
+                        mendominasi kejadian tersebut.</li>
+                        <li>Wilayah Timur sebanyak {{$totalKejadianKeamananTimur}} kejadian, dimana kegiatan 
+                            {{range $index,$val := .KejadianKeamanan}}
+                                {{if ne $val.JumlahZonaTimur 0}}
+                                    {{ $val.NamaKejadian }}
+                                    {{if not (last $index $lengthKejadianKeamanan) }},{{end}}
+                                {{end}}
+                            {{end}}
+                            mendominasi kejadian tersebut.</li>
                     </ol>
-                    <li>Keselamatan sebanyak 48 kejadian, dengan pembagian area yakni:</li>
+                    {{$totalKejadianKeselamatanBarat := 0}}
+                    {{$totalKejadianKeselamatanTimur := 0}}
+                    {{$totalKejadianKeselamatanTengah := 0}}
+
+                    {{range $val := .KejadianKeselamatan}}
+                        {{$totalKejadianKeselamatanBarat = add $totalKejadianKeselamatanBarat $val.JumlahZonaBarat}}
+                        {{$totalKejadianKeselamatanTimur = add $totalKejadianKeselamatanTimur $val.JumlahZonaTimur}}
+                        {{$totalKejadianKeselamatanTengah = add $totalKejadianKeselamatanTengah $val.JumlahZonaTengah}}
+                    {{end}}
+                    <li>Keselamatan sebanyak {{.JumlahKejadianKeselamatan}} kejadian, dengan pembagian area yakni:</li>
                     <ol>
-                        <li>Wilayah Barat 30 kejadian</li>
-                        <li>Wilayah Tengah 14 kejadian</li>
-                        <li>Wilayah Timur 4 kejadian</li>
+                        <li>Wilayah Barat {{$totalKejadianKeselamatanBarat}} kejadian</li>
+                        <li>Wilayah Tengah {{$totalKejadianKeselamatanTengah}} kejadian</li>
+                        <li>Wilayah Timur {{$totalKejadianKeselamatanTimur}} kejadian</li>
                     </ol>
                 </ol>
                 <h5>6. Saran Tindak</h5>
                 <ol type="a" class="lead">
-                    <li>Saran1</li>
-                    <li>Saran2</li>
-                    <li>Saran3</li>
+                    <li>Tingginya pelanggaran di wilayah Perairan Indonesia diharapkan
+                        menjadi fokus pada masing-masing Zona mengingat aktifitas
+                        penyelundupan umumnya menggunakan kapal dengan kecepatan tinggi
+                        sehingga kedepan dapat diantisipasi dengan berkoordinasi dengan
+                        Instansi Samping yang memiliki kapal cepat pada wilayah perairan
+                        sesuai peta kerawanan keamanan.</li>
+                    <li>Tingginya kecelakaan di wilayah Perairan Indonesia diharapkan dapat
+                        diantisipasi dengan mendorong sosialisasi terkait keselamatan laut untuk
+                        meminimalisir terjadinya kecelakaan yang tinggi dikemudian hari.</li>
+                    <li>Mohon dapatnya Bakamla RI melalui Puskodal Bakamla RI/ kantor-kantor SPKKL 
+                        meningkatkan monitoring kapal-kapal diperbatasan
+                        wilayah serta kapal-kapal mencurigakan yang bergerak dari / ke negara
+                        tetangga.</li>
                 </ol>
             </div>
         </div>

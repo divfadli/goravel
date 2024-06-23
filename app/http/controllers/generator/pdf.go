@@ -31,11 +31,23 @@ func NewPdf(body string) *Pdf {
 	}
 }
 
-func (r *Pdf) ParseTemplate(templateFileName string, data interface{}) error {
-	t, err := template.ParseFiles(templateFileName)
+func (r *Pdf) ParseTemplate(templateFileName string, newTemplateFileName string, data interface{}) error {
+	t, err := template.New(newTemplateFileName).Funcs(template.FuncMap{
+		"add": Add,
+		"seq": Seq,
+		"sub": Sub,
+		"inc": Increment,
+		"last": func(index int, length int) bool {
+			return index == length-1
+		},
+	}).ParseFiles(templateFileName)
+
 	if err != nil {
 		return err
 	}
+
+	t = template.Must(t, err)
+
 	buf := new(bytes.Buffer)
 	if err = t.Execute(buf, data); err != nil {
 		return err
@@ -151,6 +163,7 @@ func (r *Pdf) GenerateLaporan(laporanPath string) (bool, error) {
 func (r *Pdf) Index(ctx http.Context) http.Response {
 	//html template path
 	templatePath := "templates/sample.html"
+	newtemplatePath := "sample.html"
 
 	//path for download pdf
 	outputPath := "storage/example.png"
@@ -170,7 +183,7 @@ func (r *Pdf) Index(ctx http.Context) http.Response {
 		Country:     "Germany",
 	}
 
-	if err := r.ParseTemplate(templatePath, templateData); err == nil {
+	if err := r.ParseTemplate(templatePath, newtemplatePath, templateData); err == nil {
 		// Generate PDF
 		ok, _ := r.GenerateSlide(outputPath)
 		fmt.Println(ok, "pdf generated successfully")
@@ -180,10 +193,12 @@ func (r *Pdf) Index(ctx http.Context) http.Response {
 	return nil
 }
 
-func (r *Pdf) GenerateKeamanan(ctx http.Context) http.Response {
+func (r *Pdf) GenerateMingguan(ctx http.Context) http.Response {
 	//html template path
 	templateKeamananPath := "templates/keamanan.html"
+	newTemplateKeamananPath := "keamanan.html"
 	templateKeselamatanPath := "templates/keselamatan.html"
+	newTemplateKeselamatanPath := "keselamatan.html"
 
 	var data_keamanan []models.KejadianKeamanan
 	query1 := facades.Orm().Query().
@@ -272,7 +287,7 @@ func (r *Pdf) GenerateKeamanan(ctx http.Context) http.Response {
 			Images:           data.FileImage,
 		}
 
-		if err := r.ParseTemplate(templateKeamananPath, templateData); err == nil {
+		if err := r.ParseTemplate(templateKeamananPath, newTemplateKeamananPath, templateData); err == nil {
 			// Generate Image
 			success, _ := r.GenerateSlide(outputPath)
 			if success {
@@ -372,7 +387,7 @@ func (r *Pdf) GenerateKeamanan(ctx http.Context) http.Response {
 			Images:           data.FileImage,
 		}
 
-		if err := r.ParseTemplate(templateKeselamatanPath, templateData); err == nil {
+		if err := r.ParseTemplate(templateKeselamatanPath, newTemplateKeselamatanPath, templateData); err == nil {
 			// Generate Image
 			success, _ := r.GenerateSlide(outputPath)
 			if success {
@@ -423,17 +438,24 @@ type GroupingKeamanan struct {
 	NamaKejadian     string `json:"nama_kejadian"`
 	KejadianKeamanan []models.KejadianKeamanan
 	Jumlah           int `json:"jumlah"`
+	JumlahZonaBarat  int `json:"jumlah_zona_barat"`
+	JumlahZonaTimur  int `json:"jumlah_zona_timur"`
+	JumlahZonaTengah int `json:"jumlah_zona_tengah"`
 }
 
 type GroupingKeselamatan struct {
 	NamaKejadian        string `json:"nama_kejadian"`
 	KejadianKeselamatan []models.KejadianKeselamatanKorban
 	Jumlah              int `json:"jumlah"`
+	JumlahZonaBarat     int `json:"jumlah_zona_barat"`
+	JumlahZonaTimur     int `json:"jumlah_zona_timur"`
+	JumlahZonaTengah    int `json:"jumlah_zona_tengah"`
 }
 
 func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 	//html template path
 	templatePath := "templates/laporan-bulanan.html"
+	newTemplatePath := "laporan-bulanan.html"
 
 	var data_keamanan []models.KejadianKeamanan
 	query := facades.Orm().Query().
@@ -459,14 +481,31 @@ func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 	// Print the grouped data
 	for jenisName, kejadianGroup := range groupedByJenisKeamanan {
 		jumlah := 0
+		jumlahBarat := 0
+		jumlahTimur := 0
+		jumlahTengah := 0
+
 		fmt.Printf("Jenis Kejadian ID: %s\n", jenisName)
-		for _, _ = range kejadianGroup {
+		for i, index := range kejadianGroup {
+			if index.Zona == "BARAT" {
+				fmt.Println("MASUK BARAT-", i)
+				jumlahBarat++
+			} else if index.Zona == "TIMUR" {
+				fmt.Println("MASUK TIMUR-", i)
+				jumlahTimur++
+			} else if index.Zona == "TENGAH" {
+				fmt.Println("MASUK TENGAH-", i)
+				jumlahTengah++
+			}
 			jumlah++
 		}
 		groupKeamanan = append(groupKeamanan, GroupingKeamanan{
 			NamaKejadian:     jenisName,
 			KejadianKeamanan: kejadianGroup,
 			Jumlah:           jumlah,
+			JumlahZonaBarat:  jumlahBarat,
+			JumlahZonaTimur:  jumlahTimur,
+			JumlahZonaTengah: jumlahTengah,
 		})
 	}
 
@@ -480,6 +519,10 @@ func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 	// Print the grouped data
 	for jenisName, kejadianGroup := range groupedByJenisKeselamatan {
 		jumlah := 0
+		jumlahBarat := 0
+		jumlahTimur := 0
+		jumlahTengah := 0
+
 		fmt.Printf("Jenis Kejadian ID: %s\n", jenisName)
 		var list_korban []models.KejadianKeselamatanKorban
 
@@ -488,6 +531,14 @@ func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 			err := json.Unmarshal(data.Korban, &x)
 			if err != nil {
 				return nil
+			}
+
+			if data.Zona == "BARAT" {
+				jumlahBarat++
+			} else if data.Zona == "TIMUR" {
+				jumlahTimur++
+			} else if data.Zona == "TENGAH" {
+				jumlahTengah++
 			}
 
 			temp := models.KejadianKeselamatanKorban{
@@ -503,6 +554,9 @@ func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 			NamaKejadian:        jenisName,
 			KejadianKeselamatan: list_korban,
 			Jumlah:              jumlah,
+			JumlahZonaBarat:     jumlahBarat,
+			JumlahZonaTimur:     jumlahTimur,
+			JumlahZonaTengah:    jumlahTengah,
 		})
 	}
 	// html template data
@@ -524,7 +578,7 @@ func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 		KejadianKeselamatan:       groupKeselamatan,
 	}
 
-	if err := r.ParseTemplate(templatePath, templateData); err == nil {
+	if err := r.ParseTemplate(templatePath, newTemplatePath, templateData); err == nil {
 		r.GenerateLaporan(outputPath)
 	} else {
 		fmt.Println(err)
@@ -533,7 +587,168 @@ func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 	// fmt.Println("PDF created successfully!")
 	return ctx.Response().Success().Json(map[string]interface{}{
 		"Status": "success",
-		// "data-1":   groupKeamanan,
+		"data-1": groupKeamanan,
+		"data-2": groupKeselamatan,
+	})
+}
+
+func Add(x, y int) int {
+	return x + y
+}
+
+func Seq(start, end int) []int {
+	s := make([]int, end-start+1)
+	for i := range s {
+		s[i] = start + i
+	}
+	return s
+}
+
+// sub subtracts b from a.
+func Sub(a, b int) int {
+	return a - b
+}
+
+func Increment(val int) int {
+	return val + 1
+}
+
+func (r *Pdf) GenerateCoba(ctx http.Context) http.Response {
+	//html template path
+	templatePath := "templates/coba.html"
+	newtemplatePath := "coba.html"
+
+	var data_keamanan []models.KejadianKeamanan
+	query := facades.Orm().Query().
+		Join("inner join public.jenis_kejadian k on k.id_jenis_kejadian = jenis_kejadian_id ").
+		With("JenisKejadian")
+	query.Order("tanggal asc").Find(&data_keamanan)
+
+	var data_keselamatan []models.KejadianKeselamatan
+	query = facades.Orm().Query().
+		Join("inner join public.jenis_kejadian k on k.id_jenis_kejadian = jenis_kejadian_id ").
+		With("JenisKejadian")
+	query.Order("tanggal asc").Find(&data_keselamatan)
+
+	outputPath := "storage/output-laporan-bulanan.pdf"
+
+	// Group the incidents by 'jenis_kejadian_id'
+	groupedByJenisKeamanan := make(map[string][]models.KejadianKeamanan)
+	for _, kejadian := range data_keamanan {
+		groupedByJenisKeamanan[kejadian.JenisKejadian.NamaKejadian] = append(groupedByJenisKeamanan[kejadian.JenisKejadian.NamaKejadian], kejadian)
+	}
+
+	var groupKeamanan []GroupingKeamanan
+	// Print the grouped data
+	for jenisName, kejadianGroup := range groupedByJenisKeamanan {
+		jumlah := 0
+		jumlahBarat := 0
+		jumlahTimur := 0
+		jumlahTengah := 0
+		fmt.Printf("Jenis Kejadian ID: %s\n", jenisName)
+		for i, index := range kejadianGroup {
+			fmt.Println(index)
+			if index.Zona == "BARAT" {
+				fmt.Println("MASUK BARAT-", i)
+				jumlahBarat++
+			} else if index.Zona == "TIMUR" {
+				fmt.Println("MASUK TIMUR-", i)
+				jumlahTimur++
+			} else if index.Zona == "TENGAH" {
+				fmt.Println("MASUK TENGAH-", i)
+				jumlahTengah++
+			}
+			jumlah++
+		}
+		groupKeamanan = append(groupKeamanan, GroupingKeamanan{
+			NamaKejadian:     jenisName,
+			KejadianKeamanan: kejadianGroup,
+			Jumlah:           jumlah,
+			JumlahZonaBarat:  jumlahBarat,
+			JumlahZonaTimur:  jumlahTimur,
+			JumlahZonaTengah: jumlahTengah,
+		})
+	}
+
+	// Group the incidents by 'jenis_kejadian_id'
+	groupedByJenisKeselamatan := make(map[string][]models.KejadianKeselamatan)
+	for _, kejadian := range data_keselamatan {
+		groupedByJenisKeselamatan[kejadian.JenisKejadian.NamaKejadian] = append(groupedByJenisKeselamatan[kejadian.JenisKejadian.NamaKejadian], kejadian)
+	}
+
+	var groupKeselamatan []GroupingKeselamatan
+	// Print the grouped data
+	for jenisName, kejadianGroup := range groupedByJenisKeselamatan {
+		jumlah := 0
+		jumlahBarat := 0
+		jumlahTimur := 0
+		jumlahTengah := 0
+
+		fmt.Printf("Jenis Kejadian ID: %s\n", jenisName)
+		var list_korban []models.KejadianKeselamatanKorban
+
+		for _, data := range kejadianGroup {
+			var x models.ListKorban
+			err := json.Unmarshal(data.Korban, &x)
+			if err != nil {
+				return nil
+			}
+
+			if data.Zona == "BARAT" {
+				jumlahBarat++
+			} else if data.Zona == "TIMUR" {
+				jumlahTimur++
+			} else if data.Zona == "TENGAH" {
+				jumlahTengah++
+			}
+
+			temp := models.KejadianKeselamatanKorban{
+				KejadianKeselamatan: data,
+				ListKorban:          x,
+			}
+
+			list_korban = append(list_korban, temp)
+			jumlah++
+		}
+
+		groupKeselamatan = append(groupKeselamatan, GroupingKeselamatan{
+			NamaKejadian:        jenisName,
+			KejadianKeselamatan: list_korban,
+			Jumlah:              jumlah,
+			JumlahZonaBarat:     jumlahBarat,
+			JumlahZonaTimur:     jumlahTimur,
+			JumlahZonaTengah:    jumlahTengah,
+		})
+	}
+	// html template data
+	templateData := struct {
+		Bulan                     string
+		BulanCapital              string
+		Tahun                     string
+		JumlahKejadianKeamanan    int
+		JumlahKejadianKeselamatan int
+		KejadianKeamanan          []GroupingKeamanan
+		KejadianKeselamatan       []GroupingKeselamatan
+	}{
+		Bulan:                     "Mei",
+		BulanCapital:              "MEI",
+		Tahun:                     "2024",
+		JumlahKejadianKeamanan:    len(data_keamanan),
+		JumlahKejadianKeselamatan: len(data_keselamatan),
+		KejadianKeamanan:          groupKeamanan,
+		KejadianKeselamatan:       groupKeselamatan,
+	}
+
+	if err := r.ParseTemplate(templatePath, newtemplatePath, templateData); err == nil {
+		r.GenerateLaporan(outputPath)
+	} else {
+		fmt.Println(err)
+	}
+
+	// fmt.Println("PDF created successfully!")
+	return ctx.Response().Success().Json(map[string]interface{}{
+		"Status": "success",
+		"data-1": groupKeamanan,
 		"data-2": groupKeselamatan,
 	})
 }
