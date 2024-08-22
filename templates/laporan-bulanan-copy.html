@@ -185,9 +185,6 @@
                     {{$totalKejadianKeamananTimur := 0}}
                     {{$totalKejadianKeamananTengah := 0}}
                     {{ $lengthKejadianKeamanan := len .KejadianKeamanan }}
-                    {{ $lengthKejadianKeamananBarat := len .KejadianKeamananBarat }}
-                    {{ $lengthKejadianKeamananTengah := len .KejadianKeamananTengah }}
-                    {{ $lengthKejadianKeamananTimur := len .KejadianKeamananTimur }}
 
                     {{range $val := .KejadianKeamanan}}
                         {{$totalKejadianKeamananBarat = add $totalKejadianKeamananBarat $val.JumlahZonaBarat}}
@@ -197,30 +194,27 @@
                     <li>Keamanan sebanyak {{.JumlahKejadianKeamanan}} kejadian, dengan pembagian area yakni:</li>
                     <ol>
                         <li>Wilayah Barat {{$totalKejadianKeamananBarat}} kejadian, dimana kegiatan 
-                            {{range $index,$val := .KejadianKeamananBarat}}
-                                {{if and (last $index $lengthKejadianKeamananBarat) (ne $lengthKejadianKeamananBarat 1)}}
-                                dan 
+                            {{range $index,$val := .KejadianKeamanan}}
+                                {{if ne $val.JumlahZonaBarat 0}}
+                                    {{ $val.NamaKejadian }}
+                                    {{if not (last $index $lengthKejadianKeamanan) }},{{end}}
                                 {{end}}
-                                {{ $val.NamaKejadian }}
-                                {{if not (last $index $lengthKejadianKeamananBarat) }}, {{end}}
                             {{end}}
                             mendominasi kejadian tersebut.</li>
                         <li>Wilayah Tengah {{$totalKejadianKeamananTengah}} kejadian, dimana kegiatan 
-                            {{ range $index, $val := .KejadianKeamananTengah }}
-                                {{if and (last $index $lengthKejadianKeamananTengah) (ne $lengthKejadianKeamananTengah 1)}}
-                                dan 
-                                {{end}}
-                                {{ $val.NamaKejadian }}
-                                {{if not (last $index $lengthKejadianKeamananTengah) }}, {{end}}
+                            {{ range $index, $val := .KejadianKeamanan }}
+                                {{ if ne $val.JumlahZonaTengah 0 }}
+                                    {{ $val.NamaKejadian }}
+                                    {{if not (last $index $lengthKejadianKeamanan) }},{{end}}
+                                {{ end }}
                             {{ end }}
                         mendominasi kejadian tersebut.</li>
                         <li>Wilayah Timur sebanyak {{$totalKejadianKeamananTimur}} kejadian, dimana kegiatan 
-                            {{range $index,$val := .KejadianKeamananTimur}}
-                                {{if and (last $index $lengthKejadianKeamananTimur) (ne $lengthKejadianKeamananTimur 1)}}
-                                dan
+                            {{range $index,$val := .KejadianKeamanan}}
+                                {{if ne $val.JumlahZonaTimur 0}}
+                                    {{ $val.NamaKejadian }}
+                                    {{if not (last $index $lengthKejadianKeamanan) }},{{end}}
                                 {{end}}
-                                {{ $val.NamaKejadian }}
-                                {{if not (last $index $lengthKejadianKeamananTimur) }}, {{end}}
                             {{end}}
                             mendominasi kejadian tersebut.</li>
                     </ol>

@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -160,39 +161,6 @@ func (r *Pdf) GenerateLaporan(laporanPath string) (bool, error) {
 	return true, nil
 }
 
-func (r *Pdf) Index(ctx http.Context) http.Response {
-	//html template path
-	templatePath := "templates/sample.html"
-	newtemplatePath := "sample.html"
-
-	//path for download pdf
-	outputPath := "storage/example.png"
-
-	//html template data
-	templateData := struct {
-		Title       string
-		Description string
-		Company     string
-		Contact     string
-		Country     string
-	}{
-		Title:       "HTML to PDF generator",
-		Description: "This is the simple HTML to PDF file.",
-		Company:     "Jhon Lewis",
-		Contact:     "Maria Anders",
-		Country:     "Germany",
-	}
-
-	if err := r.ParseTemplate(templatePath, newtemplatePath, templateData); err == nil {
-		// Generate PDF
-		ok, _ := r.GenerateSlide(outputPath)
-		fmt.Println(ok, "pdf generated successfully")
-	} else {
-		fmt.Println(err)
-	}
-	return nil
-}
-
 func (r *Pdf) GenerateMingguan(ctx http.Context) http.Response {
 	//html template path
 	templateKeamananPath := "templates/keamanan.html"
@@ -204,7 +172,7 @@ func (r *Pdf) GenerateMingguan(ctx http.Context) http.Response {
 	query1 := facades.Orm().Query().
 		Join("inner join public.jenis_kejadian k on k.id_jenis_kejadian = jenis_kejadian_id ").
 		With("JenisKejadian")
-	query1.Order("tanggal asc").Find(&data_keamanan)
+	query1.Order("k.nama_kejadian asc, tanggal asc").Find(&data_keamanan)
 
 	var result_keamanan []models.KejadianKeamananImage
 	for _, data := range data_keamanan {
@@ -222,7 +190,7 @@ func (r *Pdf) GenerateMingguan(ctx http.Context) http.Response {
 	query2 := facades.Orm().Query().
 		Join("inner join public.jenis_kejadian k on k.id_jenis_kejadian = jenis_kejadian_id ").
 		With("JenisKejadian")
-	query2.Order("tanggal asc").Find(&data_keselamatan)
+	query2.Order("k.nama_kejadian asc, tanggal asc").Find(&data_keselamatan)
 
 	var result_keselamatan []models.KejadianKeselamatanImage
 	for _, data := range data_keselamatan {
@@ -434,6 +402,22 @@ func (r *Pdf) GenerateMingguan(ctx http.Context) http.Response {
 	return nil
 }
 
+type GroupingKeamananBarat struct {
+	NamaKejadian     string `json:"nama_kejadian"`
+	KejadianKeamanan []models.KejadianKeamanan
+	Jumlah           int `json:"jumlah"`
+}
+type GroupingKeamananTimur struct {
+	NamaKejadian     string `json:"nama_kejadian"`
+	KejadianKeamanan []models.KejadianKeamanan
+	Jumlah           int `json:"jumlah"`
+}
+type GroupingKeamananTengah struct {
+	NamaKejadian     string `json:"nama_kejadian"`
+	KejadianKeamanan []models.KejadianKeamanan
+	Jumlah           int `json:"jumlah"`
+}
+
 type GroupingKeamanan struct {
 	NamaKejadian     string `json:"nama_kejadian"`
 	KejadianKeamanan []models.KejadianKeamanan
@@ -451,23 +435,44 @@ type GroupingKeselamatan struct {
 	JumlahZonaTimur     int `json:"jumlah_zona_timur"`
 	JumlahZonaTengah    int `json:"jumlah_zona_tengah"`
 }
+type GroupingKeselamatanBarat struct {
+	NamaKejadian        string `json:"nama_kejadian"`
+	KejadianKeselamatan []models.KejadianKeselamatanKorban
+	Jumlah              int `json:"jumlah"`
+}
+type GroupingKeselamatanTimur struct {
+	NamaKejadian        string `json:"nama_kejadian"`
+	KejadianKeselamatan []models.KejadianKeselamatanKorban
+	Jumlah              int `json:"jumlah"`
+}
+type GroupingKeselamatanTengah struct {
+	NamaKejadian        string `json:"nama_kejadian"`
+	KejadianKeselamatan []models.KejadianKeselamatanKorban
+	Jumlah              int `json:"jumlah"`
+}
 
 func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 	//html template path
+	now := time.Now()
+	bulan := monthNameIndonesia(now.Month())
+	intBulan := int(now.Month())
+	year := strconv.Itoa(now.Year())
+
+	// lastMonth1 := int(now.Month())
 	templatePath := "templates/laporan-bulanan.html"
 	newTemplatePath := "laporan-bulanan.html"
 
 	var data_keamanan []models.KejadianKeamanan
 	query := facades.Orm().Query().
 		Join("inner join public.jenis_kejadian k on k.id_jenis_kejadian = jenis_kejadian_id ").
-		With("JenisKejadian")
-	query.Order("tanggal asc").Find(&data_keamanan)
+		With("JenisKejadian").Where("DATE_PART('month', tanggal) IN (?)", intBulan)
+	query.Order("k.nama_kejadian asc, tanggal asc").Find(&data_keamanan)
 
 	var data_keselamatan []models.KejadianKeselamatan
 	query = facades.Orm().Query().
 		Join("inner join public.jenis_kejadian k on k.id_jenis_kejadian = jenis_kejadian_id ").
-		With("JenisKejadian")
-	query.Order("tanggal asc").Find(&data_keselamatan)
+		With("JenisKejadian").Where("DATE_PART('month', tanggal) IN (?)", intBulan)
+	query.Order("k.nama_kejadian asc, tanggal asc").Find(&data_keselamatan)
 
 	outputPath := "storage/output-laporan-bulanan.pdf"
 
@@ -478,6 +483,12 @@ func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 	}
 
 	var groupKeamanan []GroupingKeamanan
+	var keamananBarat []GroupingKeamananBarat
+	var keamananTimur []GroupingKeamananTimur
+	var keamananTengah []GroupingKeamananTengah
+	var groupKeamananBarat []models.KejadianKeamanan
+	var groupKeamananTimur []models.KejadianKeamanan
+	var groupKeamananTengah []models.KejadianKeamanan
 	// Print the grouped data
 	for jenisName, kejadianGroup := range groupedByJenisKeamanan {
 		jumlah := 0
@@ -490,15 +501,42 @@ func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 			if index.Zona == "BARAT" {
 				fmt.Println("MASUK BARAT-", i)
 				jumlahBarat++
+				groupKeamananBarat = append(groupKeamananBarat, index)
 			} else if index.Zona == "TIMUR" {
 				fmt.Println("MASUK TIMUR-", i)
 				jumlahTimur++
+				groupKeamananTimur = append(groupKeamananTimur, index)
 			} else if index.Zona == "TENGAH" {
 				fmt.Println("MASUK TENGAH-", i)
 				jumlahTengah++
+				groupKeamananTengah = append(groupKeamananTengah, index)
 			}
 			jumlah++
 		}
+
+		if jumlahBarat != 0 {
+			keamananBarat = append(keamananBarat, GroupingKeamananBarat{
+				NamaKejadian:     jenisName,
+				KejadianKeamanan: groupKeamananBarat,
+				Jumlah:           jumlahBarat,
+			})
+		}
+		if jumlahTimur != 0 {
+			fmt.Println("TIMURRR")
+			keamananTimur = append(keamananTimur, GroupingKeamananTimur{
+				NamaKejadian:     jenisName,
+				KejadianKeamanan: groupKeamananTimur,
+				Jumlah:           jumlahTimur,
+			})
+		}
+		if jumlahTengah != 0 {
+			keamananTengah = append(keamananTengah, GroupingKeamananTengah{
+				NamaKejadian:     jenisName,
+				KejadianKeamanan: groupKeamananTengah,
+				Jumlah:           jumlahTengah,
+			})
+		}
+
 		groupKeamanan = append(groupKeamanan, GroupingKeamanan{
 			NamaKejadian:     jenisName,
 			KejadianKeamanan: kejadianGroup,
@@ -516,6 +554,12 @@ func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 	}
 
 	var groupKeselamatan []GroupingKeselamatan
+	var keselamatanBarat []GroupingKeselamatanBarat
+	var keselamatanTimur []GroupingKeselamatanTimur
+	var keselamatanTengah []GroupingKeselamatanTengah
+	var groupKeselamatanBarat []models.KejadianKeselamatanKorban
+	var groupKeselamatanTimur []models.KejadianKeselamatanKorban
+	var groupKeselamatanTengah []models.KejadianKeselamatanKorban
 	// Print the grouped data
 	for jenisName, kejadianGroup := range groupedByJenisKeselamatan {
 		jumlah := 0
@@ -533,21 +577,46 @@ func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 				return nil
 			}
 
-			if data.Zona == "BARAT" {
-				jumlahBarat++
-			} else if data.Zona == "TIMUR" {
-				jumlahTimur++
-			} else if data.Zona == "TENGAH" {
-				jumlahTengah++
-			}
-
 			temp := models.KejadianKeselamatanKorban{
 				KejadianKeselamatan: data,
 				ListKorban:          x,
 			}
 
+			if data.Zona == "BARAT" {
+				jumlahBarat++
+				groupKeselamatanBarat = append(groupKeselamatanBarat, temp)
+			} else if data.Zona == "TIMUR" {
+				jumlahTimur++
+				groupKeselamatanTimur = append(groupKeselamatanTimur, temp)
+			} else if data.Zona == "TENGAH" {
+				jumlahTengah++
+				groupKeselamatanTengah = append(groupKeselamatanTengah, temp)
+			}
+
 			list_korban = append(list_korban, temp)
 			jumlah++
+		}
+
+		if jumlahBarat != 0 {
+			keselamatanBarat = append(keselamatanBarat, GroupingKeselamatanBarat{
+				NamaKejadian:        jenisName,
+				KejadianKeselamatan: groupKeselamatanBarat,
+				Jumlah:              jumlahBarat,
+			})
+		}
+		if jumlahTimur != 0 {
+			keselamatanTimur = append(keselamatanTimur, GroupingKeselamatanTimur{
+				NamaKejadian:        jenisName,
+				KejadianKeselamatan: groupKeselamatanTimur,
+				Jumlah:              jumlahTimur,
+			})
+		}
+		if jumlahTengah != 0 {
+			keselamatanTengah = append(keselamatanTengah, GroupingKeselamatanTengah{
+				NamaKejadian:        jenisName,
+				KejadianKeselamatan: groupKeselamatanTengah,
+				Jumlah:              jumlahTengah,
+			})
 		}
 
 		groupKeselamatan = append(groupKeselamatan, GroupingKeselamatan{
@@ -567,15 +636,27 @@ func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 		JumlahKejadianKeamanan    int
 		JumlahKejadianKeselamatan int
 		KejadianKeamanan          []GroupingKeamanan
+		KejadianKeamananBarat     []GroupingKeamananBarat
+		KejadianKeamananTimur     []GroupingKeamananTimur
+		KejadianKeamananTengah    []GroupingKeamananTengah
 		KejadianKeselamatan       []GroupingKeselamatan
+		KejadianKeselamatanBarat  []GroupingKeselamatanBarat
+		KejadianKeselamatanTimur  []GroupingKeselamatanTimur
+		KejadianKeselamatanTengah []GroupingKeselamatanTengah
 	}{
-		Bulan:                     "Mei",
-		BulanCapital:              "MEI",
-		Tahun:                     "2024",
+		Bulan:                     bulan,
+		BulanCapital:              strings.ToUpper(bulan),
+		Tahun:                     year,
 		JumlahKejadianKeamanan:    len(data_keamanan),
 		JumlahKejadianKeselamatan: len(data_keselamatan),
 		KejadianKeamanan:          groupKeamanan,
+		KejadianKeamananBarat:     keamananBarat,
+		KejadianKeamananTimur:     keamananTimur,
+		KejadianKeamananTengah:    keamananTengah,
 		KejadianKeselamatan:       groupKeselamatan,
+		KejadianKeselamatanBarat:  keselamatanBarat,
+		KejadianKeselamatanTimur:  keselamatanTimur,
+		KejadianKeselamatanTengah: keselamatanTengah,
 	}
 
 	if err := r.ParseTemplate(templatePath, newTemplatePath, templateData); err == nil {
@@ -587,8 +668,7 @@ func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 	// fmt.Println("PDF created successfully!")
 	return ctx.Response().Success().Json(map[string]interface{}{
 		"Status": "success",
-		"data-1": groupKeamanan,
-		"data-2": groupKeselamatan,
+		"data-1": keamananTimur,
 	})
 }
 
@@ -613,53 +693,276 @@ func Increment(val int) int {
 	return val + 1
 }
 
-func (r *Pdf) GenerateCoba(ctx http.Context) http.Response {
-	//html template path
-	templatePath := "templates/coba.html"
-	newtemplatePath := "coba.html"
+type MonthlyCount struct {
+	NamaKejadian  string `json:"nama_kejadian"`
+	Bulan1        string `json:"bulan_1"`
+	KorbanTewas   int    `json:"korban_tewas"`
+	KorbanSelamat int    `json:"korban_selamat"`
+	KorbanHilang  int    `json:"korban_hilang"`
+	Count1        int    `json:"count_1"`
+	Bulan2        string `json:"bulan_2"`
+	Count2        int    `json:"count_2"`
+	Bulan3        string `json:"bulan_3"`
+	Count3        int    `json:"count_3"`
+	Total         int    `json:"total"`
+}
 
-	var data_keamanan []models.KejadianKeamanan
-	query := facades.Orm().Query().
-		Join("inner join public.jenis_kejadian k on k.id_jenis_kejadian = jenis_kejadian_id ").
-		With("JenisKejadian")
-	query.Order("tanggal asc").Find(&data_keamanan)
+type LocationOutput struct {
+	NamaKejadian   string `json:"nama_kejadian"`
+	JumlahDermaga  int    `json:"jumlah_dermaga"`
+	JumlahPerairan int    `json:"jumlah_perairan"`
+}
 
-	var data_keselamatan []models.KejadianKeselamatan
-	query = facades.Orm().Query().
-		Join("inner join public.jenis_kejadian k on k.id_jenis_kejadian = jenis_kejadian_id ").
-		With("JenisKejadian")
-	query.Order("tanggal asc").Find(&data_keselamatan)
+var monthNameMap = map[string]int{
+	"JAN": 1, "FEB": 2, "MAR": 3, "APR": 4, "MEI": 5, "JUN": 6,
+	"JUL": 7, "AGT": 8, "SEP": 9, "OKT": 10, "NOV": 11, "DES": 12,
+}
 
-	outputPath := "storage/output-laporan-bulanan.pdf"
+var monthNameEnglishMap = map[time.Month]string{
+	time.January: "JAN", time.February: "FEB", time.March: "MAR",
+	time.April: "APR", time.May: "MEI", time.June: "JUN",
+	time.July: "JUL", time.August: "AGT", time.September: "SEP",
+	time.October: "OKT", time.November: "NOV", time.December: "DES",
+}
+
+var monthNameIndonesiaMap = map[time.Month]string{
+	time.January: "Januari", time.February: "Februari", time.March: "Maret",
+	time.April: "April", time.May: "Mei", time.June: "Juni",
+	time.July: "Juli", time.August: "Agustus", time.September: "September",
+	time.October: "Oktober", time.November: "November", time.December: "Desember",
+}
+
+func monthNameEnglish(month time.Month) string {
+	return monthNameEnglishMap[month]
+}
+
+func monthNameIndonesia(month time.Month) string {
+	return monthNameIndonesiaMap[month]
+}
+
+func (r *Pdf) GenerateTriwulan(ctx http.Context) http.Response {
+	const (
+		templatePath    = "templates/laporan-triwulan.html"
+		newTemplatePath = "laporan-triwulan.html"
+		outputPath      = "storage/output-laporan-triwulan.pdf"
+	)
+
+	now := time.Now()
+	year := strconv.Itoa(now.Year())
+
+	quarters := map[time.Month]struct {
+		quarter      string
+		periodFormat string
+		months       []string
+	}{
+		time.January:   {"I", "(JAN - MAR %s)", []string{"JAN", "FEB", "MAR"}},
+		time.February:  {"I", "(JAN - MAR %s)", []string{"JAN", "FEB", "MAR"}},
+		time.March:     {"I", "(JAN - MAR %s)", []string{"JAN", "FEB", "MAR"}},
+		time.April:     {"II", "(APR - JUN %s)", []string{"APR", "MEI", "JUN"}},
+		time.May:       {"II", "(APR - JUN %s)", []string{"APR", "MEI", "JUN"}},
+		time.June:      {"II", "(APR - JUN %s)", []string{"APR", "MEI", "JUN"}},
+		time.July:      {"III", "(JUL - SEP %s)", []string{"JUL", "AGT", "SEP"}},
+		time.August:    {"III", "(JUL - SEP %s)", []string{"JUL", "AGT", "SEP"}},
+		time.September: {"III", "(JUL - SEP %s)", []string{"JUL", "AGT", "SEP"}},
+		time.October:   {"IV", "(OCT - DEC %s)", []string{"OKT", "NOV", "DES"}},
+		time.November:  {"IV", "(OCT - DEC %s)", []string{"OKT", "NOV", "DES"}},
+		time.December:  {"IV", "(OCT - DEC %s)", []string{"OKT", "NOV", "DES"}},
+	}
+
+	quarterInfo := quarters[now.Month()]
+	triwulanKe := quarterInfo.quarter
+	periodeBulan := fmt.Sprintf(quarterInfo.periodFormat, year)
+	months := quarterInfo.months
+
+	var dataKeamanan []models.KejadianKeamanan
+	var default1, default2 []models.JenisKejadian
+	var dataKeselamatan []models.KejadianKeselamatan
+
+	monthNumbers := make([]int, len(months))
+	for i, month := range months {
+		monthNumbers[i] = monthNameMap[month]
+	}
+
+	fmt.Println(monthNumbers)
+
+	query1 := facades.Orm().Query().Join("inner join jenis_kejadian k on k.id_jenis_kejadian = jenis_kejadian_id").
+		With("JenisKejadian").
+		Where("DATE_PART('month', tanggal) IN (?)", monthNumbers).
+		Order("k.nama_kejadian asc, tanggal asc").Find(&dataKeamanan)
+	query2 := facades.Orm().Query().Join("inner join jenis_kejadian k on k.id_jenis_kejadian = jenis_kejadian_id").
+		With("JenisKejadian").
+		Where("DATE_PART('month', tanggal) IN (?)", monthNumbers).
+		Order("k.nama_kejadian asc, tanggal asc").Find(&dataKeselamatan)
+	query3 := facades.Orm().Query().Where("klasifikasi_name = ?", "Keamanan Laut").
+		Order("nama_kejadian asc").Find(&default1)
+	query4 := facades.Orm().Query().Where("klasifikasi_name = ?", "Keselamatan Laut").
+		Order("nama_kejadian asc").Find(&default2)
+
+	if query1 != nil && query2 != nil && query3 != nil && query4 != nil {
+		fmt.Println("failed to execute query")
+		return nil
+	}
+
+	kejadianCountKeamanan := make(map[string]map[string]int)
+	kejadianCountKeselamatan := make(map[string]map[string]int)
+	locationCountKeamanan := make(map[string]map[string]int)
+
+	for _, kejadian := range default1 {
+		for _, month := range months {
+			if kejadianCountKeamanan[kejadian.NamaKejadian] == nil {
+				kejadianCountKeamanan[kejadian.NamaKejadian] = make(map[string]int)
+			}
+			if _, exists := kejadianCountKeamanan[kejadian.NamaKejadian][month]; !exists {
+				kejadianCountKeamanan[kejadian.NamaKejadian][month] = 0
+			}
+		}
+
+		if locationCountKeamanan[kejadian.NamaKejadian] == nil {
+			locationCountKeamanan[kejadian.NamaKejadian] = make(map[string]int)
+		}
+	}
+	for _, kejadian := range default2 {
+		for _, month := range months {
+			if kejadianCountKeselamatan[kejadian.NamaKejadian] == nil {
+				kejadianCountKeselamatan[kejadian.NamaKejadian] = make(map[string]int)
+			}
+			if _, exists := kejadianCountKeselamatan[kejadian.NamaKejadian][month]; !exists {
+				kejadianCountKeselamatan[kejadian.NamaKejadian][month] = 0
+			}
+		}
+	}
+
+	for _, kejadian := range dataKeamanan {
+		month := monthNameEnglish(time.Month(kejadian.Tanggal.Month()))
+		kejadianCountKeamanan[kejadian.JenisKejadian.NamaKejadian][month]++
+
+		if strings.Contains(strings.ToLower(kejadian.LokasiKejadian), "dermaga") || strings.Contains(strings.ToLower(kejadian.LokasiKejadian), "pelabuhan") ||
+			(kejadian.Asal != nil && (strings.Contains(strings.ToLower(*kejadian.Asal), "dermaga") || strings.Contains(strings.ToLower(*kejadian.Asal), "pelabuhan"))) ||
+			(kejadian.Tujuan != nil && (strings.Contains(strings.ToLower(*kejadian.Tujuan), "dermaga") || strings.Contains(strings.ToLower(*kejadian.Tujuan), "pelabuhan"))) {
+			locationCountKeamanan[kejadian.JenisKejadian.NamaKejadian]["dermaga/pelabuhan"]++
+		}
+		if strings.Contains(strings.ToLower(kejadian.LokasiKejadian), "laut") || strings.Contains(strings.ToLower(kejadian.LokasiKejadian), "perairan") ||
+			(kejadian.Asal != nil && (strings.Contains(strings.ToLower(*kejadian.Asal), "laut") || strings.Contains(strings.ToLower(*kejadian.Asal), "perairan"))) ||
+			(kejadian.Tujuan != nil && (strings.Contains(strings.ToLower(*kejadian.Tujuan), "laut") || strings.Contains(strings.ToLower(*kejadian.Tujuan), "perairan"))) {
+			locationCountKeamanan[kejadian.JenisKejadian.NamaKejadian]["laut/perairan"]++
+		}
+	}
+	for _, kejadian := range dataKeselamatan {
+		month := monthNameEnglish(time.Month(kejadian.Tanggal.Month()))
+		kejadianCountKeselamatan[kejadian.JenisKejadian.NamaKejadian][month]++
+	}
+
+	var kejadianCountsKeamanan, kejadianCountsKeselamatan []MonthlyCount
+
+	jenisKejadianKeysKeamanan := sortedKeys(kejadianCountKeamanan)
+	jenisKejadianKeysKeselamatan := sortedKeys(kejadianCountKeselamatan)
+	locationsKeysKeamanan := sortedKeys(locationCountKeamanan)
+
+	for _, jenisKejadian := range jenisKejadianKeysKeamanan {
+		monthCounts := kejadianCountKeamanan[jenisKejadian]
+		entry := MonthlyCount{
+			NamaKejadian: jenisKejadian,
+			Bulan1:       months[0],
+			Count1:       monthCounts[months[0]],
+			Bulan2:       months[1],
+			Count2:       monthCounts[months[1]],
+			Bulan3:       months[2],
+			Count3:       monthCounts[months[2]],
+			Total:        monthCounts[months[0]] + monthCounts[months[1]] + monthCounts[months[2]],
+		}
+		kejadianCountsKeamanan = append(kejadianCountsKeamanan, entry)
+	}
+	for _, jenisKejadian := range jenisKejadianKeysKeselamatan {
+		monthCounts := kejadianCountKeselamatan[jenisKejadian]
+		entry := MonthlyCount{
+			NamaKejadian: jenisKejadian,
+			Bulan1:       months[0],
+			Count1:       monthCounts[months[0]],
+			Bulan2:       months[1],
+			Count2:       monthCounts[months[1]],
+			Bulan3:       months[2],
+			Count3:       monthCounts[months[2]],
+			Total:        monthCounts[months[0]] + monthCounts[months[1]] + monthCounts[months[2]],
+		}
+		kejadianCountsKeselamatan = append(kejadianCountsKeselamatan, entry)
+	}
+
+	var locationOutput []LocationOutput
+	for _, jenisKejadian := range locationsKeysKeamanan {
+		counts := locationCountKeamanan[jenisKejadian]
+		locationOutput = append(locationOutput, LocationOutput{
+			NamaKejadian:   jenisKejadian,
+			JumlahDermaga:  counts["dermaga/pelabuhan"],
+			JumlahPerairan: counts["laut/perairan"],
+		})
+	}
+
+	var bulan []string
+	for _, x := range monthNumbers {
+		bulan = append(bulan, monthNameIndonesia(time.Month(x)))
+	}
 
 	// Group the incidents by 'jenis_kejadian_id'
 	groupedByJenisKeamanan := make(map[string][]models.KejadianKeamanan)
-	for _, kejadian := range data_keamanan {
+	for _, kejadian := range dataKeamanan {
 		groupedByJenisKeamanan[kejadian.JenisKejadian.NamaKejadian] = append(groupedByJenisKeamanan[kejadian.JenisKejadian.NamaKejadian], kejadian)
 	}
 
 	var groupKeamanan []GroupingKeamanan
+	var keamananBarat []GroupingKeamananBarat
+	var keamananTimur []GroupingKeamananTimur
+	var keamananTengah []GroupingKeamananTengah
+	var groupKeamananBarat []models.KejadianKeamanan
+	var groupKeamananTimur []models.KejadianKeamanan
+	var groupKeamananTengah []models.KejadianKeamanan
 	// Print the grouped data
 	for jenisName, kejadianGroup := range groupedByJenisKeamanan {
 		jumlah := 0
 		jumlahBarat := 0
 		jumlahTimur := 0
 		jumlahTengah := 0
+
 		fmt.Printf("Jenis Kejadian ID: %s\n", jenisName)
 		for i, index := range kejadianGroup {
-			fmt.Println(index)
 			if index.Zona == "BARAT" {
 				fmt.Println("MASUK BARAT-", i)
 				jumlahBarat++
+				groupKeamananBarat = append(groupKeamananBarat, index)
 			} else if index.Zona == "TIMUR" {
 				fmt.Println("MASUK TIMUR-", i)
 				jumlahTimur++
+				groupKeamananTimur = append(groupKeamananTimur, index)
 			} else if index.Zona == "TENGAH" {
 				fmt.Println("MASUK TENGAH-", i)
 				jumlahTengah++
+				groupKeamananTengah = append(groupKeamananTengah, index)
 			}
 			jumlah++
 		}
+
+		if jumlahBarat != 0 {
+			keamananBarat = append(keamananBarat, GroupingKeamananBarat{
+				NamaKejadian:     jenisName,
+				KejadianKeamanan: groupKeamananBarat,
+				Jumlah:           jumlahBarat,
+			})
+		}
+		if jumlahTimur != 0 {
+			fmt.Println("TIMURRR")
+			keamananTimur = append(keamananTimur, GroupingKeamananTimur{
+				NamaKejadian:     jenisName,
+				KejadianKeamanan: groupKeamananTimur,
+				Jumlah:           jumlahTimur,
+			})
+		}
+		if jumlahTengah != 0 {
+			keamananTengah = append(keamananTengah, GroupingKeamananTengah{
+				NamaKejadian:     jenisName,
+				KejadianKeamanan: groupKeamananTengah,
+				Jumlah:           jumlahTengah,
+			})
+		}
+
 		groupKeamanan = append(groupKeamanan, GroupingKeamanan{
 			NamaKejadian:     jenisName,
 			KejadianKeamanan: kejadianGroup,
@@ -672,11 +975,17 @@ func (r *Pdf) GenerateCoba(ctx http.Context) http.Response {
 
 	// Group the incidents by 'jenis_kejadian_id'
 	groupedByJenisKeselamatan := make(map[string][]models.KejadianKeselamatan)
-	for _, kejadian := range data_keselamatan {
+	for _, kejadian := range dataKeselamatan {
 		groupedByJenisKeselamatan[kejadian.JenisKejadian.NamaKejadian] = append(groupedByJenisKeselamatan[kejadian.JenisKejadian.NamaKejadian], kejadian)
 	}
 
 	var groupKeselamatan []GroupingKeselamatan
+	var keselamatanBarat []GroupingKeselamatanBarat
+	var keselamatanTimur []GroupingKeselamatanTimur
+	var keselamatanTengah []GroupingKeselamatanTengah
+	var groupKeselamatanBarat []models.KejadianKeselamatanKorban
+	var groupKeselamatanTimur []models.KejadianKeselamatanKorban
+	var groupKeselamatanTengah []models.KejadianKeselamatanKorban
 	// Print the grouped data
 	for jenisName, kejadianGroup := range groupedByJenisKeselamatan {
 		jumlah := 0
@@ -694,21 +1003,46 @@ func (r *Pdf) GenerateCoba(ctx http.Context) http.Response {
 				return nil
 			}
 
-			if data.Zona == "BARAT" {
-				jumlahBarat++
-			} else if data.Zona == "TIMUR" {
-				jumlahTimur++
-			} else if data.Zona == "TENGAH" {
-				jumlahTengah++
-			}
-
 			temp := models.KejadianKeselamatanKorban{
 				KejadianKeselamatan: data,
 				ListKorban:          x,
 			}
 
+			if data.Zona == "BARAT" {
+				jumlahBarat++
+				groupKeselamatanBarat = append(groupKeselamatanBarat, temp)
+			} else if data.Zona == "TIMUR" {
+				jumlahTimur++
+				groupKeselamatanTimur = append(groupKeselamatanTimur, temp)
+			} else if data.Zona == "TENGAH" {
+				jumlahTengah++
+				groupKeselamatanTengah = append(groupKeselamatanTengah, temp)
+			}
+
 			list_korban = append(list_korban, temp)
 			jumlah++
+		}
+
+		if jumlahBarat != 0 {
+			keselamatanBarat = append(keselamatanBarat, GroupingKeselamatanBarat{
+				NamaKejadian:        jenisName,
+				KejadianKeselamatan: groupKeselamatanBarat,
+				Jumlah:              jumlahBarat,
+			})
+		}
+		if jumlahTimur != 0 {
+			keselamatanTimur = append(keselamatanTimur, GroupingKeselamatanTimur{
+				NamaKejadian:        jenisName,
+				KejadianKeselamatan: groupKeselamatanTimur,
+				Jumlah:              jumlahTimur,
+			})
+		}
+		if jumlahTengah != 0 {
+			keselamatanTengah = append(keselamatanTengah, GroupingKeselamatanTengah{
+				NamaKejadian:        jenisName,
+				KejadianKeselamatan: groupKeselamatanTengah,
+				Jumlah:              jumlahTengah,
+			})
 		}
 
 		groupKeselamatan = append(groupKeselamatan, GroupingKeselamatan{
@@ -720,35 +1054,60 @@ func (r *Pdf) GenerateCoba(ctx http.Context) http.Response {
 			JumlahZonaTengah:    jumlahTengah,
 		})
 	}
-	// html template data
+
 	templateData := struct {
-		Bulan                     string
-		BulanCapital              string
-		Tahun                     string
-		JumlahKejadianKeamanan    int
-		JumlahKejadianKeselamatan int
-		KejadianKeamanan          []GroupingKeamanan
-		KejadianKeselamatan       []GroupingKeselamatan
+		PeriodeTriwulan                          string
+		BulanCapital                             string
+		BulanSingkatan                           []string
+		Bulan                                    []string
+		TableKejadianKeamanan                    []MonthlyCount
+		KejadianKeamanan                         []GroupingKeamanan
+		KejadianKeamananBarat                    []GroupingKeamananBarat
+		KejadianKeamananTimur                    []GroupingKeamananTimur
+		KejadianKeamananTengah                   []GroupingKeamananTengah
+		TableKejadianKeselamatan                 []MonthlyCount
+		KejadianKeselamatan                      []GroupingKeselamatan
+		KejadianKeselamatanBarat                 []GroupingKeselamatanBarat
+		KejadianKeselamatanTimur                 []GroupingKeselamatanTimur
+		KejadianKeselamatanTengah                []GroupingKeselamatanTengah
+		TablePengelompokanLokasiKejadianKeamanan []LocationOutput
+		Tahun                                    string
 	}{
-		Bulan:                     "Mei",
-		BulanCapital:              "MEI",
-		Tahun:                     "2024",
-		JumlahKejadianKeamanan:    len(data_keamanan),
-		JumlahKejadianKeselamatan: len(data_keselamatan),
-		KejadianKeamanan:          groupKeamanan,
-		KejadianKeselamatan:       groupKeselamatan,
+		PeriodeTriwulan:                          triwulanKe,
+		BulanCapital:                             periodeBulan,
+		BulanSingkatan:                           months,
+		Bulan:                                    bulan,
+		TableKejadianKeamanan:                    kejadianCountsKeamanan,
+		KejadianKeamanan:                         groupKeamanan,
+		KejadianKeamananBarat:                    keamananBarat,
+		KejadianKeamananTimur:                    keamananTimur,
+		KejadianKeamananTengah:                   keamananTengah,
+		TableKejadianKeselamatan:                 kejadianCountsKeselamatan,
+		KejadianKeselamatan:                      groupKeselamatan,
+		KejadianKeselamatanBarat:                 keselamatanBarat,
+		KejadianKeselamatanTimur:                 keselamatanTimur,
+		KejadianKeselamatanTengah:                keselamatanTengah,
+		TablePengelompokanLokasiKejadianKeamanan: locationOutput,
+		Tahun:                                    year,
 	}
 
-	if err := r.ParseTemplate(templatePath, newtemplatePath, templateData); err == nil {
+	if err := r.ParseTemplate(templatePath, newTemplatePath, templateData); err == nil {
 		r.GenerateLaporan(outputPath)
 	} else {
 		fmt.Println(err)
 	}
 
-	// fmt.Println("PDF created successfully!")
 	return ctx.Response().Success().Json(map[string]interface{}{
-		"Status": "success",
-		"data-1": groupKeamanan,
-		"data-2": groupKeselamatan,
+		"Status":   "success",
+		"triwulan": templateData,
 	})
+}
+
+func sortedKeys(m map[string]map[string]int) []string {
+	keys := make([]string, 0, len(m))
+	for key := range m {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	return keys
 }

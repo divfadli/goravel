@@ -13,9 +13,12 @@ func Api() {
 	facades.Route().Post("/storeLaporan", laporan.Create)
 	generates := pdf.NewPdf("")
 	facades.Route().Static("storage", "./storage")
+
+	// Generate Laporan
 	facades.Route().Get("generate-mingguan", generates.GenerateMingguan)
 	facades.Route().Get("generate-bulanan", generates.GenerateBulanan)
-	facades.Route().Get("generate-coba", generates.GenerateCoba)
+	facades.Route().Get("generate-triwulan", generates.GenerateTriwulan)
+
 	facades.Route().Prefix("api").Group(func(r route.Router) {
 		r.Prefix("user").Group(func(user route.Router) {
 			userController := controllers.NewUserController()
