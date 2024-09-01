@@ -502,7 +502,7 @@ func daysInMonth(tanggal time.Time) int {
 func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 	//html template path
 	// now := time.Now()
-	now := time.Date(2024, 7, 1, 0, 0, 0, 0, time.UTC)
+	now := time.Date(2024, 6, 1, 0, 0, 0, 0, time.UTC)
 	bulan := monthNameIndonesia(now.Month())
 	// intBulan := int(now.Month())
 	year := strconv.Itoa(now.Year())
@@ -556,17 +556,19 @@ func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 		minggu = append(minggu, startDate)
 	}
 
+	var weekName []string
 	for i, weekEnd := range minggu {
-		var setName string
+		var setName, fullName string
 		if weekEnd.Day() < 10 || (i > 0 && minggu[i-1].AddDate(0, 0, 1).Day() < 10) {
 			setName = "0"
 		}
 		if i == 0 {
-			fmt.Println("01-" + setName + strconv.Itoa(weekEnd.Day()))
+			fullName = "01-" + setName + strconv.Itoa(weekEnd.Day()) + " " + bulan
 		} else {
-			fmt.Println(setName + strconv.Itoa(minggu[i-1].AddDate(0, 0, 1).Day()) + "-" +
-				strconv.Itoa(weekEnd.Day()))
+			fullName = setName + strconv.Itoa(minggu[i-1].AddDate(0, 0, 1).Day()) + "-" +
+				strconv.Itoa(weekEnd.Day()) + " " + bulan
 		}
+		weekName = append(weekName, fullName)
 	}
 
 	templatePath := "templates/laporan-bulanan.html"
@@ -603,30 +605,38 @@ func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 			With("JenisKejadian").Where("id_kejadian_keamanan = ANY(?)", pq.Array(week.KejadianIDs)).
 			Order("k.nama_kejadian asc, tanggal asc").Find(&data_keamanan)
 		for i, weekEnd := range minggu {
+			var setName, fullName string
+			if weekEnd.Day() < 10 || (i > 0 && minggu[i-1].AddDate(0, 0, 1).Day() < 10) {
+				setName = "0"
+			}
 			if weekEnd.After(week.WeekStart) {
 				if i == 0 {
-					data_array := "01-0" + strconv.Itoa(weekEnd.Day()) + " " + bulan
-					weeklyDataKeamanan[data_array] = append(weeklyDataKeamanan[data_array], data_keamanan...)
+					fullName = "01-" + setName + strconv.Itoa(weekEnd.Day()) + " " + bulan
 				} else {
-					data_array := strconv.Itoa(week.WeekStart.Day()) + "-" + strconv.Itoa(weekEnd.Day()) + " " + bulan
-					weeklyDataKeamanan[data_array] = append(weeklyDataKeamanan[data_array], data_keamanan...)
+					fullName = setName + strconv.Itoa(week.WeekStart.Day()) + "-" +
+						strconv.Itoa(weekEnd.Day()) + " " + bulan
 				}
+
+				weeklyDataKeamanan[fullName] = append(weeklyDataKeamanan[fullName], data_keamanan...)
 				break
 			}
 		}
 	}
 
-	sortedKeys := make([]string, 0, len(weeklyDataKeamanan))
+	weeklyDataKeamananSorted := make([]string, 0, len(weeklyDataKeamanan))
 	for name := range weeklyDataKeamanan {
-		sortedKeys = append(sortedKeys, name)
+		weeklyDataKeamananSorted = append(weeklyDataKeamananSorted, name)
 	}
 
 	// Sort the slice of names
-	sort.Strings(sortedKeys)
+	sort.Strings(weeklyDataKeamananSorted)
 
-	for _, key := range sortedKeys {
+	for _, key := range weeklyDataKeamananSorted {
 		value := weeklyDataKeamanan[key]
 		fmt.Printf("Key: %s, Kejadian: %d\n", key, len(value))
+		for _, kejadian := range value {
+			fmt.Println("ID:", kejadian.JenisKejadian.IDJenisKejadian, kejadian.JenisKejadian.NamaKejadian)
+		}
 	}
 
 	var jenisKejadianKeamanan []models.JenisKejadian
@@ -638,6 +648,34 @@ func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 		With("JenisKejadian").
 		Where("tanggal >= ? AND tanggal <= ?", startOfMonth, endOfMonth)
 	query.Order("k.nama_kejadian asc, tanggal asc").Find(&data_keamanan)
+
+	kejadianKeamananWeek := make(map[string]map[string]int)
+	for _, jenisKejadian := range jenisKejadianKeamanan {
+		for _, name := range weekName {
+			if kejadianKeamananWeek[jenisKejadian.NamaKejadian] == nil {
+				kejadianKeamananWeek[jenisKejadian.NamaKejadian] = make(map[string]int)
+			}
+
+			if _, exists := kejadianKeamananWeek[jenisKejadian.NamaKejadian][name]; !exists {
+				kejadianKeamananWeek[jenisKejadian.NamaKejadian][name] = 0
+			}
+		}
+	}
+
+	for i, key := range weeklyDataKeamananSorted {
+		value := weeklyDataKeamanan[key]
+		for j, data := range value {
+			fmt.Println(key, i, j)
+			for _, weeks := range weekName {
+				if key == weeks {
+					kejadianKeamananWeek[data.JenisKejadian.NamaKejadian][weeks]++
+				}
+			}
+		}
+	}
+
+	// sortedCountKeamananWeek := sortedKeys(kejadianKeamananWeek)
+	// fmt.Println(sortedCountKeamananWeek)
 
 	var data_keselamatan []models.KejadianKeselamatan
 	query = facades.Orm().Query().
@@ -860,7 +898,8 @@ func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 	// fmt.Println("PDF created successfully!")
 	return ctx.Response().Success().Json(map[string]interface{}{
 		"Status": "success",
-		"data-1": weeklyDataKeamanan,
+		"data-1": weeklyDataKeamananSorted,
+		"data-2": kejadianKeamananWeek,
 	})
 }
 
@@ -979,11 +1018,11 @@ func (r *Pdf) GenerateTriwulan(ctx http.Context) http.Response {
 
 	query1 := facades.Orm().Query().Join("inner join jenis_kejadian k on k.id_jenis_kejadian = jenis_kejadian_id").
 		With("JenisKejadian").
-		Where("DATE_PART('month', tanggal) IN (?)", monthNumbers).
+		Where("DATE_PART('month', tanggal) IN (?) AND DATE_PART('year', tanggal) = ?", monthNumbers, year).
 		Order("k.nama_kejadian asc, tanggal asc").Find(&dataKeamanan)
 	query2 := facades.Orm().Query().Join("inner join jenis_kejadian k on k.id_jenis_kejadian = jenis_kejadian_id").
 		With("JenisKejadian").
-		Where("DATE_PART('month', tanggal) IN (?)", monthNumbers).
+		Where("DATE_PART('month', tanggal) IN (?) AND DATE_PART('year', tanggal) = ?", monthNumbers, year).
 		Order("k.nama_kejadian asc, tanggal asc").Find(&dataKeselamatan)
 	query3 := facades.Orm().Query().Where("klasifikasi_name = ?", "Keamanan Laut").
 		Order("nama_kejadian asc").Find(&default1)
