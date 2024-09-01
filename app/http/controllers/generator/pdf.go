@@ -2,6 +2,7 @@ package generator
 
 import (
 	"bytes"
+	"database/sql/driver"
 	"encoding/json"
 	"fmt"
 	"goravel/app/models"
@@ -18,7 +19,45 @@ import (
 	"github.com/goravel/framework/contracts/http"
 	"github.com/goravel/framework/facades"
 	"github.com/jung-kurt/gofpdf"
+	"github.com/lib/pq"
 )
+
+type UintArray []uint8
+
+func (a *UintArray) Scan(src interface{}) error {
+	switch v := src.(type) {
+	case []byte:
+		return a.scanBytes(v)
+	case string:
+		return a.scanBytes([]byte(v))
+	case nil:
+		*a = nil
+		return nil
+	}
+	return fmt.Errorf("cannot scan %T into UintArray", src)
+}
+
+func (a *UintArray) scanBytes(src []byte) error {
+	str := string(src)
+	str = strings.Trim(str, "{}")
+	parts := strings.Split(str, ",")
+	*a = make([]uint8, len(parts))
+	for i, s := range parts {
+		num, err := strconv.ParseUint(strings.TrimSpace(s), 10, 8)
+		if err != nil {
+			return err
+		}
+		(*a)[i] = uint8(num)
+	}
+	return nil
+}
+
+func (a UintArray) Value() (driver.Value, error) {
+	if len(a) == 0 {
+		return "{}", nil
+	}
+	return strings.Join(strings.Fields(fmt.Sprint(a)), ","), nil
+}
 
 type Pdf struct {
 	body string
@@ -451,27 +490,161 @@ type GroupingKeselamatanTengah struct {
 	Jumlah              int `json:"jumlah"`
 }
 
+func daysInMonth(tanggal time.Time) int {
+	// Create a time object for the first day of the next month
+	firstDayNextMonth := time.Date(tanggal.Year(), tanggal.Month()+1, 1, 0, 0, 0, 0, time.UTC)
+	// Subtract one day to get the last day of the current month
+	lastDayCurrentMonth := firstDayNextMonth.AddDate(0, 0, -1)
+	// Return the day of the month, which is the number of days in the month
+	return lastDayCurrentMonth.Day()
+}
+
 func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 	//html template path
-	now := time.Now()
+	// now := time.Now()
+	now := time.Date(2024, 7, 1, 0, 0, 0, 0, time.UTC)
 	bulan := monthNameIndonesia(now.Month())
-	intBulan := int(now.Month())
+	// intBulan := int(now.Month())
 	year := strconv.Itoa(now.Year())
+	dayperweek := 7
 
-	// lastMonth1 := int(now.Month())
+	jumlahHari := daysInMonth(now)
+	// fmt.Printf("Jumlah hari dalam bulan ini: %d\n", jumlahHari)
+
+	var minggu []time.Time
+
+	// // Calculate the first day of the month
+	firstDay := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
+	dayOfWeek := firstDay.Weekday()
+
+	daysToAdd := 0
+	switch dayOfWeek {
+	case time.Monday:
+		daysToAdd = 6
+	case time.Tuesday:
+		daysToAdd = 5
+	case time.Wednesday:
+		daysToAdd = 4
+	case time.Thursday:
+		daysToAdd = 3
+	case time.Friday:
+		daysToAdd = 2
+	case time.Saturday:
+		daysToAdd = 8
+	case time.Sunday:
+		daysToAdd = 7
+	}
+
+	// minggu = append(minggu, firstDay)
+	nextWeek := firstDay.AddDate(0, 0, daysToAdd)
+	minggu = append(minggu, nextWeek)
+
+	jumlahHari -= daysToAdd + 1
+	// fmt.Println(jumlahHari)
+	completeWeeks := jumlahHari / dayperweek
+	remainingDays := jumlahHari % dayperweek
+
+	// // // Iterate through each week and calculate the start date
+	for i := 1; i <= completeWeeks; i++ {
+		startDate := nextWeek.AddDate(0, 0, i*dayperweek)
+		minggu = append(minggu, startDate)
+	}
+
+	// // // Add the start date for the remaining days if any
+	if remainingDays > 0 {
+		startDate := nextWeek.AddDate(0, 0, (completeWeeks*dayperweek)+remainingDays)
+		minggu = append(minggu, startDate)
+	}
+
+	for i, weekEnd := range minggu {
+		var setName string
+		if weekEnd.Day() < 10 || (i > 0 && minggu[i-1].AddDate(0, 0, 1).Day() < 10) {
+			setName = "0"
+		}
+		if i == 0 {
+			fmt.Println("01-" + setName + strconv.Itoa(weekEnd.Day()))
+		} else {
+			fmt.Println(setName + strconv.Itoa(minggu[i-1].AddDate(0, 0, 1).Day()) + "-" +
+				strconv.Itoa(weekEnd.Day()))
+		}
+	}
+
 	templatePath := "templates/laporan-bulanan.html"
 	newTemplatePath := "laporan-bulanan.html"
 
-	var data_keamanan []models.KejadianKeamanan
+	startOfMonth := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
+	endOfMonth := startOfMonth.AddDate(0, 1, -1)
+
 	query := facades.Orm().Query().
+		Table("public.kejadian_keamanan").
+		Select("DATE_TRUNC('week', tanggal) AS week_start, ARRAY_AGG(id_kejadian_keamanan) AS kejadian_ids").
+		Where("tanggal >= ? AND tanggal <= ?", startOfMonth, endOfMonth).
+		Group("DATE_TRUNC('week', tanggal)").
+		Order("week_start asc")
+
+	var weeklyData []struct {
+		WeekStart   time.Time
+		KejadianIDs UintArray
+	}
+
+	err := query.Scan(&weeklyData)
+	if err != nil {
+		// Handle error
+	}
+
+	weeklyDataKeamanan := make(map[string][]models.KejadianKeamanan)
+
+	var data_keamanan []models.KejadianKeamanan
+	// Now you can loop through the grouped data
+	for _, week := range weeklyData {
+		fmt.Printf("Week starting %s: IDs %v\n", week.WeekStart.Format("2006-01-02"), week.KejadianIDs)
+		facades.Orm().Query().
+			Join("inner join public.jenis_kejadian k on k.id_jenis_kejadian = jenis_kejadian_id ").
+			With("JenisKejadian").Where("id_kejadian_keamanan = ANY(?)", pq.Array(week.KejadianIDs)).
+			Order("k.nama_kejadian asc, tanggal asc").Find(&data_keamanan)
+		for i, weekEnd := range minggu {
+			if weekEnd.After(week.WeekStart) {
+				if i == 0 {
+					data_array := "01-0" + strconv.Itoa(weekEnd.Day()) + " " + bulan
+					weeklyDataKeamanan[data_array] = append(weeklyDataKeamanan[data_array], data_keamanan...)
+				} else {
+					data_array := strconv.Itoa(week.WeekStart.Day()) + "-" + strconv.Itoa(weekEnd.Day()) + " " + bulan
+					weeklyDataKeamanan[data_array] = append(weeklyDataKeamanan[data_array], data_keamanan...)
+				}
+				break
+			}
+		}
+	}
+
+	sortedKeys := make([]string, 0, len(weeklyDataKeamanan))
+	for name := range weeklyDataKeamanan {
+		sortedKeys = append(sortedKeys, name)
+	}
+
+	// Sort the slice of names
+	sort.Strings(sortedKeys)
+
+	for _, key := range sortedKeys {
+		value := weeklyDataKeamanan[key]
+		fmt.Printf("Key: %s, Kejadian: %d\n", key, len(value))
+	}
+
+	var jenisKejadianKeamanan []models.JenisKejadian
+	facades.Orm().Query().Where("klasifikasi_name = ?", "Keamanan Laut").
+		Order("nama_kejadian asc").Find(&jenisKejadianKeamanan)
+
+	query = facades.Orm().Query().
 		Join("inner join public.jenis_kejadian k on k.id_jenis_kejadian = jenis_kejadian_id ").
-		With("JenisKejadian").Where("DATE_PART('month', tanggal) IN (?)", intBulan)
+		With("JenisKejadian").
+		Where("tanggal >= ? AND tanggal <= ?", startOfMonth, endOfMonth)
 	query.Order("k.nama_kejadian asc, tanggal asc").Find(&data_keamanan)
 
 	var data_keselamatan []models.KejadianKeselamatan
 	query = facades.Orm().Query().
 		Join("inner join public.jenis_kejadian k on k.id_jenis_kejadian = jenis_kejadian_id ").
-		With("JenisKejadian").Where("DATE_PART('month', tanggal) IN (?)", intBulan)
+		With("JenisKejadian").
+		Where("tanggal >= ? AND tanggal <= ?", startOfMonth, endOfMonth)
+		// Where("DATE_PART('month', tanggal) IN (?)", 6)
 	query.Order("k.nama_kejadian asc, tanggal asc").Find(&data_keselamatan)
 
 	outputPath := "storage/output-laporan-bulanan.pdf"
@@ -482,6 +655,15 @@ func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 		groupedByJenisKeamanan[kejadian.JenisKejadian.NamaKejadian] = append(groupedByJenisKeamanan[kejadian.JenisKejadian.NamaKejadian], kejadian)
 	}
 
+	// Create a slice of keys (NamaKejadian values)
+	sortedNames := make([]string, 0, len(groupedByJenisKeamanan))
+	for name := range groupedByJenisKeamanan {
+		sortedNames = append(sortedNames, name)
+	}
+
+	// Sort the slice of names
+	sort.Strings(sortedNames)
+
 	var groupKeamanan []GroupingKeamanan
 	var keamananBarat []GroupingKeamananBarat
 	var keamananTimur []GroupingKeamananTimur
@@ -490,7 +672,8 @@ func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 	var groupKeamananTimur []models.KejadianKeamanan
 	var groupKeamananTengah []models.KejadianKeamanan
 	// Print the grouped data
-	for jenisName, kejadianGroup := range groupedByJenisKeamanan {
+	for _, jenisName := range sortedNames {
+		kejadianGroup := groupedByJenisKeamanan[jenisName]
 		jumlah := 0
 		jumlahBarat := 0
 		jumlahTimur := 0
@@ -553,6 +736,14 @@ func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 		groupedByJenisKeselamatan[kejadian.JenisKejadian.NamaKejadian] = append(groupedByJenisKeselamatan[kejadian.JenisKejadian.NamaKejadian], kejadian)
 	}
 
+	sortedNames = make([]string, 0, len(groupedByJenisKeselamatan))
+	for name := range groupedByJenisKeselamatan {
+		sortedNames = append(sortedNames, name)
+	}
+
+	// Sort the slice of names
+	sort.Strings(sortedNames)
+
 	var groupKeselamatan []GroupingKeselamatan
 	var keselamatanBarat []GroupingKeselamatanBarat
 	var keselamatanTimur []GroupingKeselamatanTimur
@@ -561,7 +752,8 @@ func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 	var groupKeselamatanTimur []models.KejadianKeselamatanKorban
 	var groupKeselamatanTengah []models.KejadianKeselamatanKorban
 	// Print the grouped data
-	for jenisName, kejadianGroup := range groupedByJenisKeselamatan {
+	for _, jenisName := range sortedNames {
+		kejadianGroup := groupedByJenisKeselamatan[jenisName]
 		jumlah := 0
 		jumlahBarat := 0
 		jumlahTimur := 0
@@ -668,7 +860,7 @@ func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 	// fmt.Println("PDF created successfully!")
 	return ctx.Response().Success().Json(map[string]interface{}{
 		"Status": "success",
-		"data-1": keamananTimur,
+		"data-1": weeklyDataKeamanan,
 	})
 }
 

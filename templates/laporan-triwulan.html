@@ -6,6 +6,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@0.7.0/dist/chartjs-plugin-datalabels.min.js"></script>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
         integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
@@ -41,6 +43,12 @@
             margin: 0 auto;
         }
 
+        .chart-container {
+            width: 200px;
+            height: 200px;
+        }
+
+        .reportGraph {width:650px;}
     </style>
 </head>
 
@@ -158,6 +166,8 @@
                             </tr>
                         </tbody>
                     </table>
+                    <p align="center">Grafik Keselamatan Laut di Wilayah Perairan Indonesia</p>
+                    <div class="reportGraph"><canvas id="canvas1"></canvas></div>
                 </div>
                 <h5>3. Dalam pengelompokannya Data Keamanan dan Keselamatan Laut dapat dibagi kedalam area / lokasi kejadian
                     pada Wilayah Sekitar Pelabuhan dan Wilayah Laut, dengan Data sebagai Berikut:
@@ -198,13 +208,14 @@
                             </tr>
                         </tbody>
                     </table>
+                    <div class="reportGraph"><canvas id="canvas2"></canvas></div>
                 </div>
                 <h5>4. Dari hasil pengumpulan informasi dan data beserta analisis, dapat disimpulkan sebagai berikut:</h5>
                 {{ $lengthKejadianKeamanan := len .KejadianKeamanan }}
                 {{ $lengthKejadianKeamananBarat := len .KejadianKeamananBarat }}
                 {{ $lengthKejadianKeamananTengah := len .KejadianKeamananTengah }}
                 {{ $lengthKejadianKeamananTimur := len .KejadianKeamananTimur }}
-                
+
                 <ol type="a">
                     <li>Secara umum, kasus yang terjadi pada periode {{index .Bulan 0}} s.d. {{index .Bulan 2}}
                         {{.Tahun}} adalah sebagai berikut :
@@ -288,33 +299,31 @@
                             <strong>Aspek Keamanan Laut</strong>
                             <p>Pada aspek keamanan laut yang menjadi catatan tersendiri adalah</p>
                             <ol type="a">
-                                <li>IUU FISHING</li>
-                                <ol type="I">
-                                    <li>a</li>
-                                    <li>b</li>
-                                    <li>c</li>
-                                </ol>
-                                <li>Human Trafficking</li>
-                                <ol type="I">
-                                    <li>d</li>
-                                    <li>e</li>
-                                    <li>f</li>
-                                </ol>
+                                {{range $index,$val := .KejadianKeamanan}}
+                                    <li>{{ $val.NamaKejadian }}</li>
+                                    <ol type="I">
+                                        {{range $val2 := $val.KejadianKeamanan}}
+                                            <li>{{ $val2.TindakLanjut}}</li>
+                                        {{end}}
+                                    </ol>
+                                {{end}}
                             </ol>
                         </li>
                         <li>
                             <strong>Aspek Keselamatan Laut</strong>
                             <p>Pada aspek keselamatan yang menjadi atensi adalah banyak
-                                terjadinya kecelakaan individu (38 kejadian), kapal terbalik (17
-                                kejadian), kapal hilang kontak (16 kejadian), kapal tenggelam (14
-                                kejadian), kapal terbakar (12 kejadian), kapal terapung (11 kejadian),
-                                kapal karam (7 kejadian), kapal tabrakan (6 kejadian), kapal kandas
-                                (3 kejadian) dan kapal bocor (1 kejadian). Dengan jumlah Korban
-                                Meninggal 41 orang, Korban Selamat 827 orang dan Korban Hilang
-                                73 orang yang diakibatkan oleh kurang kesadaran dan pengetahuan
-                                para pengguna jasa laut dalam memperhatikan standar kelaikan
-                                kapal, prakiraan cuaca, alur pelayaran, kedalaman laut, dan pasang
-                                surut air laut.</p>
+                                terjadinya 
+                                {{range $index,$val := .KejadianKeselamatan}}
+                                    {{if and (last $index $lengthKejadianKeselematan) (ne $lengthKejadianKeselematan 1)}}
+                                    dan
+                                    {{end}}
+
+                                    {{$val.NamaKejadian}} ({{$val.Jumlah}} kejadian)
+                                    {{if not (last $index $lengthKejadianKeselematan)}},{{end}}
+                                {{end}}
+                                dengan catatan korban selamat {{$jumlahKorbanSelamat}} orang, korban meninggal {{$jumlahKorbanTewas}} orang, dan korban hilang 
+                                {{$jumlahKorbanHilang}} orang yang diakibatkan oleh buruknya cuaca dan situasi perairan Indonesia.
+                                </p>
                         </li>
                     </ol>
                 </ol>
@@ -322,8 +331,8 @@
                 <p>Guna mengurangi terjadinya kecelakaan dan pelanggaran dilaut, maka disarankan sebagai berikut:</p>
                 <ol type="a">
                     <li>Dari aspek keamanan laut disarankan dengan tingginya pelanggaran di
-                        wilayah Perairan Indonesia diharapkan menjadi fokus pada masing-
-                        masing Zona mengingat aktifitas penyelundupan umumnya
+                        wilayah Perairan Indonesia diharapkan menjadi fokus pada masing-masing 
+                        Zona mengingat aktifitas penyelundupan umumnya
                         menggunakan kapal dengan kecepatan tinggi sehingga kedepan dapat
                         diantisipasi dengan berkoordinasi dengan Instansi samping yang
                         memiliki kapal cepat pada wilayah perairan sesuai peta kerawanan
@@ -356,4 +365,202 @@
         crossorigin="anonymous"></script>
 </body>
 
+<script type="text/javascript">
+    // wkhtmltopdf 0.12.5 crash fix.
+    // https://github.com/wkhtmltopdf/wkhtmltopdf/issues/3242#issuecomment-518099192
+    'use strict';
+    (function(setLineDash) {
+        CanvasRenderingContext2D.prototype.setLineDash = function() {
+            if(!arguments[0].length){
+                arguments[0] = [1,0];
+            }
+            // Now, call the original method
+            return setLineDash.apply(this, arguments);
+        };
+    })(CanvasRenderingContext2D.prototype.setLineDash);
+    Function.prototype.bind = Function.prototype.bind || function (thisp) {
+        var fn = this;
+        return function () {
+            return fn.apply(thisp, arguments);
+        };
+    };
+
+    function drawGraphs() {
+        var kejadianKeselamatan = {{.TableKejadianKeselamatan}};
+        var bulan = {{.BulanSingkatan}};
+
+        var namaKejadian = kejadianKeselamatan.map(function(item) {
+            return item.nama_kejadian;
+        });
+
+        var data = [
+            kejadianKeselamatan.map(function(item) {
+                return item.count_1;
+            }),
+            kejadianKeselamatan.map(function(item) {
+                return item.count_2;
+            }),
+            kejadianKeselamatan.map(function(item) {
+                return item.count_3;
+            })
+        ];
+
+        var colors = ["rgb(0, 0, 255)", "rgb(255, 165, 0)", "rgb(128, 128, 128)"];
+
+        var dataset = bulan.map(function(label,index){
+            return {
+                label: label,
+                data: data[index],
+                fill: false,
+                borderColor: colors[index],
+                lineTension: 0.5 + index * 0.05,
+                pointStyle: 'line',
+            }
+        })
+
+        new Chart(document.getElementById("canvas1").getContext('2d'), {
+            "type": "line",
+            "data": {
+                "labels": namaKejadian,
+                "datasets": dataset
+            },
+            "options": {
+                "responsive": true,
+                "title": {
+                    "display": true,
+                    "text": [
+                            "GRAFIK REKAPITULASI KECELAKAAN DI WILAYAH PERAIRAN INDONESIA",
+                            "Periode Triwulan " + {{.PeriodeTriwulan}},
+                            {{index .Bulan 0}} + "-" + {{index .Bulan 2}} + " " + {{.Tahun}}
+                            ]
+                },
+                "legend": {
+                    "position": "bottom",
+                    "labels": {
+                        "usePointStyle": true
+                    }
+                },
+                "plugins": {
+                    "datalabels": {
+                        "display": true,
+                        "color": "black",
+                        "anchor": 'center', // Position the label in the center of the point
+                        "align": 'center', // Align the label at the center of the point
+                        "font": {
+                            size: 10
+                        },
+                        // and if you need to format how the value is displayed...
+                        "formatter": function(value, context) {
+                            return value;
+                        }
+                    }
+                },
+                "scales": {
+                    "xAxes": [{
+                        "gridLines": {
+                            "display": false // Disables gridlines on the x-axis
+                        }
+                    }],
+                    "yAxes": [{
+                        "gridLines": {
+                            "display": true // Disables gridlines on the y-axis
+                        },
+                        "ticks": {
+                            "beginAtZero": true
+                        }
+                    }]
+                }
+            },
+        });
+
+        var kejadianKeamanan = {{.TablePengelompokanLokasiKejadianKeamanan}};
+        var wilayah = ["LAUT/PERAIRAN", "DERMAGA/PELABUHAN"];
+
+        namaKejadian = kejadianKeamanan.map(function(item) {
+            return item.nama_kejadian;
+        });
+
+        data = [
+            kejadianKeamanan.map(function(item) {
+                return item.jumlah_perairan;
+            }),
+            kejadianKeamanan.map(function(item) {
+                return item.jumlah_dermaga;
+            })
+        ];
+
+        colors = ["rgb(0, 0, 255)", "rgb(255, 165, 0)"]
+
+        dataset = wilayah.map(function(label,index){
+            return {
+                label: label,
+                data: data[index],
+                fill: false,
+                borderColor: colors[index],
+                lineTension: 0.5 + index * 0.05,
+                pointStyle: 'line',
+            }
+        })
+
+        new Chart(document.getElementById("canvas2").getContext('2d'), {
+            "type": "line",
+            "data": {
+                "labels": namaKejadian,
+                "datasets": dataset
+            },
+            "options": {
+                "responsive": true,
+                "title": {
+                    "display": true,
+                    "text": [
+                                "GRAFIK PELANGGARAN DI PERAIRAN & PELABUHAN INDONESIA",
+                                {{index .Bulan 0}} + "-" + {{index .Bulan 2}} + " " + {{.Tahun}}
+                            ]
+                },
+                "legend": {
+                    "position": "bottom",
+                    "labels": {
+                        "usePointStyle": true
+                    }
+                },
+                "plugins": {
+                    "datalabels": {
+                        "display": true,
+                        "color": "black",
+                        "anchor": 'center', // Position the label in the center of the point
+                        "align": 'center', // Align the label at the center of the point
+                        "font": {
+                            size: 10
+                        },
+                        // and if you need to format how the value is displayed...
+                        "formatter": function(value, context) {
+                            return value;
+                        }
+                    }
+                },
+                "scales": {
+                    "xAxes": [{
+                        "gridLines": {
+                            "display": false // Disables gridlines on the x-axis
+                        }
+                    }],
+                    "yAxes": [{
+                        "gridLines": {
+                            "display": true // Disables gridlines on the y-axis
+                        },
+                        "ticks": {
+                            "beginAtZero": true
+                        }
+                    }]
+                }
+            },
+        });
+    }
+
+    window.onload = function() {
+        drawGraphs();
+    };
+</script>
+
 </html>
+
