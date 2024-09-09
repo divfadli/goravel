@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@0.7.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<style>
+    .reportGraph {width:650px;}
+</style>
+</head>
+<body>
+
+<div class="reportGraph"><canvas id="canvas"></canvas></div>
+
+<script type="text/javascript">
+// wkhtmltopdf 0.12.5 crash fix.
+// https://github.com/wkhtmltopdf/wkhtmltopdf/issues/3242#issuecomment-518099192
+'use strict';
+(function(setLineDash) {
+    CanvasRenderingContext2D.prototype.setLineDash = function() {
+        if(!arguments[0].length){
+            arguments[0] = [1,0];
+        }
+        // Now, call the original method
+        return setLineDash.apply(this, arguments);
+    };
+})(CanvasRenderingContext2D.prototype.setLineDash);
+Function.prototype.bind = Function.prototype.bind || function (thisp) {
+    var fn = this;
+    return function () {
+        return fn.apply(thisp, arguments);
+    };
+};
+
+function getColor(index) {
+    var colors = [
+        "rgb(255, 99, 132)", "rgb(54, 162, 235)", "rgb(255, 206, 86)", 
+        "rgb(75, 192, 192)", "rgb(153, 102, 255)", "rgb(255, 159, 64)",
+        "rgb(255, 99, 132)", "rgb(54, 162, 235)", "rgb(255, 206, 86)", 
+        "rgb(75, 192, 192)", "rgb(153, 102, 255)", "rgb(255, 159, 64)",
+        "rgb(255, 99, 132)", "rgb(54, 162, 235)", "rgb(255, 206, 86)", 
+        "rgb(75, 192, 192)", "rgb(153, 102, 255)", "rgb(255, 159, 64)"
+    ];
+    return colors[index % colors.length];
+}
+
+function drawGraphs() {
+    var jenis_kejadian = {{.JenisKejadianKeselamatan}};
+    var namaKejadian = jenis_kejadian.map(function(item) {
+        return item.nama_kejadian;
+    });
+    var kejadianKeselamatanWeek = {{.KejadianKeselamatanWeek}};
+    var weeks = {{.WeekName}};
+
+    var alphabetLabels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+
+    var datasets = namaKejadian.map(function(kejadian, index) {
+        var data = weeks.map(function(week) {
+            return kejadianKeselamatanWeek[kejadian][week] || 0;
+        });
+        
+        return {
+            label: alphabetLabels[index] + '. ' + kejadian,
+            data: data,
+            fill: false,
+            borderColor: getColor(index),
+            lineTension: 0.5,
+            pointStyle: 'rect',
+        };
+    });
+
+    new Chart(document.getElementById("canvas").getContext('2d'), {
+        "type": "bar",
+        "data": {
+            "labels": weeks,
+            "datasets": datasets
+        },
+        "options": {
+            "responsive": true,
+            "title": {
+                "display": true,
+                "text": [
+                    "REKAPITULASI KESELAMATAN DI PERAIRAN INDONESIA",
+                    "PERIODE " + {{index .PeriodeTanggal 0}} + " - " + {{index .PeriodeTanggal 1}} + " " + {{.BulanCapital}} + " "+ {{.Tahun}}
+                ]
+            },
+            "legend": {
+                "position": "bottom",
+                "labels": {
+                    "usePointStyle": true,
+                    "generateLabels": function(chart) {
+                        var data = chart.data;
+                        if (data.labels.length && data.datasets.length) {
+                            return data.datasets.map(function(dataset, i) {
+                                return {
+                                    text: dataset.label,
+                                    fillStyle: dataset.borderColor,
+                                    hidden: !chart.isDatasetVisible(i),
+                                    lineCap: dataset.borderCapStyle,
+                                    lineDash: dataset.borderDash,
+                                    lineDashOffset: dataset.borderDashOffset,
+                                    lineJoin: dataset.borderJoinStyle,
+                                    lineWidth: dataset.borderWidth,
+                                    strokeStyle: dataset.borderColor,
+                                    pointStyle: dataset.pointStyle,
+                                    datasetIndex: i
+                                };
+                            });
+                        }
+                        return [];
+                    }
+                }
+            },
+            "plugins": {
+                "datalabels": {
+                    "display": true,
+                    "color": "black",
+                    "anchor": 'end',
+                    "align": 'top',
+                    "font": {
+                        size: 10
+                    },
+                    "formatter": function(value, context) {
+                        if (value > 0) {
+                            return alphabetLabels[context.datasetIndex];
+                        }
+                        return '';
+                    }
+                }
+            },
+            "scales": {
+                "xAxes": [{
+                    "gridLines": {
+                        "display": false
+                    },
+                    "scaleLabel": {
+                        "display": true,
+                        "labelString": "WAKTU",
+                        "fontStyle": "bold"
+                    }
+                }],
+                "yAxes": [{
+                    "gridLines": {
+                        "display": true
+                    },
+                    "ticks": {
+                        "beginAtZero": true,
+                        "stepSize": 1
+                    },
+                    "scaleLabel": {
+                        "display": true,
+                        "labelString": "JUMLAH KEJADIAN",
+                        "fontStyle": "bold"
+                    }
+                }]
+            }
+        },
+    }); 
+}
+
+window.onload = function() {
+    drawGraphs();
+};
+</script>
+</body>
+</html>

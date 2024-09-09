@@ -10,8 +10,14 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
         integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@0.7.0/dist/chartjs-plugin-datalabels.min.js"></script>
+
     <title>Hello, worldd!</title>
+
     <style>
+        .reportGraph {width:650px;}
+
         @page {
             size: A4;
             margin: 1cm;
@@ -99,6 +105,8 @@
                         </tbody>
                     </table>
                 </div>
+                <p class="lead" style="text-align: center;">Grafik Rekapitulasi Keamanan Laut di Wilayah Perairan Indonesia</p>
+                <div class="reportGraph"><canvas id="graph_pelanggaran"></canvas></div>
                 <h5>2. Keselamatan di Laut Wilayah Perairan Indonesia</h5>
                 <p class="lead">Pada bulan {{.Bulan}} {{.Tahun}} terdapat {{.JumlahKejadianKeselamatan}} kejadian yang
                     mengalami kecelakaan yang terjadi di wilayah perairan Indonesia, dengan detail rekapitulasi yang
@@ -150,6 +158,8 @@
                         </tbody>
                     </table>
                 </div>
+                <p class="lead" style="text-align: center;">Grafik Rekapitulasi Keselamatan Laut di Wilayah Perairan Indonesia</p>
+                <div class="reportGraph"><canvas id="graph_keselamatan"></canvas></div>
                 <h5>3. Keterangan Tambahan</h5>
                 <p class="lead">Berdasarkan data yang telah dijabarkan sebelumnya, berikut tambahan beberapa informasi
                     terkait masing-masing pelanggaran yang dihimpun:</p>
@@ -271,6 +281,268 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js"
         integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
         crossorigin="anonymous"></script>
+
+
+    <script type="text/javascript">
+        // wkhtmltopdf 0.12.5 crash fix.
+        // https://github.com/wkhtmltopdf/wkhtmltopdf/issues/3242#issuecomment-518099192
+        'use strict';
+        (function(setLineDash) {
+            CanvasRenderingContext2D.prototype.setLineDash = function() {
+                if(!arguments[0].length){
+                    arguments[0] = [1,0];
+                }
+                // Now, call the original method
+                return setLineDash.apply(this, arguments);
+            };
+        })(CanvasRenderingContext2D.prototype.setLineDash);
+        Function.prototype.bind = Function.prototype.bind || function (thisp) {
+            var fn = this;
+            return function () {
+                return fn.apply(thisp, arguments);
+            };
+        };
+        
+        function getColor(index) {
+            var colors = [
+                "rgb(255, 99, 132)", "rgb(54, 162, 235)", "rgb(255, 206, 86)", 
+                "rgb(75, 192, 192)", "rgb(153, 102, 255)", "rgb(255, 159, 64)",
+                "rgb(255, 99, 132)", "rgb(54, 162, 235)", "rgb(255, 206, 86)", 
+                "rgb(75, 192, 192)", "rgb(153, 102, 255)", "rgb(255, 159, 64)",
+                "rgb(255, 99, 132)", "rgb(54, 162, 235)", "rgb(255, 206, 86)", 
+                "rgb(75, 192, 192)", "rgb(153, 102, 255)", "rgb(255, 159, 64)"
+            ];
+            return colors[index % colors.length];
+        }
+        
+        function drawGraphs() {
+            var jenis_kejadian_keamanan = {{.JenisKejadianKeamanan}};
+            var namaKejadianKeamanan = jenis_kejadian_keamanan.map(function(item) {
+                return item.nama_kejadian;
+            });
+            var kejadianKeamananWeek = {{.KejadianKeamananWeek}};
+
+            var jenis_kejadian_keselamatan = {{.JenisKejadianKeselamatan}};
+            var namaKejadianKeselamatan = jenis_kejadian_keselamatan.map(function(item) {
+                return item.nama_kejadian;
+            });
+            var kejadianKeselamatanWeek = {{.KejadianKeselamatanWeek}};
+
+            var weeks = {{.WeekName}};
+        
+            var alphabetLabels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+        
+            var datasets_keamanan = namaKejadianKeamanan.map(function(kejadian, index) {
+                var data = weeks.map(function(week) {
+                    return kejadianKeamananWeek[kejadian][week] || 0;
+                });
+                
+                return {
+                    label: alphabetLabels[index] + '. ' + kejadian,
+                    data: data,
+                    fill: false,
+                    borderColor: getColor(index),
+                    lineTension: 0.5,
+                    pointStyle: 'rect',
+                };
+            });
+
+            var datasets_keselamatan = namaKejadianKeselamatan.map(function(kejadian, index) {
+                var data = weeks.map(function(week) {
+                    return kejadianKeselamatanWeek[kejadian][week] || 0;
+                });
+                
+                return {
+                    label: alphabetLabels[index] + '. ' + kejadian,
+                    data: data,
+                    fill: false,
+                    borderColor: getColor(index),
+                    lineTension: 0.5,
+                    pointStyle: 'rect',
+                };
+            });
+        
+            new Chart(document.getElementById("graph_pelanggaran").getContext('2d'), {
+                "type": "bar",
+                "data": {
+                    "labels": weeks,
+                    "datasets": datasets_keamanan
+                },
+                "options": {
+                    "responsive": true,
+                    "title": {
+                        "display": true,
+                        "text": [
+                            "REKAPITULASI KEAMANAN & PELANGGARAN HUKUM DI LAUT",
+                            "PERIODE " + {{index .PeriodeTanggal 0}} + " - " + {{index .PeriodeTanggal 1}} + " " + {{.BulanCapital}} + " "+ {{.Tahun}}
+                        ]
+                    },
+                    "legend": {
+                        "position": "bottom",
+                        "labels": {
+                            "usePointStyle": true,
+                            "generateLabels": function(chart) {
+                                var data = chart.data;
+                                if (data.labels.length && data.datasets.length) {
+                                    return data.datasets.map(function(dataset, i) {
+                                        return {
+                                            text: dataset.label,
+                                            fillStyle: dataset.borderColor,
+                                            hidden: !chart.isDatasetVisible(i),
+                                            lineCap: dataset.borderCapStyle,
+                                            lineDash: dataset.borderDash,
+                                            lineDashOffset: dataset.borderDashOffset,
+                                            lineJoin: dataset.borderJoinStyle,
+                                            lineWidth: dataset.borderWidth,
+                                            strokeStyle: dataset.borderColor,
+                                            pointStyle: dataset.pointStyle,
+                                            datasetIndex: i
+                                        };
+                                    });
+                                }
+                                return [];
+                            }
+                        }
+                    },
+                    "plugins": {
+                        "datalabels": {
+                            "display": true,
+                            "color": "black",
+                            "anchor": 'end',
+                            "align": 'top',
+                            "font": {
+                                size: 10
+                            },
+                            "formatter": function(value, context) {
+                                if (value > 0) {
+                                    return alphabetLabels[context.datasetIndex];
+                                }
+                                return '';
+                            }
+                        }
+                    },
+                    "scales": {
+                        "xAxes": [{
+                            "gridLines": {
+                                "display": false
+                            },
+                            "scaleLabel": {
+                                "display": true,
+                                "labelString": "WAKTU",
+                                "fontStyle": "bold"
+                            }
+                        }],
+                        "yAxes": [{
+                            "gridLines": {
+                                "display": true
+                            },
+                            "ticks": {
+                                "beginAtZero": true,
+                                "stepSize": 1
+                            },
+                            "scaleLabel": {
+                                "display": true,
+                                "labelString": "JUMLAH PELANGGARAN",
+                                "fontStyle": "bold"
+                            }
+                        }]
+                    }
+                },
+            });
+
+            new Chart(document.getElementById("graph_keselamatan").getContext('2d'), {
+                "type": "bar",
+                "data": {
+                    "labels": weeks,
+                    "datasets": datasets_keselamatan
+                },
+                "options": {
+                    "responsive": true,
+                    "title": {
+                        "display": true,
+                        "text": [
+                            "REKAPITULASI KESELAMATAN DI PERAIRAN INDONESIA",
+                            "PERIODE " + {{index .PeriodeTanggal 0}} + " - " + {{index .PeriodeTanggal 1}} + " " + {{.BulanCapital}} + " "+ {{.Tahun}}
+                        ]
+                    },
+                    "legend": {
+                        "position": "bottom",
+                        "labels": {
+                            "usePointStyle": true,
+                            "generateLabels": function(chart) {
+                                var data = chart.data;
+                                if (data.labels.length && data.datasets.length) {
+                                    return data.datasets.map(function(dataset, i) {
+                                        return {
+                                            text: dataset.label,
+                                            fillStyle: dataset.borderColor,
+                                            hidden: !chart.isDatasetVisible(i),
+                                            lineCap: dataset.borderCapStyle,
+                                            lineDash: dataset.borderDash,
+                                            lineDashOffset: dataset.borderDashOffset,
+                                            lineJoin: dataset.borderJoinStyle,
+                                            lineWidth: dataset.borderWidth,
+                                            strokeStyle: dataset.borderColor,
+                                            pointStyle: dataset.pointStyle,
+                                            datasetIndex: i
+                                        };
+                                    });
+                                }
+                                return [];
+                            }
+                        }
+                    },
+                    "plugins": {
+                        "datalabels": {
+                            "display": true,
+                            "color": "black",
+                            "anchor": 'end',
+                            "align": 'top',
+                            "font": {
+                                size: 10
+                            },
+                            "formatter": function(value, context) {
+                                if (value > 0) {
+                                    return alphabetLabels[context.datasetIndex];
+                                }
+                                return '';
+                            }
+                        }
+                    },
+                    "scales": {
+                        "xAxes": [{
+                            "gridLines": {
+                                "display": false
+                            },
+                            "scaleLabel": {
+                                "display": true,
+                                "labelString": "WAKTU",
+                                "fontStyle": "bold"
+                            }
+                        }],
+                        "yAxes": [{
+                            "gridLines": {
+                                "display": true
+                            },
+                            "ticks": {
+                                "beginAtZero": true,
+                                "stepSize": 1
+                            },
+                            "scaleLabel": {
+                                "display": true,
+                                "labelString": "JUMLAH KECELAKAAN",
+                                "fontStyle": "bold"
+                            }
+                        }]
+                    }
+                },
+            }); 
+        }
+        
+        window.onload = function() {
+            drawGraphs();
+        };
+    </script>
 </body>
 
 </html>

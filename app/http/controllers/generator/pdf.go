@@ -490,6 +490,11 @@ type GroupingKeselamatanTengah struct {
 	Jumlah              int `json:"jumlah"`
 }
 
+type weeklyData []struct {
+	WeekStart   time.Time
+	KejadianIDs UintArray
+}
+
 func daysInMonth(tanggal time.Time) int {
 	// Create a time object for the first day of the next month
 	firstDayNextMonth := time.Date(tanggal.Year(), tanggal.Month()+1, 1, 0, 0, 0, 0, time.UTC)
@@ -516,6 +521,10 @@ func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 	// // Calculate the first day of the month
 	firstDay := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
 	dayOfWeek := firstDay.Weekday()
+
+	var periodeTanggal []string
+	periodeTanggal = append(periodeTanggal, "01")
+	periodeTanggal = append(periodeTanggal, strconv.Itoa(jumlahHari))
 
 	daysToAdd := 0
 	switch dayOfWeek {
@@ -577,28 +586,29 @@ func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 	startOfMonth := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
 	endOfMonth := startOfMonth.AddDate(0, 1, -1)
 
-	query := facades.Orm().Query().
+	var weeklyDataKeamanans, weeklyDataKeselamatans weeklyData
+
+	facades.Orm().Query().
 		Table("public.kejadian_keamanan").
 		Select("DATE_TRUNC('week', tanggal) AS week_start, ARRAY_AGG(id_kejadian_keamanan) AS kejadian_ids").
 		Where("tanggal >= ? AND tanggal <= ?", startOfMonth, endOfMonth).
 		Group("DATE_TRUNC('week', tanggal)").
-		Order("week_start asc")
+		Order("week_start asc").Scan(&weeklyDataKeamanans)
 
-	var weeklyData []struct {
-		WeekStart   time.Time
-		KejadianIDs UintArray
-	}
-
-	err := query.Scan(&weeklyData)
-	if err != nil {
-		// Handle error
-	}
+	facades.Orm().Query().
+		Table("public.kejadian_keselamatan").
+		Select("DATE_TRUNC('week', tanggal) AS week_start, ARRAY_AGG(id_kejadian_keselamatan) AS kejadian_ids").
+		Where("tanggal >= ? AND tanggal <= ?", startOfMonth, endOfMonth).
+		Group("DATE_TRUNC('week', tanggal)").
+		Order("week_start asc").Scan(&weeklyDataKeselamatans)
 
 	weeklyDataKeamanan := make(map[string][]models.KejadianKeamanan)
+	weeklyDataKeselamatan := make(map[string][]models.KejadianKeselamatan)
 
 	var data_keamanan []models.KejadianKeamanan
+	var data_keselamatan []models.KejadianKeselamatan
 	// Now you can loop through the grouped data
-	for _, week := range weeklyData {
+	for _, week := range weeklyDataKeamanans {
 		fmt.Printf("Week starting %s: IDs %v\n", week.WeekStart.Format("2006-01-02"), week.KejadianIDs)
 		facades.Orm().Query().
 			Join("inner join public.jenis_kejadian k on k.id_jenis_kejadian = jenis_kejadian_id ").
@@ -622,34 +632,72 @@ func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 			}
 		}
 	}
+	for _, week := range weeklyDataKeselamatans {
+		facades.Orm().Query().
+			Join("inner join public.jenis_kejadian k on k.id_jenis_kejadian = jenis_kejadian_id ").
+			With("JenisKejadian").Where("id_kejadian_keselamatan = ANY(?)", pq.Array(week.KejadianIDs)).
+			Order("k.nama_kejadian asc, tanggal asc").Find(&data_keselamatan)
+		for i, weekEnd := range minggu {
+			var setName, fullName string
+			if weekEnd.Day() < 10 || (i > 0 && minggu[i-1].AddDate(0, 0, 1).Day() < 10) {
+				setName = "0"
+			}
+			if weekEnd.After(week.WeekStart) {
+				if i == 0 {
+					fullName = "01-" + setName + strconv.Itoa(weekEnd.Day()) + " " + bulan
+				} else {
+					fullName = setName + strconv.Itoa(week.WeekStart.Day()) + "-" +
+						strconv.Itoa(weekEnd.Day()) + " " + bulan
+				}
+
+				weeklyDataKeselamatan[fullName] = append(weeklyDataKeselamatan[fullName], data_keselamatan...)
+				break
+			}
+		}
+	}
 
 	weeklyDataKeamananSorted := make([]string, 0, len(weeklyDataKeamanan))
 	for name := range weeklyDataKeamanan {
 		weeklyDataKeamananSorted = append(weeklyDataKeamananSorted, name)
 	}
+	weeklyDataKeselamatanSorted := make([]string, 0, len(weeklyDataKeselamatan))
+	for name := range weeklyDataKeselamatan {
+		weeklyDataKeselamatanSorted = append(weeklyDataKeselamatanSorted, name)
+	}
 
 	// Sort the slice of names
 	sort.Strings(weeklyDataKeamananSorted)
+	sort.Strings(weeklyDataKeselamatanSorted)
 
-	for _, key := range weeklyDataKeamananSorted {
-		value := weeklyDataKeamanan[key]
-		fmt.Printf("Key: %s, Kejadian: %d\n", key, len(value))
-		for _, kejadian := range value {
-			fmt.Println("ID:", kejadian.JenisKejadian.IDJenisKejadian, kejadian.JenisKejadian.NamaKejadian)
-		}
-	}
+	// for _, key := range weeklyDataKeamananSorted {
+	// 	value := weeklyDataKeamanan[key]
+	// 	fmt.Printf("Key: %s, Kejadian: %d\n", key, len(value))
+	// 	for _, kejadian := range value {
+	// 		fmt.Println("ID:", kejadian.JenisKejadian.IDJenisKejadian, kejadian.JenisKejadian.NamaKejadian)
+	// 	}
+	// }
 
-	var jenisKejadianKeamanan []models.JenisKejadian
+	var jenisKejadianKeamanan, jenisKejadianKeselamatan []models.JenisKejadian
 	facades.Orm().Query().Where("klasifikasi_name = ?", "Keamanan Laut").
 		Order("nama_kejadian asc").Find(&jenisKejadianKeamanan)
+	facades.Orm().Query().Where("klasifikasi_name = ?", "Keselamatan Laut").
+		Order("nama_kejadian asc").Find(&jenisKejadianKeselamatan)
 
-	query = facades.Orm().Query().
+	facades.Orm().Query().
 		Join("inner join public.jenis_kejadian k on k.id_jenis_kejadian = jenis_kejadian_id ").
 		With("JenisKejadian").
-		Where("tanggal >= ? AND tanggal <= ?", startOfMonth, endOfMonth)
-	query.Order("k.nama_kejadian asc, tanggal asc").Find(&data_keamanan)
+		Where("tanggal >= ? AND tanggal <= ?", startOfMonth, endOfMonth).
+		Order("k.nama_kejadian asc, tanggal asc").Find(&data_keamanan)
+
+	facades.Orm().Query().
+		Join("inner join public.jenis_kejadian k on k.id_jenis_kejadian = jenis_kejadian_id ").
+		With("JenisKejadian").
+		Where("tanggal >= ? AND tanggal <= ?", startOfMonth, endOfMonth).
+		// Where("DATE_PART('month', tanggal) IN (?)", 6)
+		Order("k.nama_kejadian asc, tanggal asc").Find(&data_keselamatan)
 
 	kejadianKeamananWeek := make(map[string]map[string]int)
+	kejadianKeselamatanWeek := make(map[string]map[string]int)
 	for _, jenisKejadian := range jenisKejadianKeamanan {
 		for _, name := range weekName {
 			if kejadianKeamananWeek[jenisKejadian.NamaKejadian] == nil {
@@ -661,11 +709,22 @@ func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 			}
 		}
 	}
+	for _, jenisKejadian := range jenisKejadianKeselamatan {
+		for _, name := range weekName {
+			if kejadianKeselamatanWeek[jenisKejadian.NamaKejadian] == nil {
+				kejadianKeselamatanWeek[jenisKejadian.NamaKejadian] = make(map[string]int)
+			}
 
-	for i, key := range weeklyDataKeamananSorted {
+			if _, exists := kejadianKeselamatanWeek[jenisKejadian.NamaKejadian][name]; !exists {
+				kejadianKeselamatanWeek[jenisKejadian.NamaKejadian][name] = 0
+			}
+		}
+	}
+
+	for _, key := range weeklyDataKeamananSorted {
 		value := weeklyDataKeamanan[key]
-		for j, data := range value {
-			fmt.Println(key, i, j)
+		for _, data := range value {
+			// fmt.Println(key, i, j)
 			for _, weeks := range weekName {
 				if key == weeks {
 					kejadianKeamananWeek[data.JenisKejadian.NamaKejadian][weeks]++
@@ -673,17 +732,89 @@ func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 			}
 		}
 	}
+	for _, key := range weeklyDataKeselamatanSorted {
+		value := weeklyDataKeselamatan[key]
+		for _, data := range value {
+			// fmt.Println(key, i, j)
+			for _, weeks := range weekName {
+				if key == weeks {
+					kejadianKeselamatanWeek[data.JenisKejadian.NamaKejadian][weeks]++
+				}
+			}
+		}
+	}
+	fmt.Println(kejadianKeamananWeek["Human Trafficking"])
 
 	// sortedCountKeamananWeek := sortedKeys(kejadianKeamananWeek)
 	// fmt.Println(sortedCountKeamananWeek)
 
-	var data_keselamatan []models.KejadianKeselamatan
-	query = facades.Orm().Query().
-		Join("inner join public.jenis_kejadian k on k.id_jenis_kejadian = jenis_kejadian_id ").
-		With("JenisKejadian").
-		Where("tanggal >= ? AND tanggal <= ?", startOfMonth, endOfMonth)
-		// Where("DATE_PART('month', tanggal) IN (?)", 6)
-	query.Order("k.nama_kejadian asc, tanggal asc").Find(&data_keselamatan)
+	// for jenisName, kejadianGroup := range groupedByJenisKeselamatan {
+	// 	jumlah := 0
+	// 	jumlahBarat := 0
+	// 	jumlahTimur := 0
+	// 	jumlahTengah := 0
+
+	// 	fmt.Printf("Jenis Kejadian ID: %s\n", jenisName)
+	// 	var list_korban []models.KejadianKeselamatanKorban
+
+	// 	for _, data := range kejadianGroup {
+	// 		var x models.ListKorban
+	// 		err := json.Unmarshal(data.Korban, &x)
+	// 		if err != nil {
+	// 			return nil
+	// 		}
+
+	// 		temp := models.KejadianKeselamatanKorban{
+	// 			KejadianKeselamatan: data,
+	// 			ListKorban:          x,
+	// 		}
+
+	// 		if data.Zona == "BARAT" {
+	// 			jumlahBarat++
+	// 			groupKeselamatanBarat = append(groupKeselamatanBarat, temp)
+	// 		} else if data.Zona == "TIMUR" {
+	// 			jumlahTimur++
+	// 			groupKeselamatanTimur = append(groupKeselamatanTimur, temp)
+	// 		} else if data.Zona == "TENGAH" {
+	// 			jumlahTengah++
+	// 			groupKeselamatanTengah = append(groupKeselamatanTengah, temp)
+	// 		}
+
+	// 		list_korban = append(list_korban, temp)
+	// 		jumlah++
+	// 	}
+
+	// 	if jumlahBarat != 0 {
+	// 		keselamatanBarat = append(keselamatanBarat, GroupingKeselamatanBarat{
+	// 			NamaKejadian:        jenisName,
+	// 			KejadianKeselamatan: groupKeselamatanBarat,
+	// 			Jumlah:              jumlahBarat,
+	// 		})
+	// 	}
+	// 	if jumlahTimur != 0 {
+	// 		keselamatanTimur = append(keselamatanTimur, GroupingKeselamatanTimur{
+	// 			NamaKejadian:        jenisName,
+	// 			KejadianKeselamatan: groupKeselamatanTimur,
+	// 			Jumlah:              jumlahTimur,
+	// 		})
+	// 	}
+	// 	if jumlahTengah != 0 {
+	// 		keselamatanTengah = append(keselamatanTengah, GroupingKeselamatanTengah{
+	// 			NamaKejadian:        jenisName,
+	// 			KejadianKeselamatan: groupKeselamatanTengah,
+	// 			Jumlah:              jumlahTengah,
+	// 		})
+	// 	}
+
+	// 	groupKeselamatan = append(groupKeselamatan, GroupingKeselamatan{
+	// 		NamaKejadian:        jenisName,
+	// 		KejadianKeselamatan: list_korban,
+	// 		Jumlah:              jumlah,
+	// 		JumlahZonaBarat:     jumlahBarat,
+	// 		JumlahZonaTimur:     jumlahTimur,
+	// 		JumlahZonaTengah:    jumlahTengah,
+	// 	})
+	// }
 
 	outputPath := "storage/output-laporan-bulanan.pdf"
 
@@ -873,6 +1004,12 @@ func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 		KejadianKeselamatanBarat  []GroupingKeselamatanBarat
 		KejadianKeselamatanTimur  []GroupingKeselamatanTimur
 		KejadianKeselamatanTengah []GroupingKeselamatanTengah
+		KejadianKeamananWeek      map[string]map[string]int
+		KejadianKeselamatanWeek   map[string]map[string]int
+		JenisKejadianKeamanan     []models.JenisKejadian
+		JenisKejadianKeselamatan  []models.JenisKejadian
+		WeekName                  []string
+		PeriodeTanggal            []string
 	}{
 		Bulan:                     bulan,
 		BulanCapital:              strings.ToUpper(bulan),
@@ -887,6 +1024,12 @@ func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 		KejadianKeselamatanBarat:  keselamatanBarat,
 		KejadianKeselamatanTimur:  keselamatanTimur,
 		KejadianKeselamatanTengah: keselamatanTengah,
+		KejadianKeamananWeek:      kejadianKeamananWeek,
+		KejadianKeselamatanWeek:   kejadianKeselamatanWeek,
+		JenisKejadianKeamanan:     jenisKejadianKeamanan,
+		JenisKejadianKeselamatan:  jenisKejadianKeselamatan,
+		WeekName:                  weekName,
+		PeriodeTanggal:            periodeTanggal,
 	}
 
 	if err := r.ParseTemplate(templatePath, newTemplatePath, templateData); err == nil {
@@ -897,9 +1040,12 @@ func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 
 	// fmt.Println("PDF created successfully!")
 	return ctx.Response().Success().Json(map[string]interface{}{
-		"Status": "success",
-		"data-1": weeklyDataKeamananSorted,
-		"data-2": kejadianKeamananWeek,
+		"Status":                  "success",
+		"data-1":                  kejadianKeamananWeek["Human Trafficking"]["10-16 Juni"],
+		"kejadian_keamanan_week":  kejadianKeamananWeek,
+		"jenis_kejadian_keamanan": jenisKejadianKeamanan,
+		"data-3":                  kejadianKeselamatanWeek,
+		"week":                    weekName,
 	})
 }
 
