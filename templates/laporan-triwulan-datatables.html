@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chart.js and DataTables Integration</title>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js"></script>
+</head>
+<body>
+    <div style="width: 70%; margin: 0 auto;">
+        <canvas id="myChart"></canvas>
+        <table id="dataTable" class="display" style="margin-top: 20px;">
+            <thead>
+                <tr>
+                    <th>Month</th>
+                    <th>Dataset 1</th>
+                    <th>Dataset 2</th>
+                    <th>Dataset 3</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Data will be inserted here by DataTables -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // Define data
+            var data = [
+                { month: "January", dataset1: 65, dataset2: 28, dataset3: 18 },
+                { month: "February", dataset1: 59, dataset2: 48, dataset3: 38 },
+                { month: "March", dataset1: 80, dataset2: 40, dataset3: 50 },
+                { month: "April", dataset1: 81, dataset2: 19, dataset3: 29 },
+                { month: "May", dataset1: 56, dataset2: 86, dataset3: 76 }
+            ];
+
+            // Initialize DataTable
+            $('#dataTable').DataTable({
+                data: data,
+                columns: [
+                    { data: 'month' },
+                    { data: 'dataset1' },
+                    { data: 'dataset2' },
+                    { data: 'dataset3' }
+                ]
+            });
+
+            // Prepare data for Chart.js
+            var labels = data.map(function(row) { return row.month; });
+            var dataset1 = data.map(function(row) { return row.dataset1; });
+            var dataset2 = data.map(function(row) { return row.dataset2; });
+            var dataset3 = data.map(function(row) { return row.dataset3; });
+
+            var ctx = document.getElementById('myChart').getContext('2d');
+            var myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: "Dataset 1",
+                        data: dataset1,
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 1
+                    }, {
+                        label: "Dataset 2",
+                        data: dataset2,
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }, {
+                        label: "Dataset 3",
+                        data: dataset3,
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true
+                            }
+                        }]
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

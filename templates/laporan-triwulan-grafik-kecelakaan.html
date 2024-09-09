@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@0.7.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<style>
+    .reportGraph {width:650px;}
+</style>
+</head>
+<body>
+
+<div class="reportGraph"><canvas id="canvas"></canvas></div>
+
+<script type="text/javascript">
+// wkhtmltopdf 0.12.5 crash fix.
+// https://github.com/wkhtmltopdf/wkhtmltopdf/issues/3242#issuecomment-518099192
+'use strict';
+(function(setLineDash) {
+    CanvasRenderingContext2D.prototype.setLineDash = function() {
+        if(!arguments[0].length){
+            arguments[0] = [1,0];
+        }
+        // Now, call the original method
+        return setLineDash.apply(this, arguments);
+    };
+})(CanvasRenderingContext2D.prototype.setLineDash);
+Function.prototype.bind = Function.prototype.bind || function (thisp) {
+    var fn = this;
+    return function () {
+        return fn.apply(thisp, arguments);
+    };
+};
+
+function drawGraphs() {
+    var kejadian = {{.TableKejadianKeselamatan}};
+    var bulan = {{.BulanSingkatan}};
+
+    var namaKejadian = kejadian.map(function(item) {
+        return item.nama_kejadian;
+    });
+
+    var data = [
+        kejadian.map(function(item) {
+            return item.count_1;
+            }),
+            kejadian.map(function(item) {
+            return item.count_2;
+            }),
+            kejadian.map(function(item) {
+            return item.count_3;
+            })
+    ];
+
+    var colors = ["rgb(0, 0, 255)", "rgb(255, 165, 0)", "rgb(128, 128, 128)"];
+
+    var dataset = bulan.map(function(label,index){
+        return {
+            label: label,
+            data: data[index],
+            fill: false,
+            borderColor: colors[index],
+            lineTension: 0.5 + index * 0.05,
+            pointStyle: 'line',
+        }
+    })
+
+    new Chart(document.getElementById("canvas").getContext('2d'), {
+        "type": "line",
+        "data": {
+            "labels": namaKejadian,
+            "datasets": dataset
+        },
+        "options": {
+            "responsive": true,
+            "title": {
+                "display": true,
+                "text": [
+                            "GRAFIK REKAPITULASI KECELAKAAN DI WILAYAH PERAIRAN INDONESIA",
+                            "Periode Triwulan " + {{.PeriodeTriwulan}},
+                            {{index .Bulan 0}} + "-" + {{index .Bulan 2}} + " " + {{.Tahun}}
+                        ]
+            },
+            "legend": {
+                "position": "bottom",
+                "labels": {
+                    "usePointStyle": true
+                }
+            },
+            "plugins": {
+                "datalabels": {
+                    "display": true,
+                    "color": "black",
+                    "anchor": 'center', // Position the label in the center of the point
+                    "align": 'center', // Align the label at the center of the point
+                    "font": {
+                        size: 10
+                    },
+                    // and if you need to format how the value is displayed...
+                    "formatter": function(value, context) {
+                        return value;
+                    }
+                }
+            },
+            "scales": {
+                "xAxes": [{
+                    "gridLines": {
+                        "display": false // Disables gridlines on the x-axis
+                    }
+                }],
+                "yAxes": [{
+                    "gridLines": {
+                        "display": true // Disables gridlines on the y-axis
+                    },
+                    "ticks": {
+                        "beginAtZero": true
+                    }
+                }]
+            }
+        },
+    });
+
+    
+}
+
+window.onload = function() {
+    drawGraphs();
+};
+</script>
+</body>
+</html>
