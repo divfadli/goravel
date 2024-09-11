@@ -73,32 +73,51 @@
                     <table class="table table-bordered table-sm" style="font-size: small;">
                         <thead>
                             <tr>
-                                <th colspan="6" style="text-align: center;">
+                                <th colspan="6" style="vertical-align: middle;text-align: center;">
                                     Tabel Rekapitulasi Keamanan Laut di Wilayah Perairan Indonesia
                                 </th>
                             </tr>
                             <tr>
-                                <th style="text-align: center;">KEAMANAN LAUT</th>
-                                <th style="text-align: center;">JUMLAH KEJADIAN</th>
-                                <th style="text-align: center;">LOKASI KEJADIAN</th>
-                                <th style="text-align: center;">WILAYAH / ZONA</th>
-                                <th style="text-align: center;">AKSI APARAT / INSTANSI</th>
-                                <th style="text-align: center;">KETERANGAN</th>
+                                <th style="vertical-align: middle;text-align: center;">KEAMANAN LAUT</th>
+                                <th style="vertical-align: middle;text-align: center;">JUMLAH KEJADIAN</th>
+                                <th style="vertical-align: middle;text-align: center;">LOKASI KEJADIAN</th>
+                                <th style="vertical-align: middle;text-align: center;">WILAYAH / ZONA</th>
+                                <th style="vertical-align: middle;text-align: center;">AKSI APARAT / INSTANSI</th>
+                                <th style="vertical-align: middle;text-align: center;">KETERANGAN</th>
                             </tr>
                         </thead>
                         <tbody>
                             {{range $val := .KejadianKeamanan}}
+                                {{$zonaBarat := 0}}
+                                {{$zonaTengah := 0}}
+                                {{$zonaTimur := 0}}
                                 {{range $index,$set := $val.KejadianKeamanan}}
-                                    <tr style="text-align: center;"> 
-                                        <td>{{$val.NamaKejadian}}</td>
-                                        <td>{{$val.Jumlah}}</td>
-                                        {{if eq $index $val.Jumlah}}
-                                            <td>AAAA</td>
-                                        {{end}}    
-                                        <td>{{$set.LokasiKejadian}}</td>
-                                        <td>{{$set.Zona}}</td>
-                                        <td>{{$set.SumberBerita}}</td>
-                                        <td>{{$set.Muatan}}</td>
+                                    <tr> 
+                                        {{if eq $index 0}}
+                                            <td rowspan="{{$val.Jumlah}}" style="vertical-align: middle;text-align: left;">{{$val.NamaKejadian}}</td>
+                                            <td rowspan="{{$val.Jumlah}}" style="vertical-align: middle;text-align: center;">{{$val.Jumlah}} kejadian</td>
+                                        {{end}}
+                                        <td style="vertical-align: middle;text-align: left;">{{$set.LokasiKejadian}}</td>
+                                        {{if eq $set.Zona "BARAT"}}
+                                            {{if eq $zonaBarat 0}}
+                                                <td rowspan="{{$val.JumlahZonaBarat}}" style="vertical-align:middle;text-align: left;">WILAYAH {{$set.Zona}}</td>
+                                            {{end}}
+                                            {{$zonaBarat = add $zonaBarat 1}}
+                                        {{end}}
+                                        {{if eq $set.Zona "TIMUR"}}
+                                            {{if eq $zonaTimur 0}}
+                                                <td rowspan="{{$val.JumlahZonaTimur}}" style="vertical-align: middle;text-align: left;">WILAYAH {{$set.Zona}}</td>
+                                            {{end}}
+                                            {{$zonaTimur = add $zonaTimur 1}}
+                                        {{end}}
+                                        {{if eq $set.Zona "TENGAH"}}
+                                            {{if eq $zonaTengah 0}}
+                                                <td rowspan="{{$val.JumlahZonaTengah}}" style="vertical-align: middle;text-align: left;">WILAYAH {{$set.Zona}}</td>
+                                            {{end}}
+                                            {{$zonaTengah = add $zonaTengah 1}}
+                                        {{end}}
+                                        <td style="vertical-align: middle;text-align: left;">{{$set.SumberBerita}}</td>
+                                        <td style="vertical-align: middle;text-align: left;">{{$set.Muatan}}</td>
                                     </tr>    
                                 {{end}}
                             {{end}}
@@ -112,45 +131,59 @@
                     mengalami kecelakaan yang terjadi di wilayah perairan Indonesia, dengan detail rekapitulasi yang
                     tertuang dalam tabel sebagai berikut:</p>
                 <div>
-                    <table class="table table-bordered table-sm">
+                    <table class="table table-bordered table-sm" style="font-size: small;">
                         <thead>
                             <tr>
-                                <th colspan="6" style="text-align: center;">
+                                <th colspan="6" style="vertical-align: middle;text-align: center;">
                                     Tabel Rekapitulasi Keselamatan Laut di Wilayah Perairan Indonesia
                                 </th>
                             </tr>
                             <tr>
-                                <th style="text-align: center;">KESELAMATAN LAUT</th>
-                                <th style="text-align: center;">JUMLAH KEJADIAN</th>
-                                <th style="text-align: center;">LOKASI KEJADIAN</th>
-                                <th style="text-align: center;">WILAYAH / ZONA</th>
-                                <th style="text-align: center;">AKSI APARAT / INSTANSI</th>
-                                <th style="text-align: center;">KETERANGAN</th>
+                                <th style="text-align: center;vertical-align:middle;">KESELAMATAN LAUT</th>
+                                <th style="text-align: center;vertical-align:middle;">JUMLAH KEJADIAN</th>
+                                <th style="text-align: center;vertical-align:middle;">LOKASI KEJADIAN</th>
+                                <th style="text-align: center;vertical-align:middle;">WILAYAH / ZONA</th>
+                                <th style="text-align: center;vertical-align:middle;">AKSI APARAT / INSTANSI</th>
+                                <th style="text-align: center;vertical-align:middle;">KETERANGAN</th>
                             </tr>
                         </thead>
                         <tbody>
                             {{range $val := .KejadianKeselamatan}}
+                                {{$zonaBarat := 0}}
+                                {{$zonaTengah := 0}}
+                                {{$zonaTimur := 0}}
                                 {{range $index,$set := $val.KejadianKeselamatan}}
                                     <tr style="text-align: center;">   
-                                        <td>{{$val.NamaKejadian}}</td>
-                                        <td>{{$val.Jumlah}}</td>
-                                        {{if eq $index $val.Jumlah}}
-                                        {{end}} 
-                                            <td>{{$set.LokasiKejadian}}</td>
-                                            <td>{{$set.Zona}}</td>
-                                            <td>{{$set.SumberBerita}}</td>
+                                        {{if eq $index 0}}
+                                            <td rowspan="{{$val.Jumlah}}" style="vertical-align: middle;text-align: left;">{{$val.NamaKejadian}}</td>
+                                            <td rowspan="{{$val.Jumlah}}" style="vertical-align: middle;text-align: center;">{{$val.Jumlah}} kejadian</td>
+                                        {{end}}
+                                            <td style="vertical-align: middle;text-align: left;">{{$set.LokasiKejadian}}</td>
+                                            {{if eq $set.Zona "BARAT"}}
+                                                {{if eq $zonaBarat 0}}
+                                                    <td rowspan="{{$val.JumlahZonaBarat}}" style="vertical-align:middle;text-align: left;">WILAYAH {{$set.Zona}}</td>
+                                                {{end}}
+                                                {{$zonaBarat = add $zonaBarat 1}}
+                                            {{end}}
+                                            {{if eq $set.Zona "TIMUR"}}
+                                                {{if eq $zonaTimur 0}}
+                                                    <td rowspan="{{$val.JumlahZonaTimur}}" style="vertical-align: middle;text-align: left;">WILAYAH {{$set.Zona}}</td>
+                                                {{end}}
+                                                {{$zonaTimur = add $zonaTimur 1}}
+                                            {{end}}
+                                            {{if eq $set.Zona "TENGAH"}}
+                                                {{if eq $zonaTengah 0}}
+                                                    <td rowspan="{{$val.JumlahZonaTengah}}" style="vertical-align: middle;text-align: left;">WILAYAH {{$set.Zona}}</td>
+                                                {{end}}
+                                                {{$zonaTengah = add $zonaTengah 1}}
+                                            {{end}}
+                                            <td style="vertical-align: middle;text-align: left;">{{$set.SumberBerita}}</td>
                                             <td>
-                                                <ul>
-                                                    <li>
-                                                        Korban Tewas : {{$set.ListKorban.KorbanTewas}}
-                                                    </li>
-                                                    <li>
-                                                        Korban Selamat : {{$set.ListKorban.KorbanSelamat}}
-                                                    </li>
-                                                    <li>
-                                                        Korban Hilang : {{$set.ListKorban.KorbanHilang}}
-                                                    </li>
-                                                </ul>
+                                                <p style="vertical-align: middle;text-align: left;">
+                                                    Korban Tewas : {{$set.ListKorban.KorbanTewas}}<wbr>
+                                                    Korban Selamat : {{$set.ListKorban.KorbanSelamat}}<wbr>
+                                                    Korban Hilang : {{$set.ListKorban.KorbanHilang}}
+                                                </p>
                                             </td>
                                     </tr>    
                                 {{end}}

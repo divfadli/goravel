@@ -580,9 +580,6 @@ func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 		weekName = append(weekName, fullName)
 	}
 
-	templatePath := "templates/laporan-bulanan.html"
-	newTemplatePath := "laporan-bulanan.html"
-
 	startOfMonth := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
 	endOfMonth := startOfMonth.AddDate(0, 1, -1)
 
@@ -613,7 +610,7 @@ func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 		facades.Orm().Query().
 			Join("inner join public.jenis_kejadian k on k.id_jenis_kejadian = jenis_kejadian_id ").
 			With("JenisKejadian").Where("id_kejadian_keamanan = ANY(?)", pq.Array(week.KejadianIDs)).
-			Order("k.nama_kejadian asc, tanggal asc").Find(&data_keamanan)
+			Order("k.nama_kejadian asc, zona asc, tanggal asc").Find(&data_keamanan)
 		for i, weekEnd := range minggu {
 			var setName, fullName string
 			if weekEnd.Day() < 10 || (i > 0 && minggu[i-1].AddDate(0, 0, 1).Day() < 10) {
@@ -636,7 +633,7 @@ func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 		facades.Orm().Query().
 			Join("inner join public.jenis_kejadian k on k.id_jenis_kejadian = jenis_kejadian_id ").
 			With("JenisKejadian").Where("id_kejadian_keselamatan = ANY(?)", pq.Array(week.KejadianIDs)).
-			Order("k.nama_kejadian asc, tanggal asc").Find(&data_keselamatan)
+			Order("k.nama_kejadian asc, zona asc, tanggal asc").Find(&data_keselamatan)
 		for i, weekEnd := range minggu {
 			var setName, fullName string
 			if weekEnd.Day() < 10 || (i > 0 && minggu[i-1].AddDate(0, 0, 1).Day() < 10) {
@@ -687,14 +684,14 @@ func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 		Join("inner join public.jenis_kejadian k on k.id_jenis_kejadian = jenis_kejadian_id ").
 		With("JenisKejadian").
 		Where("tanggal >= ? AND tanggal <= ?", startOfMonth, endOfMonth).
-		Order("k.nama_kejadian asc, tanggal asc").Find(&data_keamanan)
+		Order("k.nama_kejadian asc, zona asc, tanggal asc").Find(&data_keamanan)
 
 	facades.Orm().Query().
 		Join("inner join public.jenis_kejadian k on k.id_jenis_kejadian = jenis_kejadian_id ").
 		With("JenisKejadian").
 		Where("tanggal >= ? AND tanggal <= ?", startOfMonth, endOfMonth).
 		// Where("DATE_PART('month', tanggal) IN (?)", 6)
-		Order("k.nama_kejadian asc, tanggal asc").Find(&data_keselamatan)
+		Order("k.nama_kejadian asc, zona asc, tanggal asc").Find(&data_keselamatan)
 
 	kejadianKeamananWeek := make(map[string]map[string]int)
 	kejadianKeselamatanWeek := make(map[string]map[string]int)
@@ -815,8 +812,6 @@ func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 	// 		JumlahZonaTengah:    jumlahTengah,
 	// 	})
 	// }
-
-	outputPath := "storage/output-laporan-bulanan.pdf"
 
 	// Group the incidents by 'jenis_kejadian_id'
 	groupedByJenisKeamanan := make(map[string][]models.KejadianKeamanan)
@@ -1032,6 +1027,10 @@ func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 		PeriodeTanggal:            periodeTanggal,
 	}
 
+	templatePath := "templates/laporan-bulanan.html"
+	newTemplatePath := "laporan-bulanan.html"
+	outputPath := "storage/output-laporan-bulanan.pdf"
+
 	if err := r.ParseTemplate(templatePath, newTemplatePath, templateData); err == nil {
 		r.GenerateLaporan(outputPath)
 	} else {
@@ -1040,12 +1039,13 @@ func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 
 	// fmt.Println("PDF created successfully!")
 	return ctx.Response().Success().Json(map[string]interface{}{
-		"Status":                  "success",
-		"data-1":                  kejadianKeamananWeek["Human Trafficking"]["10-16 Juni"],
-		"kejadian_keamanan_week":  kejadianKeamananWeek,
-		"jenis_kejadian_keamanan": jenisKejadianKeamanan,
-		"data-3":                  kejadianKeselamatanWeek,
-		"week":                    weekName,
+		"Status":                    "success",
+		"data-1":                    kejadianKeamananWeek["Human Trafficking"]["10-16 Juni"],
+		"kejadian_keamanan_week":    kejadianKeamananWeek,
+		"jenis_kejadian_keamanan":   jenisKejadianKeamanan,
+		"kejadian_keselamatan_week": kejadianKeselamatanWeek,
+		"week":                      weekName,
+		"kejadian_keamanan":         groupKeamanan,
 	})
 }
 
