@@ -176,7 +176,8 @@ func (r *Pdf) GenerateLaporan(laporanPath string) (bool, error) {
 	}
 
 	// Construct the command
-	cmd := exec.Command("wkhtmltopdf", "--disable-smart-shrinking", "--page-size", "A4", "--javascript-delay", "1000", inputFile, laporanPath)
+	cmd := exec.Command("wkhtmltopdf", "--enable-local-file-access",
+		"--disable-smart-shrinking", "--page-size", "A4", "--javascript-delay", "5000", inputFile, laporanPath)
 
 	// Set the command's standard output and error to the current process's standard output and error
 	cmd.Stdout = os.Stdout
@@ -201,6 +202,8 @@ func (r *Pdf) GenerateLaporan(laporanPath string) (bool, error) {
 }
 
 func (r *Pdf) GenerateMingguan(ctx http.Context) http.Response {
+	baseURL := ctx.Request().Host()
+
 	//html template path
 	templateKeamananPath := "templates/keamanan.html"
 	newTemplateKeamananPath := "keamanan.html"
@@ -263,6 +266,7 @@ func (r *Pdf) GenerateMingguan(ctx http.Context) http.Response {
 
 		// html template data
 		templateData := struct {
+			BaseURL          string
 			Title            string
 			NamaKapal        string
 			Kejadian         string
@@ -278,6 +282,7 @@ func (r *Pdf) GenerateMingguan(ctx http.Context) http.Response {
 			Longitude        float64
 			Images           []models.FileImage
 		}{
+			BaseURL:          baseURL,
 			Title:            data.JenisKejadian.NamaKejadian,
 			NamaKapal:        data.NamaKapal,
 			Kejadian:         data.JenisKejadian.NamaKejadian,
@@ -363,6 +368,7 @@ func (r *Pdf) GenerateMingguan(ctx http.Context) http.Response {
 
 		// html template data
 		templateData := struct {
+			BaseURL          string
 			Title            string
 			NamaKapal        string
 			Kejadian         string
@@ -378,6 +384,7 @@ func (r *Pdf) GenerateMingguan(ctx http.Context) http.Response {
 			Longitude        float64
 			Images           []models.FileImage
 		}{
+			BaseURL:          baseURL,
 			Title:            data.JenisKejadian.NamaKejadian,
 			NamaKapal:        data.NamaKapal,
 			Kejadian:         data.JenisKejadian.NamaKejadian,
@@ -1046,6 +1053,7 @@ func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 		"kejadian_keselamatan_week": kejadianKeselamatanWeek,
 		"week":                      weekName,
 		"kejadian_keamanan":         groupKeamanan,
+		"kejadian_keselamatan":      groupKeselamatan,
 	})
 }
 
