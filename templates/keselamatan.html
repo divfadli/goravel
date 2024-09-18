@@ -11,6 +11,9 @@
         integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 
     <style>
+        .leaflet-control-attribution {
+            display: none;
+        }
         .custom-bg-blue {
             background-color: #0077b6;
             color: white;
@@ -97,11 +100,12 @@
                 
             <div class="col-6">
                 <div class="row mb-3">
-                    <!-- {{range .Images}} -->
+                    {{$baseURL := .BaseURL}}
+                    {{range .Images}}
                     <div class="col">
-                        <img src="http://localhost:3000/api/files/{{.Url}}" alt="Image" class="img-fluid">
+                        <img src="http://{{$baseURL}}/api/files/{{.Url}}" alt="Image" class="img-fluid">
                     </div>
-                    <!-- {{end}} -->
+                    {{end}}
                 </div>
                 <div class="row mb-3">
                     <div class="col-12">
