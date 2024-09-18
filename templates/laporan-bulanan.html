@@ -31,7 +31,10 @@
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
 
-
+        .leaflet-control-attribution {
+            display: none;
+        }
+        
         @page {
             size: A4;
             margin: 1cm;
@@ -305,7 +308,7 @@
                     Dengan jumlah Korban Meninggal {{$jumlahKorbanTewas}} orang, Korban Selamat {{$jumlahKorbanSelamat}} orang dan 
                     Korban Hilang {{$jumlahKorbanHilang}} orang.
                 </p>
-                <div class="page-break-inside: avoid;"></div>
+                <div class="page-break-inside: avoid;">
                     <p class="lead" style="text-align: center;">Peta Situasi Keselamatan Laut di Wilayah Perairan Indonesia</p>
                     <div id="map_bul_kecelakaan"></div>
                 </div>
