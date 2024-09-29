@@ -14,6 +14,17 @@
         .leaflet-control-attribution {
             display: none;
         }
+        .legend {
+            background-color: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+        }
+        .legend h4 {
+            margin: 0;
+            font-size: 14px;
+        }
+
         .custom-bg-blue {
             background-color: #0077b6;
             color: white;
@@ -38,6 +49,12 @@
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
         integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-legend@1.0.2/leaflet-legend.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-compass@1.5.6/dist/leaflet-compass.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-legend@1.0.2/leaflet-legend.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-compass@1.5.6/dist/leaflet-compass.min.js"></script>
+        
 
     <title>Hello, world!</title>
 
@@ -134,11 +151,14 @@
         integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
         crossorigin="anonymous"></script>
     <script>
-        var map = L.map('map').setView([-2.548926, 118.0148634], 3);
+        var map = L.map('map',{zoomControl:false}).setView([-2.548926, 118.0148634], 3);
 
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {}).addTo(map);
 
         new L.marker([{{.Latitude}}, {{.Longitude}}]).addTo(map);
+
+        var comp = new L.Control.Compass({autoActive: true, showDigit:true});
+	    map.addControl(comp);
 
         map.zoomControl.remove();
 
