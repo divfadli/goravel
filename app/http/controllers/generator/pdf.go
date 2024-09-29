@@ -207,46 +207,331 @@ func (r *Pdf) GenerateMingguan(ctx http.Context) http.Response {
 	//html template path
 	templateKeamananPath := "templates/keamanan.html"
 	newTemplateKeamananPath := "keamanan.html"
+	templateKeamananHeadPath := "templates/keamanan-head.html"
+	newTemplateKeamananHeadPath := "keamanan-head.html"
 	templateKeselamatanPath := "templates/keselamatan.html"
 	newTemplateKeselamatanPath := "keselamatan.html"
 
+	now := time.Date(2024, 6, 17, 0, 0, 0, 0, time.UTC)
+	dayperweek := 7
+
+	jumlahHari := daysInMonth(now)
+
+	var minggu []time.Time
+
+	// Calculate the first day of the month
+	var firstDayMonth, startOfMonth time.Time
+	firstDayMonth = time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
+	startOfMonth = firstDayMonth
+	dayOfWeek := firstDayMonth.Weekday()
+
+	daysToAdd := 0
+	switch dayOfWeek {
+	case time.Monday:
+		daysToAdd = 6
+	case time.Tuesday:
+		daysToAdd = 5
+	case time.Wednesday:
+		daysToAdd = 4
+	case time.Thursday:
+		daysToAdd = 3
+	case time.Friday:
+		daysToAdd = 2
+	case time.Saturday:
+		daysToAdd = 8
+	case time.Sunday:
+		daysToAdd = 7
+	}
+
+	// minggu = append(minggu, firstDay)
+	nextWeek := firstDayMonth.AddDate(0, 0, daysToAdd)
+	minggu = append(minggu, nextWeek)
+
+	jumlahHari -= daysToAdd + 1
+	// fmt.Println(jumlahHari)
+	completeWeeks := jumlahHari / dayperweek
+	remainingDays := jumlahHari % dayperweek
+
+	// // // Iterate through each week and calculate the start date
+	for i := 1; i <= completeWeeks; i++ {
+		startDate := nextWeek.AddDate(0, 0, i*dayperweek)
+		minggu = append(minggu, startDate)
+	}
+
+	// // // Add the start date for the remaining days if any
+	if remainingDays > 0 {
+		startDate := nextWeek.AddDate(0, 0, (completeWeeks*dayperweek)+remainingDays)
+		minggu = append(minggu, startDate)
+	}
+
+	var startOfWeek time.Time
+	var endOfWeek time.Time
+	for i, weekEnd := range minggu {
+		if weekEnd.After(now) {
+			startOfWeek = minggu[i-2]
+			endOfWeek = minggu[i-1]
+			break
+		}
+	}
+	fmt.Println(startOfMonth, startOfWeek, endOfWeek)
+
+	var weekName []string
+	for i, weekEnd := range minggu {
+		var setName, fullName string
+		if weekEnd.Day() < 10 || (i > 0 && minggu[i-1].AddDate(0, 0, 1).Day() < 10) {
+			setName = "0"
+		}
+		if i == 0 {
+			fullName = "01-" + setName + strconv.Itoa(weekEnd.Day()) + " " + monthNameEnglishMap[weekEnd.Month()]
+		} else {
+			fullName = setName + strconv.Itoa(minggu[i-1].AddDate(0, 0, 1).Day()) + "-" +
+				strconv.Itoa(weekEnd.Day()) + " " + monthNameEnglishMap[weekEnd.Month()]
+		}
+		weekName = append(weekName, fullName)
+	}
+	fmt.Println(weekName)
+
+	var weeklyDataKeamanans, weeklyDataKeselamatans, allWeeklyDataKeamanans, allWeeklyDataKeselamatans weeklyData
+
+	facades.Orm().Query().
+		Table("public.kejadian_keamanan").
+		Select("DATE_TRUNC('week', tanggal) AS week_start, ARRAY_AGG(id_kejadian_keamanan) AS kejadian_ids").
+		Where("tanggal >= ? AND tanggal <= ?", startOfWeek, endOfWeek).
+		Group("DATE_TRUNC('week', tanggal)").
+		Order("week_start asc").Scan(&weeklyDataKeamanans)
+
+	facades.Orm().Query().
+		Table("public.kejadian_keamanan").
+		Select("DATE_TRUNC('week', tanggal) AS week_start, ARRAY_AGG(id_kejadian_keamanan) AS kejadian_ids").
+		Where("tanggal >= ? AND tanggal <= ?", startOfMonth, endOfWeek).
+		Group("DATE_TRUNC('week', tanggal)").
+		Order("week_start asc").Scan(&allWeeklyDataKeamanans)
+
+	facades.Orm().Query().
+		Table("public.kejadian_keselamatan").
+		Select("DATE_TRUNC('week', tanggal) AS week_start, ARRAY_AGG(id_kejadian_keselamatan) AS kejadian_ids").
+		Where("tanggal >= ? AND tanggal <= ?", startOfWeek, endOfWeek).
+		Group("DATE_TRUNC('week', tanggal)").
+		Order("week_start asc").Scan(&weeklyDataKeselamatans)
+
+	facades.Orm().Query().
+		Table("public.kejadian_keselamatan").
+		Select("DATE_TRUNC('week', tanggal) AS week_start, ARRAY_AGG(id_kejadian_keselamatan) AS kejadian_ids").
+		Where("tanggal >= ? AND tanggal <= ?", startOfMonth, endOfWeek).
+		Group("DATE_TRUNC('week', tanggal)").
+		Order("week_start asc").Scan(&allWeeklyDataKeselamatans)
+
+	allWeeklyDataKeamanan := make(map[string][]models.KejadianKeamanan)
+	allWeeklyDataKeselamatan := make(map[string][]models.KejadianKeselamatan)
+
 	var data_keamanan []models.KejadianKeamanan
-	query1 := facades.Orm().Query().
-		Join("inner join public.jenis_kejadian k on k.id_jenis_kejadian = jenis_kejadian_id ").
-		With("JenisKejadian")
-	query1.Order("k.nama_kejadian asc, tanggal asc").Find(&data_keamanan)
+	var data_keselamatan []models.KejadianKeselamatan
+	for _, week := range allWeeklyDataKeamanans {
+		facades.Orm().Query().
+			Join("inner join public.jenis_kejadian k on k.id_jenis_kejadian = jenis_kejadian_id ").
+			With("JenisKejadian").Where("id_kejadian_keamanan = ANY(?)", pq.Array(week.KejadianIDs)).
+			Order("k.nama_kejadian asc, zona asc, tanggal asc").Find(&data_keamanan)
+
+		for i, weekEnd := range minggu {
+			var setName, fullName string
+			if weekEnd.Day() < 10 || (i > 0 && minggu[i-1].AddDate(0, 0, 1).Day() < 10) {
+				setName = "0"
+			}
+			if weekEnd.After(week.WeekStart) {
+				if i == 0 {
+					fullName = "01-" + setName + strconv.Itoa(weekEnd.Day()) + " " + monthNameEnglishMap[weekEnd.Month()]
+				} else {
+					fullName = setName + strconv.Itoa(week.WeekStart.Day()) + "-" +
+						strconv.Itoa(weekEnd.Day()) + " " + monthNameEnglishMap[weekEnd.Month()]
+				}
+
+				allWeeklyDataKeamanan[fullName] = append(allWeeklyDataKeamanan[fullName], data_keamanan...)
+				break
+			}
+		}
+	}
+	for _, week := range allWeeklyDataKeselamatans {
+		facades.Orm().Query().
+			Join("inner join public.jenis_kejadian k on k.id_jenis_kejadian = jenis_kejadian_id ").
+			With("JenisKejadian").Where("id_kejadian_keselamatan = ANY(?)", pq.Array(week.KejadianIDs)).
+			Order("k.nama_kejadian asc, zona asc, tanggal asc").Find(&data_keselamatan)
+		for i, weekEnd := range minggu {
+			var setName, fullName string
+			if weekEnd.Day() < 10 || (i > 0 && minggu[i-1].AddDate(0, 0, 1).Day() < 10) {
+				setName = "0"
+			}
+			if weekEnd.After(week.WeekStart) {
+				if i == 0 {
+					fullName = "01-" + setName + strconv.Itoa(weekEnd.Day()) + " " + monthNameEnglishMap[weekEnd.Month()]
+				} else {
+					fullName = setName + strconv.Itoa(week.WeekStart.Day()) + "-" +
+						strconv.Itoa(weekEnd.Day()) + " " + monthNameEnglishMap[weekEnd.Month()]
+				}
+
+				allWeeklyDataKeselamatan[fullName] = append(allWeeklyDataKeselamatan[fullName], data_keselamatan...)
+				break
+			}
+		}
+	}
 
 	var result_keamanan []models.KejadianKeamananImage
-	for _, data := range data_keamanan {
-		var data_keamanan_image []models.FileImage
-		facades.Orm().Query().Join("inner join public.image_keamanan imk ON id_file_image = imk.file_image_id").
-			Where("imk.kejadian_keamanan_id=?", data.IdKejadianKeamanan).Find(&data_keamanan_image)
-
-		result_keamanan = append(result_keamanan, models.KejadianKeamananImage{
-			KejadianKeamanan: data,
-			FileImage:        data_keamanan_image,
-		})
-	}
-
-	var data_keselamatan []models.KejadianKeselamatan
-	query2 := facades.Orm().Query().
-		Join("inner join public.jenis_kejadian k on k.id_jenis_kejadian = jenis_kejadian_id ").
-		With("JenisKejadian")
-	query2.Order("k.nama_kejadian asc, tanggal asc").Find(&data_keselamatan)
-
 	var result_keselamatan []models.KejadianKeselamatanImage
-	for _, data := range data_keselamatan {
-		var data_keselamatan_image []models.FileImage
-		facades.Orm().Query().Join("inner join public.image_keselamatan imk ON id_file_image = imk.file_image_id").
-			Where("imk.kejadian_keselamatan_id=?", data.IdKejadianKeselamatan).Find(&data_keselamatan_image)
+	// Now you can loop through the grouped data
+	for _, week := range weeklyDataKeamanans {
+		facades.Orm().Query().
+			Join("inner join public.jenis_kejadian k on k.id_jenis_kejadian = jenis_kejadian_id ").
+			With("JenisKejadian").Where("id_kejadian_keamanan = ANY(?)", pq.Array(week.KejadianIDs)).
+			Order("k.nama_kejadian asc, zona asc, tanggal asc").Find(&data_keamanan)
 
-		result_keselamatan = append(result_keselamatan, models.KejadianKeselamatanImage{
-			KejadianKeselamatan: data,
-			FileImage:           data_keselamatan_image,
-		})
+		for _, data := range data_keamanan {
+			var data_keamanan_image []models.FileImage
+			facades.Orm().Query().Join("inner join public.image_keamanan imk ON id_file_image = imk.file_image_id").
+				Where("imk.kejadian_keamanan_id=?", data.IdKejadianKeamanan).Find(&data_keamanan_image)
+
+			result_keamanan = append(result_keamanan, models.KejadianKeamananImage{
+				KejadianKeamanan: data,
+				FileImage:        data_keamanan_image,
+			})
+		}
 	}
 
+	for _, week := range weeklyDataKeselamatans {
+		facades.Orm().Query().
+			Join("inner join public.jenis_kejadian k on k.id_jenis_kejadian = jenis_kejadian_id ").
+			With("JenisKejadian").Where("id_kejadian_keselamatan = ANY(?)", pq.Array(week.KejadianIDs)).
+			Order("k.nama_kejadian asc, zona asc, tanggal asc").Find(&data_keselamatan)
+		for _, data := range data_keselamatan {
+			var data_keselamatan_image []models.FileImage
+			facades.Orm().Query().Join("inner join public.image_keselamatan imk ON id_file_image = imk.file_image_id").
+				Where("imk.kejadian_keselamatan_id=?", data.IdKejadianKeselamatan).Find(&data_keselamatan_image)
+
+			result_keselamatan = append(result_keselamatan, models.KejadianKeselamatanImage{
+				KejadianKeselamatan: data,
+				FileImage:           data_keselamatan_image,
+			})
+		}
+	}
+
+	allWeeklyDataKeamananSorted := make([]string, 0, len(allWeeklyDataKeamanan))
+	for name := range allWeeklyDataKeamanan {
+		allWeeklyDataKeamananSorted = append(allWeeklyDataKeamananSorted, name)
+	}
+	allWeeklyDataKeselamatanSorted := make([]string, 0, len(allWeeklyDataKeselamatan))
+	for name := range allWeeklyDataKeselamatan {
+		allWeeklyDataKeselamatanSorted = append(allWeeklyDataKeselamatanSorted, name)
+	}
+
+	// Sort the slice of names
+	sort.Strings(allWeeklyDataKeamananSorted)
+	sort.Strings(allWeeklyDataKeselamatanSorted)
+
+	var jenisKejadianKeamanan, jenisKejadianKeselamatan []models.JenisKejadian
+	facades.Orm().Query().Where("klasifikasi_name = ?", "Keamanan Laut").
+		Order("nama_kejadian asc").Find(&jenisKejadianKeamanan)
+	facades.Orm().Query().Where("klasifikasi_name = ?", "Keselamatan Laut").
+		Order("nama_kejadian asc").Find(&jenisKejadianKeselamatan)
+
+	kejadianKeamananWeek := make(map[string]map[string]int)
+	kejadianKeselamatanWeek := make(map[string]map[string]int)
+	for _, jenisKejadian := range jenisKejadianKeamanan {
+		for _, name := range weekName {
+			if kejadianKeamananWeek[jenisKejadian.NamaKejadian] == nil {
+				kejadianKeamananWeek[jenisKejadian.NamaKejadian] = make(map[string]int)
+			}
+
+			if _, exists := kejadianKeamananWeek[jenisKejadian.NamaKejadian][name]; !exists {
+				kejadianKeamananWeek[jenisKejadian.NamaKejadian][name] = 0
+			}
+		}
+	}
+	for _, jenisKejadian := range jenisKejadianKeselamatan {
+		for _, name := range weekName {
+			if kejadianKeselamatanWeek[jenisKejadian.NamaKejadian] == nil {
+				kejadianKeselamatanWeek[jenisKejadian.NamaKejadian] = make(map[string]int)
+			}
+
+			if _, exists := kejadianKeselamatanWeek[jenisKejadian.NamaKejadian][name]; !exists {
+				kejadianKeselamatanWeek[jenisKejadian.NamaKejadian][name] = 0
+			}
+		}
+	}
+
+	for _, key := range allWeeklyDataKeamananSorted {
+		value := allWeeklyDataKeamanan[key]
+		for _, data := range value {
+			// fmt.Println(key, i, j)
+			for _, weeks := range weekName {
+				if key == weeks {
+					kejadianKeamananWeek[data.JenisKejadian.NamaKejadian][weeks]++
+				}
+			}
+		}
+	}
+	for _, key := range allWeeklyDataKeselamatanSorted {
+		value := allWeeklyDataKeselamatan[key]
+		for _, data := range value {
+			// fmt.Println(key, i, j)
+			for _, weeks := range weekName {
+				if key == weeks {
+					kejadianKeselamatanWeek[data.JenisKejadian.NamaKejadian][weeks]++
+				}
+			}
+		}
+	}
+
+	countOfWeek := make(map[string]int)
+	var nameOfWeek []string
+	for i, weeks := range weekName {
+		total := 0
+		for _, kejadian := range kejadianKeamananWeek {
+			total += kejadian[weeks]
+		}
+		name := "Minggu " + strconv.Itoa(i+1)
+		nameOfWeek = append(nameOfWeek, name)
+		countOfWeek[name] = total
+	}
+	// kejadianKeamananWeek, jenisKejadianKeamanan, weekName
 	var images []string
+	outputPath := fmt.Sprintf("storage/temp/pelanggaran%d.png", "default")
+
+	templateData := struct {
+		BaseURL              string
+		KejadianKeamananWeek map[string]map[string]int
+		WeekName             []string
+		CountOfWeek          map[string]int
+		NameOfWeek           []string
+	}{
+		BaseURL:              baseURL,
+		KejadianKeamananWeek: kejadianKeamananWeek,
+		WeekName:             weekName,
+		CountOfWeek:          countOfWeek,
+		NameOfWeek:           nameOfWeek,
+	}
+
+	if err := r.ParseTemplate(templateKeamananHeadPath, newTemplateKeamananHeadPath, templateData); err == nil {
+		// Generate Image
+		success, _ := r.GenerateSlide(outputPath)
+		if success {
+			images = append(images, outputPath)
+		}
+	} else {
+		fmt.Printf("Error: %v\n", err)
+		return nil
+	}
+
+	// weeklyDataKeamananSorted := make([]string, 0, len(weeklyDataKeamanan))
+	// for name := range weeklyDataKeamanan {
+	// 	weeklyDataKeamananSorted = append(weeklyDataKeamananSorted, name)
+	// }
+	// weeklyDataKeselamatanSorted := make([]string, 0, len(weeklyDataKeselamatan))
+	// for name := range weeklyDataKeselamatan {
+	// 	weeklyDataKeselamatanSorted = append(weeklyDataKeselamatanSorted, name)
+	// }
+
+	// // Sort the slice of names
+	// sort.Strings(weeklyDataKeamananSorted)
+	// sort.Strings(weeklyDataKeselamatanSorted)
+
 	for _, data := range result_keamanan {
 		// path for download pdf
 		outputPath := fmt.Sprintf("storage/temp/pelanggaran%d.png", data.IdKejadianKeamanan)
@@ -747,78 +1032,6 @@ func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 			}
 		}
 	}
-	fmt.Println(kejadianKeamananWeek["Human Trafficking"])
-
-	// sortedCountKeamananWeek := sortedKeys(kejadianKeamananWeek)
-	// fmt.Println(sortedCountKeamananWeek)
-
-	// for jenisName, kejadianGroup := range groupedByJenisKeselamatan {
-	// 	jumlah := 0
-	// 	jumlahBarat := 0
-	// 	jumlahTimur := 0
-	// 	jumlahTengah := 0
-
-	// 	fmt.Printf("Jenis Kejadian ID: %s\n", jenisName)
-	// 	var list_korban []models.KejadianKeselamatanKorban
-
-	// 	for _, data := range kejadianGroup {
-	// 		var x models.ListKorban
-	// 		err := json.Unmarshal(data.Korban, &x)
-	// 		if err != nil {
-	// 			return nil
-	// 		}
-
-	// 		temp := models.KejadianKeselamatanKorban{
-	// 			KejadianKeselamatan: data,
-	// 			ListKorban:          x,
-	// 		}
-
-	// 		if data.Zona == "BARAT" {
-	// 			jumlahBarat++
-	// 			groupKeselamatanBarat = append(groupKeselamatanBarat, temp)
-	// 		} else if data.Zona == "TIMUR" {
-	// 			jumlahTimur++
-	// 			groupKeselamatanTimur = append(groupKeselamatanTimur, temp)
-	// 		} else if data.Zona == "TENGAH" {
-	// 			jumlahTengah++
-	// 			groupKeselamatanTengah = append(groupKeselamatanTengah, temp)
-	// 		}
-
-	// 		list_korban = append(list_korban, temp)
-	// 		jumlah++
-	// 	}
-
-	// 	if jumlahBarat != 0 {
-	// 		keselamatanBarat = append(keselamatanBarat, GroupingKeselamatanBarat{
-	// 			NamaKejadian:        jenisName,
-	// 			KejadianKeselamatan: groupKeselamatanBarat,
-	// 			Jumlah:              jumlahBarat,
-	// 		})
-	// 	}
-	// 	if jumlahTimur != 0 {
-	// 		keselamatanTimur = append(keselamatanTimur, GroupingKeselamatanTimur{
-	// 			NamaKejadian:        jenisName,
-	// 			KejadianKeselamatan: groupKeselamatanTimur,
-	// 			Jumlah:              jumlahTimur,
-	// 		})
-	// 	}
-	// 	if jumlahTengah != 0 {
-	// 		keselamatanTengah = append(keselamatanTengah, GroupingKeselamatanTengah{
-	// 			NamaKejadian:        jenisName,
-	// 			KejadianKeselamatan: groupKeselamatanTengah,
-	// 			Jumlah:              jumlahTengah,
-	// 		})
-	// 	}
-
-	// 	groupKeselamatan = append(groupKeselamatan, GroupingKeselamatan{
-	// 		NamaKejadian:        jenisName,
-	// 		KejadianKeselamatan: list_korban,
-	// 		Jumlah:              jumlah,
-	// 		JumlahZonaBarat:     jumlahBarat,
-	// 		JumlahZonaTimur:     jumlahTimur,
-	// 		JumlahZonaTengah:    jumlahTengah,
-	// 	})
-	// }
 
 	// Group the incidents by 'jenis_kejadian_id'
 	groupedByJenisKeamanan := make(map[string][]models.KejadianKeamanan)
