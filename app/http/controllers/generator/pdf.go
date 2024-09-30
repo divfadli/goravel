@@ -10,7 +10,6 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -205,14 +204,17 @@ func (r *Pdf) GenerateMingguan(ctx http.Context) http.Response {
 	baseURL := ctx.Request().Host()
 
 	//html template path
-	templateKeamananPath := "templates/keamanan.html"
-	newTemplateKeamananPath := "keamanan.html"
+	// templateKeamananPath := "templates/keamanan.html"
+	// newTemplateKeamananPath := "keamanan.html"
 	templateKeamananHeadPath := "templates/keamanan-head.html"
 	newTemplateKeamananHeadPath := "keamanan-head.html"
-	templateKeselamatanPath := "templates/keselamatan.html"
-	newTemplateKeselamatanPath := "keselamatan.html"
+	// templateKeselamatanPath := "templates/keselamatan.html"
+	// newTemplateKeselamatanPath := "keselamatan.html"
 
 	now := time.Date(2024, 6, 17, 0, 0, 0, 0, time.UTC)
+	bulan := monthNameIndonesia(now.Month())
+	year := strconv.Itoa(now.Year())
+
 	dayperweek := 7
 
 	jumlahHari := daysInMonth(now)
@@ -266,8 +268,11 @@ func (r *Pdf) GenerateMingguan(ctx http.Context) http.Response {
 
 	var startOfWeek time.Time
 	var endOfWeek time.Time
+	var mingguKe int
 	for i, weekEnd := range minggu {
 		if weekEnd.After(now) {
+			// minggu ke
+			mingguKe = i
 			startOfWeek = minggu[i-2]
 			endOfWeek = minggu[i-1]
 			break
@@ -495,17 +500,25 @@ func (r *Pdf) GenerateMingguan(ctx http.Context) http.Response {
 	outputPath := fmt.Sprintf("storage/temp/pelanggaran%d.png", "default")
 
 	templateData := struct {
-		BaseURL              string
-		KejadianKeamananWeek map[string]map[string]int
-		WeekName             []string
-		CountOfWeek          map[string]int
-		NameOfWeek           []string
+		BaseURL                  string
+		Bulan                    string
+		BulanCapital             string
+		Tahun                    string
+		MingguKe                 int
+		KejadianKeamananWeek     map[string]map[string]int
+		WeekName                 []string
+		CountOfWeek              map[string]int
+		DataKejadianKeamananWeek []models.KejadianKeamananImage
 	}{
-		BaseURL:              baseURL,
-		KejadianKeamananWeek: kejadianKeamananWeek,
-		WeekName:             weekName,
-		CountOfWeek:          countOfWeek,
-		NameOfWeek:           nameOfWeek,
+		BaseURL:                  baseURL,
+		Bulan:                    bulan,
+		BulanCapital:             strings.ToUpper(bulan),
+		Tahun:                    year,
+		MingguKe:                 mingguKe,
+		KejadianKeamananWeek:     kejadianKeamananWeek,
+		WeekName:                 weekName,
+		CountOfWeek:              countOfWeek,
+		DataKejadianKeamananWeek: result_keamanan,
 	}
 
 	if err := r.ParseTemplate(templateKeamananHeadPath, newTemplateKeamananHeadPath, templateData); err == nil {
@@ -532,171 +545,171 @@ func (r *Pdf) GenerateMingguan(ctx http.Context) http.Response {
 	// sort.Strings(weeklyDataKeamananSorted)
 	// sort.Strings(weeklyDataKeselamatanSorted)
 
-	for _, data := range result_keamanan {
-		// path for download pdf
-		outputPath := fmt.Sprintf("storage/temp/pelanggaran%d.png", data.IdKejadianKeamanan)
+	// for _, data := range result_keamanan {
+	// 	// path for download pdf
+	// 	outputPath := fmt.Sprintf("storage/temp/pelanggaran%d.png", data.IdKejadianKeamanan)
 
-		var abk string
-		if strings.Contains(data.Muatan, "ABK") {
-			re := regexp.MustCompile(`\b\d+\s+orang\b`)
-			matches := re.FindAllString(data.Muatan, -1)
-			if len(matches) > 0 {
-				abk = matches[0]
-			} else {
-				abk = " - "
-			}
-		} else {
-			abk = " - "
-		}
+	// 	var abk string
+	// 	if strings.Contains(data.Muatan, "ABK") {
+	// 		re := regexp.MustCompile(`\b\d+\s+orang\b`)
+	// 		matches := re.FindAllString(data.Muatan, -1)
+	// 		if len(matches) > 0 {
+	// 			abk = matches[0]
+	// 		} else {
+	// 			abk = " - "
+	// 		}
+	// 	} else {
+	// 		abk = " - "
+	// 	}
 
-		// html template data
-		templateData := struct {
-			BaseURL          string
-			Title            string
-			NamaKapal        string
-			Kejadian         string
-			Penyebab         string
-			Lokasi           string
-			ABK              string
-			Muatan           string
-			InstansiPenindak string
-			Keterangan       string
-			Waktu            string
-			SumberBerita     string
-			Latitude         float64
-			Longitude        float64
-			Images           []models.FileImage
-		}{
-			BaseURL:          baseURL,
-			Title:            data.JenisKejadian.NamaKejadian,
-			NamaKapal:        data.NamaKapal,
-			Kejadian:         data.JenisKejadian.NamaKejadian,
-			Penyebab:         "-",
-			Lokasi:           data.LokasiKejadian,
-			ABK:              abk,
-			Muatan:           data.Muatan,
-			InstansiPenindak: data.SumberBerita,
-			Keterangan:       data.TindakLanjut,
-			Waktu:            data.Tanggal.ToDateString(),
-			SumberBerita:     data.LinkBerita,
-			Latitude:         data.Latitude,
-			Longitude:        data.Longitude,
-			Images:           data.FileImage,
-		}
+	// 	// html template data
+	// 	templateData := struct {
+	// 		BaseURL          string
+	// 		Title            string
+	// 		NamaKapal        string
+	// 		Kejadian         string
+	// 		Penyebab         string
+	// 		Lokasi           string
+	// 		ABK              string
+	// 		Muatan           string
+	// 		InstansiPenindak string
+	// 		Keterangan       string
+	// 		Waktu            string
+	// 		SumberBerita     string
+	// 		Latitude         float64
+	// 		Longitude        float64
+	// 		Images           []models.FileImage
+	// 	}{
+	// 		BaseURL:          baseURL,
+	// 		Title:            data.JenisKejadian.NamaKejadian,
+	// 		NamaKapal:        data.NamaKapal,
+	// 		Kejadian:         data.JenisKejadian.NamaKejadian,
+	// 		Penyebab:         "-",
+	// 		Lokasi:           data.LokasiKejadian,
+	// 		ABK:              abk,
+	// 		Muatan:           data.Muatan,
+	// 		InstansiPenindak: data.SumberBerita,
+	// 		Keterangan:       data.TindakLanjut,
+	// 		Waktu:            data.Tanggal.ToDateString(),
+	// 		SumberBerita:     data.LinkBerita,
+	// 		Latitude:         data.Latitude,
+	// 		Longitude:        data.Longitude,
+	// 		Images:           data.FileImage,
+	// 	}
 
-		if err := r.ParseTemplate(templateKeamananPath, newTemplateKeamananPath, templateData); err == nil {
-			// Generate Image
-			success, _ := r.GenerateSlide(outputPath)
-			if success {
-				images = append(images, outputPath)
-			}
-		} else {
-			fmt.Printf("Error: %v\n", err)
-			return nil
-		}
-	}
+	// 	if err := r.ParseTemplate(templateKeamananPath, newTemplateKeamananPath, templateData); err == nil {
+	// 		// Generate Image
+	// 		success, _ := r.GenerateSlide(outputPath)
+	// 		if success {
+	// 			images = append(images, outputPath)
+	// 		}
+	// 	} else {
+	// 		fmt.Printf("Error: %v\n", err)
+	// 		return nil
+	// 	}
+	// }
 
-	for _, data := range result_keselamatan {
-		// path for download pdf
-		outputPath := fmt.Sprintf("storage/temp/kecelakaan%d.png", data.IdKejadianKeselamatan)
+	// for _, data := range result_keselamatan {
+	// 	// path for download pdf
+	// 	outputPath := fmt.Sprintf("storage/temp/kecelakaan%d.png", data.IdKejadianKeselamatan)
 
-		var perpindahanAwal string
-		if data.PelabuhanAsal != "-" && data.PelabuhanAsal != "" {
-			perpindahanAwal = data.PelabuhanAsal
-		}
-		var perpindahanAkhir string
-		if data.PelabuhanTujuan != "-" && data.PelabuhanTujuan != "" {
-			perpindahanAwal = data.PelabuhanTujuan
-		}
+	// 	var perpindahanAwal string
+	// 	if data.PelabuhanAsal != "-" && data.PelabuhanAsal != "" {
+	// 		perpindahanAwal = data.PelabuhanAsal
+	// 	}
+	// 	var perpindahanAkhir string
+	// 	if data.PelabuhanTujuan != "-" && data.PelabuhanTujuan != "" {
+	// 		perpindahanAwal = data.PelabuhanTujuan
+	// 	}
 
-		var perpindahan string
-		if perpindahanAwal != "" && perpindahanAkhir != "" {
-			perpindahan = perpindahanAwal + " - " + perpindahanAkhir
-		} else if perpindahanAwal != "" && perpindahanAkhir == "" {
-			perpindahan = perpindahanAwal + " - "
-		} else if perpindahanAwal == "" && perpindahanAkhir != "" {
-			perpindahan = " - " + perpindahanAkhir
-		} else {
-			perpindahan = " - "
-		}
+	// 	var perpindahan string
+	// 	if perpindahanAwal != "" && perpindahanAkhir != "" {
+	// 		perpindahan = perpindahanAwal + " - " + perpindahanAkhir
+	// 	} else if perpindahanAwal != "" && perpindahanAkhir == "" {
+	// 		perpindahan = perpindahanAwal + " - "
+	// 	} else if perpindahanAwal == "" && perpindahanAkhir != "" {
+	// 		perpindahan = " - " + perpindahanAkhir
+	// 	} else {
+	// 		perpindahan = " - "
+	// 	}
 
-		var korbanData models.ListKorban
+	// 	var korbanData models.ListKorban
 
-		var korban string
-		if err := json.Unmarshal(data.Korban, &korbanData); err != nil {
-			fmt.Println("ERROR", err)
-			return nil
-		}
+	// 	var korban string
+	// 	if err := json.Unmarshal(data.Korban, &korbanData); err != nil {
+	// 		fmt.Println("ERROR", err)
+	// 		return nil
+	// 	}
 
-		if korbanData.KorbanHilang != 0 && korbanData.KorbanSelamat != 0 && korbanData.KorbanTewas != 0 {
-			korban = "Korban hilang " + strconv.Itoa(korbanData.KorbanHilang) + " orang, selamat " +
-				strconv.Itoa(korbanData.KorbanSelamat) + " orang, dan tewas " +
-				strconv.Itoa(korbanData.KorbanTewas) + " orang"
-		} else if korbanData.KorbanHilang != 0 && korbanData.KorbanSelamat != 0 && korbanData.KorbanTewas == 0 {
-			korban = "Korban hilang " + strconv.Itoa(korbanData.KorbanHilang) + " orang, dan selamat " +
-				strconv.Itoa(korbanData.KorbanSelamat) + " orang"
-		} else if korbanData.KorbanHilang != 0 && korbanData.KorbanSelamat == 0 && korbanData.KorbanTewas != 0 {
-			korban = "Korban hilang " + strconv.Itoa(korbanData.KorbanHilang) + " orang, dan tewas " +
-				strconv.Itoa(korbanData.KorbanTewas) + " orang"
-		} else if korbanData.KorbanHilang == 0 && korbanData.KorbanSelamat != 0 && korbanData.KorbanTewas != 0 {
-			korban = "Korban selamat " + strconv.Itoa(korbanData.KorbanSelamat) + " orang, dan tewas " +
-				strconv.Itoa(korbanData.KorbanTewas) + " orang"
-		} else if korbanData.KorbanHilang != 0 && korbanData.KorbanSelamat == 0 && korbanData.KorbanTewas == 0 {
-			korban = "Korban hilang " + strconv.Itoa(korbanData.KorbanHilang) + " orang"
-		} else if korbanData.KorbanHilang == 0 && korbanData.KorbanSelamat != 0 && korbanData.KorbanTewas == 0 {
-			korban = "Korban selamat " + strconv.Itoa(korbanData.KorbanSelamat) + " orang"
-		} else if korbanData.KorbanHilang == 0 && korbanData.KorbanSelamat == 0 && korbanData.KorbanTewas != 0 {
-			korban = "Korban tewas " + strconv.Itoa(korbanData.KorbanTewas) + " orang"
-		} else {
-			korban = "tidak ada korban jiwa"
-		}
+	// 	if korbanData.KorbanHilang != 0 && korbanData.KorbanSelamat != 0 && korbanData.KorbanTewas != 0 {
+	// 		korban = "Korban hilang " + strconv.Itoa(korbanData.KorbanHilang) + " orang, selamat " +
+	// 			strconv.Itoa(korbanData.KorbanSelamat) + " orang, dan tewas " +
+	// 			strconv.Itoa(korbanData.KorbanTewas) + " orang"
+	// 	} else if korbanData.KorbanHilang != 0 && korbanData.KorbanSelamat != 0 && korbanData.KorbanTewas == 0 {
+	// 		korban = "Korban hilang " + strconv.Itoa(korbanData.KorbanHilang) + " orang, dan selamat " +
+	// 			strconv.Itoa(korbanData.KorbanSelamat) + " orang"
+	// 	} else if korbanData.KorbanHilang != 0 && korbanData.KorbanSelamat == 0 && korbanData.KorbanTewas != 0 {
+	// 		korban = "Korban hilang " + strconv.Itoa(korbanData.KorbanHilang) + " orang, dan tewas " +
+	// 			strconv.Itoa(korbanData.KorbanTewas) + " orang"
+	// 	} else if korbanData.KorbanHilang == 0 && korbanData.KorbanSelamat != 0 && korbanData.KorbanTewas != 0 {
+	// 		korban = "Korban selamat " + strconv.Itoa(korbanData.KorbanSelamat) + " orang, dan tewas " +
+	// 			strconv.Itoa(korbanData.KorbanTewas) + " orang"
+	// 	} else if korbanData.KorbanHilang != 0 && korbanData.KorbanSelamat == 0 && korbanData.KorbanTewas == 0 {
+	// 		korban = "Korban hilang " + strconv.Itoa(korbanData.KorbanHilang) + " orang"
+	// 	} else if korbanData.KorbanHilang == 0 && korbanData.KorbanSelamat != 0 && korbanData.KorbanTewas == 0 {
+	// 		korban = "Korban selamat " + strconv.Itoa(korbanData.KorbanSelamat) + " orang"
+	// 	} else if korbanData.KorbanHilang == 0 && korbanData.KorbanSelamat == 0 && korbanData.KorbanTewas != 0 {
+	// 		korban = "Korban tewas " + strconv.Itoa(korbanData.KorbanTewas) + " orang"
+	// 	} else {
+	// 		korban = "tidak ada korban jiwa"
+	// 	}
 
-		// html template data
-		templateData := struct {
-			BaseURL          string
-			Title            string
-			NamaKapal        string
-			Kejadian         string
-			Penyebab         string
-			Lokasi           string
-			Korban           string
-			Perpindahan      string
-			Keterangan       string
-			Waktu            string
-			InstansiPenindak string
-			SumberBerita     string
-			Latitude         float64
-			Longitude        float64
-			Images           []models.FileImage
-		}{
-			BaseURL:          baseURL,
-			Title:            data.JenisKejadian.NamaKejadian,
-			NamaKapal:        data.NamaKapal,
-			Kejadian:         data.JenisKejadian.NamaKejadian,
-			Penyebab:         data.Penyebab,
-			Lokasi:           data.LokasiKejadian,
-			Korban:           korban,
-			Perpindahan:      perpindahan,
-			Keterangan:       data.TindakLanjut,
-			Waktu:            data.Tanggal.ToDateString(),
-			InstansiPenindak: data.SumberBerita,
-			SumberBerita:     data.LinkBerita,
-			Latitude:         data.Latitude,
-			Longitude:        data.Longitude,
-			Images:           data.FileImage,
-		}
+	// 	// html template data
+	// 	templateData := struct {
+	// 		BaseURL          string
+	// 		Title            string
+	// 		NamaKapal        string
+	// 		Kejadian         string
+	// 		Penyebab         string
+	// 		Lokasi           string
+	// 		Korban           string
+	// 		Perpindahan      string
+	// 		Keterangan       string
+	// 		Waktu            string
+	// 		InstansiPenindak string
+	// 		SumberBerita     string
+	// 		Latitude         float64
+	// 		Longitude        float64
+	// 		Images           []models.FileImage
+	// 	}{
+	// 		BaseURL:          baseURL,
+	// 		Title:            data.JenisKejadian.NamaKejadian,
+	// 		NamaKapal:        data.NamaKapal,
+	// 		Kejadian:         data.JenisKejadian.NamaKejadian,
+	// 		Penyebab:         data.Penyebab,
+	// 		Lokasi:           data.LokasiKejadian,
+	// 		Korban:           korban,
+	// 		Perpindahan:      perpindahan,
+	// 		Keterangan:       data.TindakLanjut,
+	// 		Waktu:            data.Tanggal.ToDateString(),
+	// 		InstansiPenindak: data.SumberBerita,
+	// 		SumberBerita:     data.LinkBerita,
+	// 		Latitude:         data.Latitude,
+	// 		Longitude:        data.Longitude,
+	// 		Images:           data.FileImage,
+	// 	}
 
-		if err := r.ParseTemplate(templateKeselamatanPath, newTemplateKeselamatanPath, templateData); err == nil {
-			// Generate Image
-			success, _ := r.GenerateSlide(outputPath)
-			if success {
-				images = append(images, outputPath)
-			}
-		} else {
-			fmt.Printf("Error: %v\n", err)
-			return nil
-		}
-	}
+	// 	if err := r.ParseTemplate(templateKeselamatanPath, newTemplateKeselamatanPath, templateData); err == nil {
+	// 		// Generate Image
+	// 		success, _ := r.GenerateSlide(outputPath)
+	// 		if success {
+	// 			images = append(images, outputPath)
+	// 		}
+	// 	} else {
+	// 		fmt.Printf("Error: %v\n", err)
+	// 		return nil
+	// 	}
+	// }
 
 	// Create a new PDF document
 	pdf := gofpdf.New("L", "mm", "A4", "")
@@ -730,7 +743,10 @@ func (r *Pdf) GenerateMingguan(ctx http.Context) http.Response {
 
 	fmt.Println("PDF created successfully!")
 
-	return nil
+	return ctx.Response().Success().Json(map[string]interface{}{
+		"Status": "success",
+		"week":   result_keamanan,
+	})
 }
 
 type GroupingKeamananBarat struct {
