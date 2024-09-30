@@ -13,26 +13,30 @@
         integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
     <title>Hello, worldd!</title>
     <style>
         .reportGraph {
-            width: 650px;
+            width: 900px;
+            height: 500px;
         }
-        #map_tri_pelanggaran,#map_tri_kecelakaan {
-            width: 1000px;
+
+        #map_tri_pelanggaran,
+        #map_tri_kecelakaan {
+            width: 900px;
             height: 375px;
             margin: 20px auto;
             border: 1px solid #ddd;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
 
         .leaflet-control-attribution {
             display: none;
         }
+
         @page {
             size: A4;
             margin: 1cm;
@@ -42,19 +46,19 @@
             margin: 0;
         }
 
-        h3{
+        h3 {
             font-size: 22px;
             text-align: center;
             font-weight: bold;
         }
 
-        h5{
+        h5 {
             font-size: 19px;
             font-weight: bold;
             margin-top: 5;
         }
 
-        .lead{
+        .lead {
             font-size: 17px;
         }
 
@@ -132,14 +136,20 @@
                                 <td></td>
                             </tr>
                         </tbody>
-                    </table>      
+                    </table>    
+                </div>
+            </div>
+        </div>
+
+        <div class="row align-items-center mb-3" style="break-after: page;">
+            <div class="col">
+                <p class="lead" style="text-align: center;">Grafik Rekapitulasi Keamanan Laut di Wilayah Perairan Indonesia</p>
+                <div class="col d-flex justify-content-center">
+                    <div class="reportGraph"><canvas id="canvas_pelanggaran"></canvas></div>
                 </div>
 
-                <div style="break-after: page;">
-                    <p class="lead" style="text-align: center;">Grafik Rekapitulasi Keamanan Laut di Wilayah Perairan Indonesia</p>
-                    <div class="reportGraph"><canvas id="canvas_pelanggaran"></canvas></div>
-                    
-                    <p class="lead" style="text-align: center;">Peta Situasi Keamanan Laut di Wilayah Perairan Indonesia</p>
+                <p class="lead" style="text-align: center;">Peta Situasi Keamanan Laut di Wilayah Perairan Indonesia</p>
+                <div class="col d-flex justify-content-center">
                     <div id="map_tri_pelanggaran"></div>
                 </div>
 
@@ -168,294 +178,297 @@
                         }, 200);
                     });
                 </script>
+            </div>
+        </div>
 
-                <div style="break-after:page">
-                    <h5>2. Keselamatan di Laut Wilayah Perairan Indonesia:</h5>
-                    <div>
-                        <table align="center" class="table table-bordered table-sm" style="font-size: small;width:85%;height: 50%;">
-                            <thead>
-                                <tr>
-                                    <th style="vertical-align: middle;text-align: center;">NO</th>
-                                    <th style="vertical-align: middle;text-align: center;">JENIS KECELAKAAN</th>
-                                    {{range $val := .BulanSingkatan}}
-                                        <th style="vertical-align: middle;text-align: center;">{{$val}}</th>
-                                    {{end}}
-                                    <th style="vertical-align: middle;text-align: center;">TOTAL</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {{$totalCount1Keselamatan := 0}}
-                                {{$totalCount2Keselamatan := 0}}
-                                {{$totalCount3Keselamatan := 0}}
-                                {{$totalKeselamatan := 0}}
-                                {{range $index,$val := .TableKejadianKeselamatan}}
-                                    {{$totalCount1Keselamatan = add $totalCount1Keselamatan $val.Count1}}
-                                    {{$totalCount2Keselamatan = add $totalCount2Keselamatan $val.Count2}}
-                                    {{$totalCount3Keselamatan = add $totalCount3Keselamatan $val.Count3}}
-                                    {{$totalKeselamatan = add $totalKeselamatan $val.Total}}
-                                    <tr>
-                                        <td style="vertical-align: middle;text-align: center;">{{add $index 1}}</td>
-                                        <td>{{$val.NamaKejadian}}</td>
-                                        <td style="vertical-align: middle;text-align: center;">{{$val.Count1}}</td>
-                                        <td style="vertical-align: middle;text-align: center;">{{$val.Count2}}</td>
-                                        <td style="vertical-align: middle;text-align: center;">{{$val.Count3}}</td>
-                                        <td style="vertical-align: middle;text-align: center;">{{$val.Total}}</td>
-                                    </tr>
-                                {{end}}
-                                <tr>
-                                    <td></td>
-                                    <td>Total</td>
-                                    <td style="vertical-align: middle;text-align: center;">{{$totalCount1Keselamatan}}</td>
-                                    <td style="vertical-align: middle;text-align: center;">{{$totalCount2Keselamatan}}</td>
-                                    <td style="vertical-align: middle;text-align: center;">{{$totalCount3Keselamatan}}</td>
-                                    <td style="vertical-align: middle;text-align: center;">{{$totalKeselamatan}}</td>
-                                </tr>
-                                <tr>
-                                    <td colspan="2">Sumber: DATIN Bakamla RI</td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    
-                    <div style="break-after:page">
-                        <p class="lead" style="text-align: center;">Grafik Keselamatan Laut di Wilayah Perairan Indonesia</p>
-                        <div class="reportGraph"><canvas id="canvas_keselamatan"></canvas></div>
-                        
-                        <p class="lead" style="text-align: center;">Peta Situasi Keselamatan Laut di Wilayah Perairan Indonesia</p>
-                        <div id="map_tri_kecelakaan"></div>
-                    </div>
-
-                    <script>
-                        const map2 = new L.map('map_tri_kecelakaan', {
-                            center: [-2.329393, 131.371663],
-                            zoom: 4,
-                            detectRetina:true,
-                            zoomControl: false,
-                            scrollWheelZoom: false
-                        });
-                        
-                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {}).addTo(map2);
-                    
-                        var marker2;
-                        {{range $val := .KejadianKeselamatan}}
-                            {{range $set := $val.KejadianKeselamatan}}
-                                marker2 = new L.marker([{{$set.Latitude}}, {{$set.Longitude}}]);
-                                marker2.addTo(map2)
+        <div class="row align-items-center mb-3" style="break-after:page">
+            <div class="col">
+                <h5>2. Keselamatan di Laut Wilayah Perairan Indonesia:</h5>
+                <table align="center" class="table table-bordered table-sm" style="font-size: small;width:85%;height: 50%;">
+                    <thead>
+                        <tr>
+                            <th style="vertical-align: middle;text-align: center;">NO</th>
+                            <th style="vertical-align: middle;text-align: center;">JENIS KECELAKAAN</th>
+                            {{range $val := .BulanSingkatan}}
+                                <th style="vertical-align: middle;text-align: center;">{{$val}}</th>
                             {{end}}
+                            <th style="vertical-align: middle;text-align: center;">TOTAL</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{$totalCount1Keselamatan := 0}}
+                        {{$totalCount2Keselamatan := 0}}
+                        {{$totalCount3Keselamatan := 0}}
+                        {{$totalKeselamatan := 0}}
+                        {{range $index,$val := .TableKejadianKeselamatan}}
+                            {{$totalCount1Keselamatan = add $totalCount1Keselamatan $val.Count1}}
+                            {{$totalCount2Keselamatan = add $totalCount2Keselamatan $val.Count2}}
+                            {{$totalCount3Keselamatan = add $totalCount3Keselamatan $val.Count3}}
+                            {{$totalKeselamatan = add $totalKeselamatan $val.Total}}
+                            <tr>
+                                <td style="vertical-align: middle;text-align: center;">{{add $index 1}}</td>
+                                <td>{{$val.NamaKejadian}}</td>
+                                <td style="vertical-align: middle;text-align: center;">{{$val.Count1}}</td>
+                                <td style="vertical-align: middle;text-align: center;">{{$val.Count2}}</td>
+                                <td style="vertical-align: middle;text-align: center;">{{$val.Count3}}</td>
+                                <td style="vertical-align: middle;text-align: center;">{{$val.Total}}</td>
+                            </tr>
                         {{end}}
-                    
-                        map2.on('load', function() {
-                            setTimeout(function() {
-                                map2.invalidateSize();
-                            }, 200);
-                        });
-                    </script>
-                    
+                        <tr>
+                            <td></td>
+                            <td>Total</td>
+                            <td style="vertical-align: middle;text-align: center;">{{$totalCount1Keselamatan}}</td>
+                            <td style="vertical-align: middle;text-align: center;">{{$totalCount2Keselamatan}}</td>
+                            <td style="vertical-align: middle;text-align: center;">{{$totalCount3Keselamatan}}</td>
+                            <td style="vertical-align: middle;text-align: center;">{{$totalKeselamatan}}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">Sumber: DATIN Bakamla RI</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <p class="lead" style="text-align: center;">Grafik Keselamatan Laut di Wilayah Perairan Indonesia</p>
+
+                <div class="col d-flex justify-content-center">
+                    <div class="reportGraph"><canvas id="canvas_keselamatan"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row align-items-center mb-3" style="break-after:page">
+            <div class="col">
+                <p class="lead" style="text-align: center;">Peta Situasi Keselamatan Laut di Wilayah Perairan Indonesia</p>
+                <div class="col d-flex justify-content-center">
+                    <div id="map_tri_kecelakaan"></div>
                 </div>
 
-                <div style="break-after: page;">
-                    <h5>3. Dalam pengelompokannya Data Keamanan dan Keselamatan Laut dapat dibagi kedalam area / lokasi kejadian
-                        pada Wilayah Sekitar Pelabuhan dan Wilayah Laut, dengan Data sebagai Berikut:
-                    </h5>
-                    <div>
-                        <table align="center" class="table table-bordered table-sm" style="font-size: small;width:85%;height: 50%;">
-                            <thead>
-                                <tr>
-                                    <th style="vertical-align: middle;text-align: center;">NO</th>
-                                    <th style="vertical-align: middle;text-align: center;">JENIS PELANGGARAN</th>
-                                    <th style="vertical-align: middle;text-align: center;">DERMAGA/PELABUHAN</th>
-                                    <th style="vertical-align: middle;text-align: center;">LAUT/PERAIRAN</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {{$totaldermaga := 0}}
-                                {{$totalperairan := 0}}
-                                {{range $index,$val := .TablePengelompokanLokasiKejadianKeamanan}}
-                                    {{$totaldermaga = add $totaldermaga $val.JumlahDermaga}}
-                                    {{$totalperairan = add $totalperairan $val.JumlahPerairan}}
-                                    <tr>
-                                        <td style="vertical-align: middle;text-align: center;">{{add $index 1}}</td>
-                                        <td>{{$val.NamaKejadian}}</td>
-                                        <td style="vertical-align: middle;text-align: center;">{{$val.JumlahDermaga}}</td>
-                                        <td style="vertical-align: middle;text-align: center;">{{$val.JumlahPerairan}}</td>
-                                    </tr>
-                                {{end}}
-                                <tr>
-                                    <td></td>
-                                    <td>JUMLAH</td>
-                                    <td style="vertical-align: middle;text-align: center;">{{$totaldermaga}}</td>
-                                    <td style="vertical-align: middle;text-align: center;">{{$totalperairan}}</td>
-                                </tr>
-                                <tr>
-                                    <td colspan="2">Sumber: DATIN Bakamla RI</td>
-                                    <td></td>
-                                    <td></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                <script>
+                    const map2 = new L.map('map_tri_kecelakaan', {
+                        center: [-2.329393, 131.371663],
+                        zoom: 4,
+                        detectRetina:true,
+                        zoomControl: false,
+                        scrollWheelZoom: false
+                    });
                     
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {}).addTo(map2);
+                
+                    var marker2;
+                    {{range $val := .KejadianKeselamatan}}
+                        {{range $set := $val.KejadianKeselamatan}}
+                            marker2 = new L.marker([{{$set.Latitude}}, {{$set.Longitude}}]);
+                            marker2.addTo(map2)
+                        {{end}}
+                    {{end}}
+                
+                    map2.on('load', function() {
+                        setTimeout(function() {
+                            map2.invalidateSize();
+                        }, 200);
+                    });
+                </script>
+
+            </div>
+        </div>
+
+        <div class="row align-items-center mb-3" style="break-after:page">
+            <div class="col">
+                <h5>3. Dalam pengelompokannya Data Keamanan dan Keselamatan Laut dapat dibagi kedalam area / lokasi kejadian
+                    pada Wilayah Sekitar Pelabuhan dan Wilayah Laut, dengan Data sebagai Berikut:
+                </h5>
+                <table align="center" class="table table-bordered table-sm" style="font-size: small;width:85%;height: 50%;">
+                    <thead>
+                        <tr>
+                            <th style="vertical-align: middle;text-align: center;">NO</th>
+                            <th style="vertical-align: middle;text-align: center;">JENIS PELANGGARAN</th>
+                            <th style="vertical-align: middle;text-align: center;">DERMAGA/PELABUHAN</th>
+                            <th style="vertical-align: middle;text-align: center;">LAUT/PERAIRAN</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{$totaldermaga := 0}}
+                        {{$totalperairan := 0}}
+                        {{range $index,$val := .TablePengelompokanLokasiKejadianKeamanan}}
+                            {{$totaldermaga = add $totaldermaga $val.JumlahDermaga}}
+                            {{$totalperairan = add $totalperairan $val.JumlahPerairan}}
+                            <tr>
+                                <td style="vertical-align: middle;text-align: center;">{{add $index 1}}</td>
+                                <td>{{$val.NamaKejadian}}</td>
+                                <td style="vertical-align: middle;text-align: center;">{{$val.JumlahDermaga}}</td>
+                                <td style="vertical-align: middle;text-align: center;">{{$val.JumlahPerairan}}</td>
+                            </tr>
+                        {{end}}
+                        <tr>
+                            <td></td>
+                            <td>JUMLAH</td>
+                            <td style="vertical-align: middle;text-align: center;">{{$totaldermaga}}</td>
+                            <td style="vertical-align: middle;text-align: center;">{{$totalperairan}}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">Sumber: DATIN Bakamla RI</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="col d-flex justify-content-center">
                     <div class="reportGraph"><canvas id="canvas_pengelompokkan_pelanggaran"></canvas></div>
                 </div>
+            </div>
+        </div>
 
-                <div style="break-after: page;">
-                    <h5>4. Dari hasil pengumpulan informasi dan data beserta analisis, dapat disimpulkan sebagai berikut:</h5>
+        <div class="row align-items-center mb-3" style="break-after:page">
+            <div class="col">
+                <h5>4. Dari hasil pengumpulan informasi dan data beserta analisis, dapat disimpulkan sebagai berikut:</h5>
                     {{ $lengthKejadianKeamanan := len .KejadianKeamanan }}
                     {{ $lengthKejadianKeamananBarat := len .KejadianKeamananBarat }}
                     {{ $lengthKejadianKeamananTengah := len .KejadianKeamananTengah }}
                     {{ $lengthKejadianKeamananTimur := len .KejadianKeamananTimur }}
 
-                    <div>
-                        <ol type="a">
-                            <li>Secara umum, kasus yang terjadi pada periode {{index .Bulan 0}} s.d. {{index .Bulan 2}}
-                                {{.Tahun}} adalah sebagai berikut :
-                            </li>
-                                <ol>
-                                    <li>
-                                        <strong>Aspek Keamanan Laut</strong>
-                                        <p>Keamanan laut yang terjadi di wilayah perairan Indonesia pada Triwulan {{.PeriodeTriwulan}} tahun {{.Tahun}} diwarnai dengan 
-                                            kegiatan 
-                                            {{range $index,$val := .KejadianKeamanan}}
-                                                {{if and (last $index $lengthKejadianKeamanan) (ne $lengthKejadianKeamanan 1)}}
-                                                dan
-                                                {{end}}
-                                                {{ $val.NamaKejadian }}
-                                                {{if not (last $index $lengthKejadianKeamanan) }},{{end}}
-                                            {{end}}
-                                            dengan catatan:</p>
-                                        <ol type="a">
-                                            <li>Wilayah Barat Indonesia (
-                                                {{range $index,$val := .KejadianKeamananBarat}}
-                                                    {{if and (last $index $lengthKejadianKeamananBarat) (ne $lengthKejadianKeamananBarat 1)}}
-                                                    dan 
-                                                    {{end}}
-                                                    {{ $val.NamaKejadian }}
-                                                    {{if not (last $index $lengthKejadianKeamananBarat) }}, {{end}}
-                                                {{end}}).
-                                            </li>
-                                            <li>Wilayah Tengah Indonesia (
-                                                {{ range $index, $val := .KejadianKeamananTengah }}
-                                                    {{if and (last $index $lengthKejadianKeamananTengah) (ne $lengthKejadianKeamananTengah 1)}}
-                                                    dan 
-                                                    {{end}}
-                                                    {{ $val.NamaKejadian }}
-                                                    {{if not (last $index $lengthKejadianKeamananTengah) }}, {{end}}
-                                                {{ end }}).
-                                            </li>
-                                            <li>Wilayah Timur Indonesia (
-                                                {{range $index,$val := .KejadianKeamananTimur}}
-                                                    {{if and (last $index $lengthKejadianKeamananTimur) (ne $lengthKejadianKeamananTimur 1)}}
-                                                    dan
-                                                    {{end}}
-                                                    {{ $val.NamaKejadian }}
-                                                    {{if not (last $index $lengthKejadianKeamananTimur) }}, {{end}}
-                                                {{end}}).
-                                            </li>
-                                        </ol>
-                                    </li>
-                                    <li>
-                                        <strong>Aspek Keselamatan Laut</strong>
-                                        {{ $lengthKejadianKeselematan := len .KejadianKeselamatan}}
-                                        {{$jumlahKorbanTewas := 0}}
-                                        {{$jumlahKorbanSelamat := 0}}
-                                        {{$jumlahKorbanHilang := 0}}
-    
-                                        <p>Pada Triwulan {{.PeriodeTriwulan}} tahun {{.Tahun}} terdapat 
-                                            {{$totalKeselamatan}} kejadian yang mengalami kecelakaan di wilayah perairan Indonesia, dengan rincian
-                                            {{range $index,$val := .KejadianKeselamatan}}
-                                                {{range $val2 := $val.KejadianKeselamatan}}
-                                                    {{$jumlahKorbanTewas = add $jumlahKorbanTewas $val2.ListKorban.KorbanTewas}}
-                                                    {{$jumlahKorbanSelamat = add $jumlahKorbanSelamat $val2.ListKorban.KorbanSelamat}}
-                                                    {{$jumlahKorbanHilang = add $jumlahKorbanHilang $val2.ListKorban.KorbanHilang}}
-                                                {{end}}
-    
-                                                {{if and (last $index $lengthKejadianKeselematan) (ne $lengthKejadianKeselematan 1)}}
-                                                dan
-                                                {{end}}
-    
-                                                {{$val.NamaKejadian}} ({{$val.Jumlah}} kejadian)
-                                                {{if not (last $index $lengthKejadianKeselematan)}},{{end}}
-                                            {{end}}. 
-                                            Dengan jumlah Korban Meninggal {{$jumlahKorbanTewas}} orang, Korban Selamat {{$jumlahKorbanSelamat}} orang dan 
-                                            Korban Hilang {{$jumlahKorbanHilang}} orang
-                                        </p>
-                                    </li>
-                                </ol>
-                            <li>Secara khusus, kasus yang terjadi pada periode {{index .Bulan 0}} s.d. {{index .Bulan 2}} 
-                                {{.Tahun}} adalah sebagai berikut:
-                            </li>
+                    <ol type="a">
+                        <li>Secara umum, kasus yang terjadi pada periode {{index .Bulan 0}} s.d. {{index .Bulan 2}}
+                            {{.Tahun}} adalah sebagai berikut :
+                        </li>
                             <ol>
                                 <li>
                                     <strong>Aspek Keamanan Laut</strong>
-                                    <p>Pada aspek keamanan laut yang menjadi catatan tersendiri adalah</p>
-                                    <ol type="a">
+                                    <p>Keamanan laut yang terjadi di wilayah perairan Indonesia pada Triwulan {{.PeriodeTriwulan}} tahun {{.Tahun}} diwarnai dengan 
+                                        kegiatan 
                                         {{range $index,$val := .KejadianKeamanan}}
-                                            <li>{{ $val.NamaKejadian }}</li>
-                                            <ol type="I">
-                                                {{range $val2 := $val.KejadianKeamanan}}
-                                                    <li>{{ $val2.TindakLanjut}}</li>
-                                                {{end}}
-                                            </ol>
+                                            {{if and (last $index $lengthKejadianKeamanan) (ne $lengthKejadianKeamanan 1)}}
+                                            dan
+                                            {{end}}
+                                            {{ $val.NamaKejadian }}
+                                            {{if not (last $index $lengthKejadianKeamanan) }},{{end}}
                                         {{end}}
+                                        dengan catatan:</p>
+                                    <ol type="a">
+                                        <li>Wilayah Barat Indonesia (
+                                            {{range $index,$val := .KejadianKeamananBarat}}
+                                                {{if and (last $index $lengthKejadianKeamananBarat) (ne $lengthKejadianKeamananBarat 1)}}
+                                                dan 
+                                                {{end}}
+                                                {{ $val.NamaKejadian }}
+                                                {{if not (last $index $lengthKejadianKeamananBarat) }}, {{end}}
+                                            {{end}}).
+                                        </li>
+                                        <li>Wilayah Tengah Indonesia (
+                                            {{ range $index, $val := .KejadianKeamananTengah }}
+                                                {{if and (last $index $lengthKejadianKeamananTengah) (ne $lengthKejadianKeamananTengah 1)}}
+                                                dan 
+                                                {{end}}
+                                                {{ $val.NamaKejadian }}
+                                                {{if not (last $index $lengthKejadianKeamananTengah) }}, {{end}}
+                                            {{ end }}).
+                                        </li>
+                                        <li>Wilayah Timur Indonesia (
+                                            {{range $index,$val := .KejadianKeamananTimur}}
+                                                {{if and (last $index $lengthKejadianKeamananTimur) (ne $lengthKejadianKeamananTimur 1)}}
+                                                dan
+                                                {{end}}
+                                                {{ $val.NamaKejadian }}
+                                                {{if not (last $index $lengthKejadianKeamananTimur) }}, {{end}}
+                                            {{end}}).
+                                        </li>
                                     </ol>
                                 </li>
                                 <li>
                                     <strong>Aspek Keselamatan Laut</strong>
-                                    <p>Pada aspek keselamatan yang menjadi atensi adalah banyak
-                                        terjadinya 
+                                    {{ $lengthKejadianKeselematan := len .KejadianKeselamatan}}
+                                    {{$jumlahKorbanTewas := 0}}
+                                    {{$jumlahKorbanSelamat := 0}}
+                                    {{$jumlahKorbanHilang := 0}}
+
+                                    <p>Pada Triwulan {{.PeriodeTriwulan}} tahun {{.Tahun}} terdapat 
+                                        {{$totalKeselamatan}} kejadian yang mengalami kecelakaan di wilayah perairan Indonesia, dengan rincian
                                         {{range $index,$val := .KejadianKeselamatan}}
+                                            {{range $val2 := $val.KejadianKeselamatan}}
+                                                {{$jumlahKorbanTewas = add $jumlahKorbanTewas $val2.ListKorban.KorbanTewas}}
+                                                {{$jumlahKorbanSelamat = add $jumlahKorbanSelamat $val2.ListKorban.KorbanSelamat}}
+                                                {{$jumlahKorbanHilang = add $jumlahKorbanHilang $val2.ListKorban.KorbanHilang}}
+                                            {{end}}
+
                                             {{if and (last $index $lengthKejadianKeselematan) (ne $lengthKejadianKeselematan 1)}}
                                             dan
                                             {{end}}
-    
+
                                             {{$val.NamaKejadian}} ({{$val.Jumlah}} kejadian)
                                             {{if not (last $index $lengthKejadianKeselematan)}},{{end}}
-                                        {{end}}
-                                        dengan catatan korban selamat {{$jumlahKorbanSelamat}} orang, korban meninggal {{$jumlahKorbanTewas}} orang, dan korban hilang 
-                                        {{$jumlahKorbanHilang}} orang yang diakibatkan oleh buruknya cuaca dan situasi perairan Indonesia.
-                                        </p>
+                                        {{end}}. 
+                                        Dengan jumlah Korban Meninggal {{$jumlahKorbanTewas}} orang, Korban Selamat {{$jumlahKorbanSelamat}} orang dan 
+                                        Korban Hilang {{$jumlahKorbanHilang}} orang
+                                    </p>
                                 </li>
                             </ol>
-                        </ol>
-                    </div>
-                    
-                </div>
-
-                <div style="break-after: page;">
-                    <h5>5. Saran Tindak:</h5>
-                    <p>Guna mengurangi terjadinya kecelakaan dan pelanggaran dilaut, maka disarankan sebagai berikut:</p>
-                    
-                    <div>
-                        <ol type="a">
-                            <li>Dari aspek keamanan laut disarankan dengan tingginya pelanggaran di
-                                wilayah Perairan Indonesia diharapkan menjadi fokus pada masing-masing 
-                                Zona mengingat aktifitas penyelundupan umumnya
-                                menggunakan kapal dengan kecepatan tinggi sehingga kedepan dapat
-                                diantisipasi dengan berkoordinasi dengan Instansi samping yang
-                                memiliki kapal cepat pada wilayah perairan sesuai peta kerawanan
-                                keamanan dan perlu ditingkatkan koordinasi seluruh instansi yang terkait
-                                dan perlu memaksimalkan aparat keamanan laut dalam kegiatan patroli
-                                diperairan Indonesia.</li>
+                        <li>Secara khusus, kasus yang terjadi pada periode {{index .Bulan 0}} s.d. {{index .Bulan 2}} 
+                            {{.Tahun}} adalah sebagai berikut:
+                        </li>
+                        <ol>
                             <li>
-                                Dari aspek keselamatan laut disarankan agar informasi peringatan dini
-                                tentang cuaca diperairan Indonesia khususnya tinggi gelombang,
-                                kecepatan angin lebih di intensifkan ke instansi terkait dan diharapkan
-                                dapat diantisipasi dengan mendorong sosialisasi kepada masyarakat
-                                pengguna laut untuk meminimalisir terjadinya kecelakaan di laut yang
-                                tinggi dikemudian hari.
+                                <strong>Aspek Keamanan Laut</strong>
+                                <p>Pada aspek keamanan laut yang menjadi catatan tersendiri adalah</p>
+                                <ol type="a">
+                                    {{range $index,$val := .KejadianKeamanan}}
+                                        <li>{{ $val.NamaKejadian }}</li>
+                                        <ol type="I">
+                                            {{range $val2 := $val.KejadianKeamanan}}
+                                                <li>{{ $val2.TindakLanjut}}</li>
+                                            {{end}}
+                                        </ol>
+                                    {{end}}
+                                </ol>
+                            </li>
+                            <li>
+                                <strong>Aspek Keselamatan Laut</strong>
+                                <p>Pada aspek keselamatan yang menjadi atensi adalah banyak
+                                    terjadinya 
+                                    {{range $index,$val := .KejadianKeselamatan}}
+                                        {{if and (last $index $lengthKejadianKeselematan) (ne $lengthKejadianKeselematan 1)}}
+                                        dan
+                                        {{end}}
+
+                                        {{$val.NamaKejadian}} ({{$val.Jumlah}} kejadian)
+                                        {{if not (last $index $lengthKejadianKeselematan)}},{{end}}
+                                    {{end}}
+                                    dengan catatan korban selamat {{$jumlahKorbanSelamat}} orang, korban meninggal {{$jumlahKorbanTewas}} orang, dan korban hilang 
+                                    {{$jumlahKorbanHilang}} orang yang diakibatkan oleh buruknya cuaca dan situasi perairan Indonesia.
+                                    </p>
                             </li>
                         </ol>
-                    </div>
-                    
-                </div>
+                    </ol>
+                
+
+                <h5>5. Saran Tindak:</h5>
+                <p>Guna mengurangi terjadinya kecelakaan dan pelanggaran dilaut, maka disarankan sebagai berikut:</p>
+                <ol type="a">
+                    <li>Dari aspek keamanan laut disarankan dengan tingginya pelanggaran di
+                        wilayah Perairan Indonesia diharapkan menjadi fokus pada masing-masing
+                        Zona mengingat aktifitas penyelundupan umumnya
+                        menggunakan kapal dengan kecepatan tinggi sehingga kedepan dapat
+                        diantisipasi dengan berkoordinasi dengan Instansi samping yang
+                        memiliki kapal cepat pada wilayah perairan sesuai peta kerawanan
+                        keamanan dan perlu ditingkatkan koordinasi seluruh instansi yang terkait
+                        dan perlu memaksimalkan aparat keamanan laut dalam kegiatan patroli
+                        diperairan Indonesia.</li>
+                    <li>
+                        Dari aspek keselamatan laut disarankan agar informasi peringatan dini
+                        tentang cuaca diperairan Indonesia khususnya tinggi gelombang,
+                        kecepatan angin lebih di intensifkan ke instansi terkait dan diharapkan
+                        dapat diantisipasi dengan mendorong sosialisasi kepada masyarakat
+                        pengguna laut untuk meminimalisir terjadinya kecelakaan di laut yang
+                        tinggi dikemudian hari.
+                    </li>
+                </ol>
             </div>
         </div>
     </div>
-
+    
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
