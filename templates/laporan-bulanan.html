@@ -13,19 +13,24 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@0.7.0/dist/chartjs-plugin-datalabels.min.js"></script>
 
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
         integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
 
     <title>Hello, worldd!</title>
 
     <style>
-        .reportGraph {width:650px;}
+        .reportGraph {
+            justify-content: center; 
+            align-items: center;
+            width: 1000px;
+            height: 500px;
+        }
 
         #map_bul_pelanggaran,#map_bul_kecelakaan {
-            width: 100%;
-            height: 500px;
-            max-width: 210mm; /* A4 width */
-            max-height: 297mm; /* A4 height */
+            width: 1000px;
+            height: 375px;
             margin: 20px auto;
             border: 1px solid #ddd;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
@@ -86,7 +91,7 @@
                 <p class="lead">Keamanan laut yang terjadi di wilayah perairan Indonesia pada bulan {{.Bulan}}
                     {{.Tahun}} adalah sebanyak {{.JumlahKejadianKeamanan}} kejadian dengan rincian seperti yang tertuang
                     dalam tabel sebagai berikut:</p>
-                <div class="page-break-inside: avoid;">    
+                <div style="break-after:page">    
                     <table class="table table-bordered table-sm" style="font-size: small;">
                         <thead>
                             <tr>
@@ -142,7 +147,8 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="page-break-inside: avoid;">
+
+                <div style="break-after:page">
                     <p class="lead" style="text-align: center;">Grafik Rekapitulasi Keamanan Laut di Wilayah Perairan Indonesia</p>
                     <div class="reportGraph"><canvas id="graph_pelanggaran"></canvas></div>
                     <p class="lead">Keamanan laut yang terjadi di wilayah perairan Indonesia 
@@ -190,151 +196,160 @@
                                 ).</li>
                         </ol>
                     </p>
-                </div>
-                <div class="page-break-inside: avoid;">
+                
+                
                     <p class="lead" style="text-align: center;">Peta Situasi Keamanan Laut di Wilayah Perairan Indonesia</p>
                     <div id="map_bul_pelanggaran"></div>
-                </div>
                 
-                <script>
-                    const map1 = new L.map('map_bul_pelanggaran', {
-                        center: [-2.548926, 118.0148634],
-                        zoom: 5,
-                        zoomControl: false,
-                        scrollWheelZoom: false
-                    });
-                    
-                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {}).addTo(map1);
+                    <script>
+                        const map1 = new L.map('map_bul_pelanggaran', {
+                            center: [-2.548926, 118.0148634],
+                            zoom: 4,
+                            detectRetina: true,
+                            zoomControl: false,
+                            scrollWheelZoom: false
+                        });
+                        
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {}).addTo(map1);
 
-                    {{range $val := .KejadianKeamanan}}
-                        {{range $index,$set := $val.KejadianKeamanan}}
-                            const marker = new L.marker([{{$set.Latitude}}, {{$set.Longitude}}]);
-                            marker.addTo(map1)
-                        {{end}}
-                    {{end}}
-                
-                    map1.on('load', function() {
-                        setTimeout(function() {
-                            map1.invalidateSize();
-                        }, 200);
-                    });
-                </script>
-                
-                <h5>2. Keselamatan di Laut Wilayah Perairan Indonesia</h5>
-                <p class="lead">Pada bulan {{.Bulan}} {{.Tahun}} terdapat {{.JumlahKejadianKeselamatan}} kejadian yang mengalami kecelakaan
-                    yang terjadi di wilayah perairan Indonesia, dengan detail rekapitulasi yang tertuang
-                    dalam tabel dan grafik sebagai berikut:</p>
-                <div>
-                    <table class="table table-bordered table-sm" style="font-size: small;">
-                        <thead>
-                            <tr>
-                                <th colspan="6" style="vertical-align: middle;text-align: center;">
-                                    Tabel Rekapitulasi Keselamatan Laut di Wilayah Perairan Indonesia
-                                </th>
-                            </tr>
-                            <tr>
-                                <th style="text-align: center;vertical-align:middle;">KESELAMATAN LAUT</th>
-                                <th style="text-align: center;vertical-align:middle;">JUMLAH KEJADIAN</th>
-                                <th style="text-align: center;vertical-align:middle;">LOKASI KEJADIAN</th>
-                                <th style="text-align: center;vertical-align:middle;">WILAYAH / ZONA</th>
-                                <th style="text-align: center;vertical-align:middle;">AKSI APARAT / INSTANSI</th>
-                                <th style="text-align: center;vertical-align:middle;">KETERANGAN</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {{range $val := .KejadianKeselamatan}}
-                                {{$zonaBarat := 0}}
-                                {{$zonaTengah := 0}}
-                                {{$zonaTimur := 0}}
-                                {{range $index,$set := $val.KejadianKeselamatan}}
-                                    <tr style="text-align: center;">   
-                                        {{if eq $index 0}}
-                                            <td rowspan="{{$val.Jumlah}}" style="vertical-align: middle;text-align: left;">{{$val.NamaKejadian}}</td>
-                                            <td rowspan="{{$val.Jumlah}}" style="vertical-align: middle;text-align: center;">{{$val.Jumlah}} kejadian</td>
-                                        {{end}}
-                                            <td style="vertical-align: middle;text-align: left;">{{$set.LokasiKejadian}}</td>
-                                            {{if eq $set.Zona "BARAT"}}
-                                                {{if eq $zonaBarat 0}}
-                                                    <td rowspan="{{$val.JumlahZonaBarat}}" style="vertical-align:middle;text-align: left;">WILAYAH {{$set.Zona}}</td>
-                                                {{end}}
-                                                {{$zonaBarat = add $zonaBarat 1}}
-                                            {{end}}
-                                            {{if eq $set.Zona "TIMUR"}}
-                                                {{if eq $zonaTimur 0}}
-                                                    <td rowspan="{{$val.JumlahZonaTimur}}" style="vertical-align: middle;text-align: left;">WILAYAH {{$set.Zona}}</td>
-                                                {{end}}
-                                                {{$zonaTimur = add $zonaTimur 1}}
-                                            {{end}}
-                                            {{if eq $set.Zona "TENGAH"}}
-                                                {{if eq $zonaTengah 0}}
-                                                    <td rowspan="{{$val.JumlahZonaTengah}}" style="vertical-align: middle;text-align: left;">WILAYAH {{$set.Zona}}</td>
-                                                {{end}}
-                                                {{$zonaTengah = add $zonaTengah 1}}
-                                            {{end}}
-                                            <td style="vertical-align: middle;text-align: left;">{{$set.SumberBerita}}</td>
-                                            <td>
-                                                <p style="vertical-align: middle;text-align: left;">
-                                                    Korban Tewas : {{$set.ListKorban.KorbanTewas}}<wbr>
-                                                    Korban Selamat : {{$set.ListKorban.KorbanSelamat}}<wbr>
-                                                    Korban Hilang : {{$set.ListKorban.KorbanHilang}}
-                                                </p>
-                                            </td>
-                                    </tr>    
-                                {{end}}
+                        let marker;
+
+                        {{range $val := .KejadianKeamanan}}
+                            {{range $index,$set := $val.KejadianKeamanan}}
+                                marker = new L.marker([{{$set.Latitude}}, {{$set.Longitude}}]);
+                                marker.addTo(map1)
                             {{end}}
-                        </tbody>
-                    </table>
-                </div>
-                <p class="lead" style="text-align: center;">Grafik Rekapitulasi Keselamatan Laut di Wilayah Perairan Indonesia</p>
-                <div class="reportGraph"><canvas id="graph_keselamatan"></canvas></div>
-                <p class="lead"> Pada bulan {{.Bulan}} {{.Tahun}} terdapat {{.JumlahKejadianKeselamatan}} kejadian yang mengalami kecelakaan
-                    di wilayah perairan Indonesia, dengan rincian
-                    {{$jumlahKorbanTewas := 0}}
-                    {{$jumlahKorbanSelamat := 0}}
-                    {{$jumlahKorbanHilang := 0}}
-                    {{ $lengthKejadianKeselamatan := len .KejadianKeselamatan }}
-                    {{range $index,$val := .KejadianKeselamatan}}
-                        {{range $set := $val.KejadianKeselamatan}}
-                            {{$jumlahKorbanTewas = add $jumlahKorbanTewas $set.ListKorban.KorbanTewas}}
-                            {{$jumlahKorbanSelamat = add $jumlahKorbanSelamat $set.ListKorban.KorbanSelamat}}
-                            {{$jumlahKorbanHilang = add $jumlahKorbanHilang $set.ListKorban.KorbanHilang}}
                         {{end}}
-                        {{if and (last $index $lengthKejadianKeselamatan) (ne $lengthKejadianKeselamatan 1)}}
-                            dan 
-                        {{end}}
-                        {{ $val.NamaKejadian }} ({{$val.Jumlah}} kejadian)
-                        {{if not (last $index $lengthKejadianKeselamatan) }}, {{end}}
-                    {{end}}. 
-                    Dengan jumlah Korban Meninggal {{$jumlahKorbanTewas}} orang, Korban Selamat {{$jumlahKorbanSelamat}} orang dan 
-                    Korban Hilang {{$jumlahKorbanHilang}} orang.
-                </p>
-                <div class="page-break-inside: avoid;">
-                    <p class="lead" style="text-align: center;">Peta Situasi Keselamatan Laut di Wilayah Perairan Indonesia</p>
-                    <div id="map_bul_kecelakaan"></div>
-                </div>
-                <script>
-                    const map2 = new L.map('map_bul_kecelakaan', {
-                        center: [-2.548926, 118.0148634],
-                        zoom: 5,
-                        zoomControl: false,
-                        scrollWheelZoom: false
-                    });
                     
-                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {}).addTo(map2);
+                        map1.on('load', function() {
+                            setTimeout(function() {
+                                map1.invalidateSize();
+                            }, 200);
+                        });
+                    </script>
+                </div>
 
-                    {{range $val := .KejadianKeselamatan}}
-                        {{range $set := $val.KejadianKeselamatan}}
-                            const marker2 = new L.marker([{{$set.Latitude}}, {{$set.Longitude}}]);
-                            marker2.addTo(map2)
+                <div style="break-after:page">
+                    <h5>2. Keselamatan di Laut Wilayah Perairan Indonesia</h5>
+                    <p class="lead">Pada bulan {{.Bulan}} {{.Tahun}} terdapat {{.JumlahKejadianKeselamatan}} kejadian yang mengalami kecelakaan
+                        yang terjadi di wilayah perairan Indonesia, dengan detail rekapitulasi yang tertuang
+                        dalam tabel dan grafik sebagai berikut:</p>
+                    <div>
+                        <table class="table table-bordered table-sm" style="font-size: small;">
+                            <thead>
+                                <tr>
+                                    <th colspan="6" style="vertical-align: middle;text-align: center;">
+                                        Tabel Rekapitulasi Keselamatan Laut di Wilayah Perairan Indonesia
+                                    </th>
+                                </tr>
+                                <tr>
+                                    <th style="text-align: center;vertical-align:middle;">KESELAMATAN LAUT</th>
+                                    <th style="text-align: center;vertical-align:middle;">JUMLAH KEJADIAN</th>
+                                    <th style="text-align: center;vertical-align:middle;">LOKASI KEJADIAN</th>
+                                    <th style="text-align: center;vertical-align:middle;">WILAYAH / ZONA</th>
+                                    <th style="text-align: center;vertical-align:middle;">AKSI APARAT / INSTANSI</th>
+                                    <th style="text-align: center;vertical-align:middle;">KETERANGAN</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{range $val := .KejadianKeselamatan}}
+                                    {{$zonaBarat := 0}}
+                                    {{$zonaTengah := 0}}
+                                    {{$zonaTimur := 0}}
+                                    {{range $index,$set := $val.KejadianKeselamatan}}
+                                        <tr style="text-align: center;">   
+                                            {{if eq $index 0}}
+                                                <td rowspan="{{$val.Jumlah}}" style="vertical-align: middle;text-align: left;">{{$val.NamaKejadian}}</td>
+                                                <td rowspan="{{$val.Jumlah}}" style="vertical-align: middle;text-align: center;">{{$val.Jumlah}} kejadian</td>
+                                            {{end}}
+                                                <td style="vertical-align: middle;text-align: left;">{{$set.LokasiKejadian}}</td>
+                                                {{if eq $set.Zona "BARAT"}}
+                                                    {{if eq $zonaBarat 0}}
+                                                        <td rowspan="{{$val.JumlahZonaBarat}}" style="vertical-align:middle;text-align: left;">WILAYAH {{$set.Zona}}</td>
+                                                    {{end}}
+                                                    {{$zonaBarat = add $zonaBarat 1}}
+                                                {{end}}
+                                                {{if eq $set.Zona "TIMUR"}}
+                                                    {{if eq $zonaTimur 0}}
+                                                        <td rowspan="{{$val.JumlahZonaTimur}}" style="vertical-align: middle;text-align: left;">WILAYAH {{$set.Zona}}</td>
+                                                    {{end}}
+                                                    {{$zonaTimur = add $zonaTimur 1}}
+                                                {{end}}
+                                                {{if eq $set.Zona "TENGAH"}}
+                                                    {{if eq $zonaTengah 0}}
+                                                        <td rowspan="{{$val.JumlahZonaTengah}}" style="vertical-align: middle;text-align: left;">WILAYAH {{$set.Zona}}</td>
+                                                    {{end}}
+                                                    {{$zonaTengah = add $zonaTengah 1}}
+                                                {{end}}
+                                                <td style="vertical-align: middle;text-align: left;">{{$set.SumberBerita}}</td>
+                                                <td>
+                                                    <p style="vertical-align: middle;text-align: left;">
+                                                        Korban Tewas : {{$set.ListKorban.KorbanTewas}}<wbr>
+                                                        Korban Selamat : {{$set.ListKorban.KorbanSelamat}}<wbr>
+                                                        Korban Hilang : {{$set.ListKorban.KorbanHilang}}
+                                                    </p>
+                                                </td>
+                                        </tr>    
+                                    {{end}}
+                                {{end}}
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="lead" style="text-align: center;">Grafik Rekapitulasi Keselamatan Laut di Wilayah Perairan Indonesia</p>
+                    <div class="reportGraph"><canvas id="graph_keselamatan"></canvas></div>
+                    <p class="lead"> Pada bulan {{.Bulan}} {{.Tahun}} terdapat {{.JumlahKejadianKeselamatan}} kejadian yang mengalami kecelakaan
+                        di wilayah perairan Indonesia, dengan rincian
+                        {{$jumlahKorbanTewas := 0}}
+                        {{$jumlahKorbanSelamat := 0}}
+                        {{$jumlahKorbanHilang := 0}}
+                        {{ $lengthKejadianKeselamatan := len .KejadianKeselamatan }}
+                        {{range $index,$val := .KejadianKeselamatan}}
+                            {{range $set := $val.KejadianKeselamatan}}
+                                {{$jumlahKorbanTewas = add $jumlahKorbanTewas $set.ListKorban.KorbanTewas}}
+                                {{$jumlahKorbanSelamat = add $jumlahKorbanSelamat $set.ListKorban.KorbanSelamat}}
+                                {{$jumlahKorbanHilang = add $jumlahKorbanHilang $set.ListKorban.KorbanHilang}}
+                            {{end}}
+                            {{if and (last $index $lengthKejadianKeselamatan) (ne $lengthKejadianKeselamatan 1)}}
+                                dan 
+                            {{end}}
+                            {{ $val.NamaKejadian }} ({{$val.Jumlah}} kejadian)
+                            {{if not (last $index $lengthKejadianKeselamatan) }}, {{end}}
+                        {{end}}. 
+                        Dengan jumlah Korban Meninggal {{$jumlahKorbanTewas}} orang, Korban Selamat {{$jumlahKorbanSelamat}} orang dan 
+                        Korban Hilang {{$jumlahKorbanHilang}} orang.
+                    </p>
+                    <div class="page-break-inside: avoid;">
+                        <p class="lead" style="text-align: center;">Peta Situasi Keselamatan Laut di Wilayah Perairan Indonesia</p>
+                        <div id="map_bul_kecelakaan"></div>
+                    </div>
+                    <script>
+                        const map2 = new L.map('map_bul_kecelakaan', {
+                            center: [-2.548926, 118.0148634],
+                            zoom: 4,
+                            detectRetina: true,
+                            zoomControl: false,
+                            scrollWheelZoom: false
+                        });
+                        
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {}).addTo(map2);
+
+                        let marker2;
+
+                        {{range $val := .KejadianKeselamatan}}
+                            {{range $set := $val.KejadianKeselamatan}}
+                                marker2 = new L.marker([{{$set.Latitude}}, {{$set.Longitude}}]);
+                                marker2.addTo(map2)
+                            {{end}}
                         {{end}}
-                    {{end}}
-                
-                    map2.on('load', function() {
-                        setTimeout(function() {
-                            map2.invalidateSize();
-                        }, 200);
-                    });
-                </script>
+                    
+                        map2.on('load', function() {
+                            setTimeout(function() {
+                                map2.invalidateSize();
+                            }, 200);
+                        });
+                    </script>
+                </div>
+
                 <h5>3. Keterangan Tambahan</h5>
                 <p class="lead">Berdasarkan data yang telah dijabarkan sebelumnya, berikut tambahan beberapa informasi
                     terkait masing-masing pelanggaran yang dihimpun:</p>
