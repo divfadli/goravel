@@ -144,20 +144,17 @@
         <div class="row align-items-center mb-3" style="break-after: page;">
             <div class="col">
                 <p class="lead" style="text-align: center;">Grafik Rekapitulasi Keamanan Laut di Wilayah Perairan Indonesia</p>
-                <div class="col d-flex justify-content-center">
+                <div class="col justify-content-center">
                     <div class="reportGraph"><canvas id="canvas_pelanggaran"></canvas></div>
                 </div>
 
                 <p class="lead" style="text-align: center;">Peta Situasi Keamanan Laut di Wilayah Perairan Indonesia</p>
-                <div class="col d-flex justify-content-center">
+                <div class="col justify-content-center">
                     <div id="map_tri_pelanggaran"></div>
                 </div>
 
                 <script>
                     const map1 = new L.map('map_tri_pelanggaran', {
-                        center: [-2.329393, 131.371663],
-                        zoom: 4,
-                        detectRetina:true,
                         zoomControl: false,
                         scrollWheelZoom: false
                     });
@@ -171,12 +168,8 @@
                             marker.addTo(map1)
                         {{end}}
                     {{end}}
-                
-                    map1.on('load', function() {
-                        setTimeout(function() {
-                            map1.invalidateSize();
-                        }, 200);
-                    });
+                    
+                    map1.setView([-0.9486645, 122.7961541], 4);
                 </script>
             </div>
         </div>
@@ -234,7 +227,7 @@
 
                 <p class="lead" style="text-align: center;">Grafik Keselamatan Laut di Wilayah Perairan Indonesia</p>
 
-                <div class="col d-flex justify-content-center">
+                <div class="col justify-content-center">
                     <div class="reportGraph"><canvas id="canvas_keselamatan"></canvas></div>
                 </div>
             </div>
@@ -243,15 +236,12 @@
         <div class="row align-items-center mb-3" style="break-after:page">
             <div class="col">
                 <p class="lead" style="text-align: center;">Peta Situasi Keselamatan Laut di Wilayah Perairan Indonesia</p>
-                <div class="col d-flex justify-content-center">
+                <div class="col justify-content-center">
                     <div id="map_tri_kecelakaan"></div>
                 </div>
 
                 <script>
                     const map2 = new L.map('map_tri_kecelakaan', {
-                        center: [-2.329393, 131.371663],
-                        zoom: 4,
-                        detectRetina:true,
                         zoomControl: false,
                         scrollWheelZoom: false
                     });
@@ -265,12 +255,8 @@
                             marker2.addTo(map2)
                         {{end}}
                     {{end}}
-                
-                    map2.on('load', function() {
-                        setTimeout(function() {
-                            map2.invalidateSize();
-                        }, 200);
-                    });
+
+                    map2.setView([-0.9486645, 122.7961541], 4);
                 </script>
 
             </div>
@@ -317,7 +303,7 @@
                     </tbody>
                 </table>
 
-                <div class="col d-flex justify-content-center">
+                <div class="col justify-content-center">
                     <div class="reportGraph"><canvas id="canvas_pengelompokkan_pelanggaran"></canvas></div>
                 </div>
             </div>
