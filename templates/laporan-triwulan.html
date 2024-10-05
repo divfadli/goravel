@@ -19,6 +19,17 @@
 
     <title>Hello, worldd!</title>
     <style>
+        tr {
+            page-break-before: always;
+            page-break-after: always;
+            page-break-inside: avoid;
+        }
+        table td {
+            word-break: break-all;
+        }
+        .pb_after{
+            page-break-after: always;
+        }
         .reportGraph {
             width: 900px;
             height: 500px;
@@ -84,7 +95,7 @@
                 <p class="lead">Berikut disampaikan laporan rekapitulasi keamanan dan keselamatan laut di wilayah
                     perairan Indonesia Triwulan {{.PeriodeTriwulan}} sebagai berikut:</p>
                 <h5 class="mt-3">1. Keamanan di Laut Wilayah Perairan Indonesia:</h5>
-                <div style="break-after: page;">
+                <div class="pb_after">
                     <table align="center" class="table table-bordered table-sm" style="font-size: small;width:85%;height: 50%;">
                         <thead>
                             <tr>
@@ -136,7 +147,7 @@
             </div>
         </div>
 
-        <div class="row align-items-center mb-3" style="break-after: page;">
+        <div class="row align-items-center mb-3 pb_after">
             <div class="col">
                 <p class="lead" style="text-align: center;">Grafik Rekapitulasi Keamanan Laut di Wilayah Perairan Indonesia</p>
                 <div class="col justify-content-center">
@@ -169,7 +180,7 @@
             </div>
         </div>
 
-        <div class="row align-items-center mb-3" style="break-after:page">
+        <div class="row align-items-center mb-3 pb_after">
             <div class="col">
                 <h5>2. Keselamatan di Laut Wilayah Perairan Indonesia:</h5>
                 <table align="center" class="table table-bordered table-sm" style="font-size: small;width:85%;height: 50%;">
@@ -228,8 +239,8 @@
             </div>
         </div>
 
-        <div class="row align-items-center mb-3" style="break-after:page">
-            <div class="col">
+        <div class="row align-items-center mb-3 pb_after">
+            <div class="col" style="margin-top: 35px;">
                 <p class="lead" style="text-align: center;">Peta Situasi Keselamatan Laut di Wilayah Perairan Indonesia</p>
                 <div class="col justify-content-center">
                     <div id="map_tri_kecelakaan"></div>
@@ -257,7 +268,7 @@
             </div>
         </div>
 
-        <div class="row align-items-center mb-3" style="break-after:page">
+        <div class="row align-items-center mb-3 pb_after">
             <div class="col">
                 <h5>3. Dalam pengelompokannya Data Keamanan dan Keselamatan Laut dapat dibagi kedalam area / lokasi kejadian
                     pada Wilayah Sekitar Pelabuhan dan Wilayah Laut, dengan Data sebagai Berikut:
@@ -304,7 +315,7 @@
             </div>
         </div>
 
-        <div class="row align-items-center mb-3" style="break-after:page">
+        <div class="row align-items-center mb-3">
             <div class="col">
                 <h5>4. Dari hasil pengumpulan informasi dan data beserta analisis, dapat disimpulkan sebagai berikut:</h5>
                     {{ $lengthKejadianKeamanan := len .KejadianKeamanan }}
