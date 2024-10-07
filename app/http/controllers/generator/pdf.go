@@ -176,7 +176,7 @@ func (r *Pdf) GenerateLaporan(laporanPath string) (bool, error) {
 	}
 
 	// Construct the command
-	cmd := exec.Command("wkhtmltopdf", "--enable-local-file-access", "--enable-external-links",
+	cmd := exec.Command("wkhtmltopdf", "--enable-local-file-access", "--zoom", "0.8",
 		"--enable-smart-shrinking", "--page-size", "A4", "--javascript-delay", "5000",
 		"--footer-center", "[page]", "--footer-font-size", "10",
 		inputFile, laporanPath)
