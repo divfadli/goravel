@@ -1,8 +1,72 @@
 {{ define "index.tmpl"}}
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-crossorigin=""/>
+    <style>
+        .card img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+
+        .card-title, .card-subtitle {
+            font-size: 1em;
+        }
+
+         .legend-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        .map-legend {
+            background: white;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 100%; /* Change to 100% */
+            transition: width 0.3s ease; /* Add smooth transition */
+        }
+
+        .marker-cluster-custom {
+            background-clip: padding-box;
+            border-radius: 20px;
+        }
+        .marker-cluster-custom div {
+            width: 30px;
+            height: 30px;
+            margin-left: 5px;
+            margin-top: 5px;
+            text-align: center;
+            border-radius: 15px;
+            font: 12px "Helvetica Neue", Arial, Helvetica, sans-serif;
+            color: #ffffff;
+            line-height: 30px;
+        }
+
+        .search-tip b {
+            color: #fff;
+        }
+        .search-tip {
+            white-space: nowrap;
+        }
+        .search-tip b {
+            display: inline-block;
+            clear: left;
+            float: right;
+            padding: 0 4px;
+            margin-left: 4px;
+        }
+    </style>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Leaflet MarkerCluster CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
+  <script src="https://opengeo.tech/maps/leaflet-search/src/leaflet-search.js"></script>
+  <link rel="stylesheet" href="https://opengeo.tech/maps/leaflet-search/src/leaflet-search.css" />
 
 {{ template "templates/layout.tmpl" .}}
 <!-- Start about-info Area -->
@@ -34,6 +98,10 @@ crossorigin=""/>
 
             <div class="row align-items-center" style="margin-top:20px">
                 <div id="map" style="width:100%;height:420px;"></div>
+                <div class="legend-container">
+                    <div id="legend-keamanan" class="map-legend"></div>
+                    <div id="legend-keselamatan" class="map-legend"></div>
+                </div>           
             </div>
 
             <!-- Add two containers for the charts -->
@@ -49,15 +117,35 @@ crossorigin=""/>
 {{ template "layouts/footer.tmpl" . }}
 {{ template "layouts/script.tmpl" . }}
 
-<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
-        integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
-
 <script src="https://code.highcharts.com/highcharts.js"></script> <!-- Add this line to include Highcharts -->
 
 <!-- BEGIN Declare Variable MAP -->
 <script>
-    const locationsKeamanan = [];
-    const locationsKeselamatan = [];
+    const locationsPelanggaran = L.markerClusterGroup({
+        chunkedLoading: true,
+        chunkInterval: 50, // Adjust this value based on performance
+        chunkDelay: 10,    // Adjust this value based on performance
+        iconCreateFunction: function(cluster) {
+            return L.divIcon({ 
+                html: '<div style="background-color: #ff0000;">' + cluster.getChildCount() + '</div>',
+                className: 'marker-cluster-custom',
+                iconSize: L.point(40, 40)
+            });
+        }
+    });
+
+    const locationsKecelakaan = L.markerClusterGroup({
+        chunkedLoading: true,
+        chunkInterval: 50, // Adjust this value based on performance
+        chunkDelay: 10,    // Adjust this value based on performance
+        iconCreateFunction: function(cluster) {
+            return L.divIcon({ 
+                html: '<div style="background-color: #0000ff;">' + cluster.getChildCount() + '</div>',
+                className: 'marker-cluster-custom',
+                iconSize: L.point(40, 40)
+            });
+        }
+    });
 
     const osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
@@ -73,13 +161,12 @@ crossorigin=""/>
     });
 
     // Set default active layers
-    const defaultBaseLayer = osm;
-    const defaultOverlayLayers = [L.layerGroup(locationsKeamanan), L.layerGroup(locationsKeselamatan)];
+    const defaultOverlayLayers = [locationsPelanggaran, locationsKecelakaan];
 
     const map = new L.Map('map', {
         center: { lat: -2.548926, lng: 118.0148634 },
         zoom: 5,
-        layers: [defaultBaseLayer, osmHOT, OpenTopoMap, ...defaultOverlayLayers]
+        layers: [osm, ...defaultOverlayLayers]
     });
 
     const baseMaps = {
@@ -89,11 +176,25 @@ crossorigin=""/>
     };
 
     let overlayMaps = {
-        "Pelanggaran": L.layerGroup(locationsKeamanan),
-        "Keselamatan": L.layerGroup(locationsKeselamatan)
+        "Pelanggaran": locationsPelanggaran,
+        "Keselamatan": locationsKecelakaan
     };
 
-    let layerControl = L.control.layers(baseMaps, overlayMaps).addTo(map);
+    const layerControl = L.control.layers(baseMaps, overlayMaps).addTo(map);
+
+    $('.leaflet-control-layers-overlays input[type="checkbox"]').each(function(index) {
+        $(this).attr('id', 'layer-checkbox-' + index);
+    });
+
+    L.control.search({
+        layer: L.featureGroup([locationsPelanggaran, locationsKecelakaan]),
+        propertyName: 'searchProperty',
+        initial: false,
+        marker: false,
+        moveToLocation: function(latlng, title, map) {
+            map.setView(latlng, 8);
+        }
+    }).addTo(map);
 </script>
 <!-- END -->
 
@@ -137,40 +238,181 @@ crossorigin=""/>
 
 <script type="text/javascript">
     function searchData() {
-        clearMarkers();
-        getDataAndRenderChart();
+        clearMarkers();  // Clear the existing markers
+        resetMap();  // Reset the map to its default center and zoom level
+        getDataAndRenderChart();  // Fetch and render new data
     }
+
+    function resetMap() {
+        // Reset the map to its original center and zoom level
+        map.setView({ lat: -2.548926, lng: 118.0148634 }, 5);
+
+        // Reset the layers to their default state
+        Object.values(overlayMaps).forEach(layer => {
+            if (map.hasLayer(layer)) {
+                map.removeLayer(layer);
+            }
+        });
+        defaultOverlayLayers.forEach(layer => map.addLayer(layer));
+        
+        // Reset the checkboxes to match the active layers
+        $('.leaflet-control-layers-overlays input[type="checkbox"]').each(function(index) {
+            $(this).attr('id', 'layer-checkbox-' + index);
+        });
+
+        // Reset the legend
+        resetLegend();
+
+        // Update legend layout
+        updateLegendLayout();
+    }
+
+    function createLegends(jenisKejadianKeamanan, jenisKejadianKeselamatan) {
+        function createLegendContent(title, items, colorStartIndex) {
+            let labels = [`<strong>${title}</strong>`];
+            const columns = 3; // Number of columns
+            const itemsPerColumn = Math.ceil(items.length / columns);
+
+            for (let i = 0; i < columns; i++) {
+                labels.push('<div style="float:left; margin-right:10px;">');
+                for (let j = i * itemsPerColumn; j < (i + 1) * itemsPerColumn && j < items.length; j++) {
+                    const colorIndex = j + colorStartIndex;
+                    labels.push(
+                        '<div><i style="background:' + colorRandom[colorIndex] + '; width: 10px; height: 10px; display: inline-block; border-radius: 50%;"></i> ' +
+                        items[j].nama_kejadian + '</div>'
+                    );
+                }
+                labels.push('</div>');
+            }
+            labels.push('<div style="clear:both;"></div>');
+            return labels.join('');
+        }
+
+        document.getElementById('legend-keamanan').innerHTML = createLegendContent('Pelanggaran', jenisKejadianKeamanan.data.data_jenis_kejadian, 0);
+        document.getElementById('legend-keselamatan').innerHTML = createLegendContent('Kecelakaan', jenisKejadianKeselamatan.data.data_jenis_kejadian, jenisKejadianKeamanan.data.data_jenis_kejadian.length);
+    
+         // Add event listeners for checkbox changes
+        $('#layer-checkbox-0').change(function() {
+            if (this.checked) {
+                $('#legend-keamanan').show();
+            } else {
+                $('#legend-keamanan').hide();
+            }
+            updateLegendLayout()
+        });
+
+        $('#layer-checkbox-1').change(function() {
+            if (this.checked) {
+                $('#legend-keselamatan').show();
+            } else {
+                $('#legend-keselamatan').hide();
+            }
+            updateLegendLayout()
+        });
+
+        // Initial visibility based on checkbox state
+        $('#legend-keamanan').toggle($('#layer-checkbox-0').is(':checked'));
+        $('#legend-keselamatan').toggle($('#layer-checkbox-1').is(':checked'));
+    }
+
+    function updateLegendLayout() {
+        const keamananVisible = $('#layer-checkbox-0').is(':checked');
+        const keselamatanVisible = $('#layer-checkbox-1').is(':checked');
+
+        $('#legend-keamanan').toggle(keamananVisible);
+        $('#legend-keselamatan').toggle(keselamatanVisible);
+
+        const newWidth = (keamananVisible && keselamatanVisible) ? '48%' : '100%';
+        $('#legend-keamanan, #legend-keselamatan').css('width', newWidth);
+    }
+
+    // Initial layout updateLegendLayout
+    updateLegendLayout();
+
+    function resetLegend() {
+        // Clear the legend contents
+        document.getElementById('legend-keamanan').innerHTML = '';
+        document.getElementById('legend-keselamatan').innerHTML = '';
+
+        // Reset legend visibility
+    }
+
+     function createPopupContent(data) {
+        const baseUrl = `${window.location.protocol}//${window.location.host}`;
+        // Periksa apakah URL gambar tersedia
+        const imageUrl = data.file_image && data.file_image[0]?.url 
+            ? `${baseUrl}/api/files/${data.file_image[0].url}`
+            : null;
+
+        // Hanya tambahkan elemen gambar jika URL ada
+        const imageElement = imageUrl
+            ? `<img src="${imageUrl}" alt="${data.jenis_kejadian.nama_kejadian}(${data.nama_kapal})" />`
+            : '';
+
+        return `
+            <div class="card" style="width: 18rem;">
+                ${imageElement}
+                <div class="card-body">
+                    <div class="title d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="card-title m-0">${data.jenis_kejadian.nama_kejadian}</h5>
+                        <h6 class="card-subtitle text-muted m-0">${new Date(data.tanggal).toLocaleDateString()}</h6>
+                    </div>
+                    <h6 class="card-subtitle mb-2 text-muted">${data.nama_kapal}</h6>
+                    <p class="card-text">${data.tindak_lanjut}</p>
+                </div>
+            </div>
+        `;
+      
+    }
+
 </script>
 <!-- END -->
 
 <!-- BEGIN MAP -->
 <script type="text/javascript">
     function clearMarkers() {
-        locationsKeamanan.forEach(marker => map.removeLayer(marker));
-        locationsKeselamatan.forEach(marker => map.removeLayer(marker));
-        locationsKeamanan.length = 0;
-        locationsKeselamatan.length = 0;
+        locationsPelanggaran.clearLayers();
+        locationsKecelakaan.clearLayers();
     }
 
-    function setMarkers(map, locations, initial) {
-        locations.forEach((a) => {
-            const marker = new L.marker([a.latitude, a.longitude]).bindPopup(a.nama_kapal);
-            if (initial === 1) {
-                locationsKeamanan.push(marker);
-            } else if (initial === 2) {
-                locationsKeselamatan.push(marker);
-            }
-            marker.addTo(map);
-        });
+    const colorRandom = [
+        // 25 Dark Colors
+        '#800000', '#8B0000', '#A52A2A', '#B22222', '#DC143C', 
+        '#8B008B', '#9400D3', '#4B0082', '#483D8B', '#191970',
+        '#000080', '#00008B', '#0000CD', '#00008B', '#008B8B',
+        '#006400', '#008000', '#228B22', '#2F4F4F', '#556B2F',
+        '#8B4513', '#A0522D', '#6B8E23', '#7F0000', '#3A5F0B',
 
-        // Update layer control
-        map.removeControl(layerControl);
-        overlayMaps = {
-            "Pelanggaran": L.layerGroup(locationsKeamanan),
-            "Keselamatan": L.layerGroup(locationsKeselamatan)
-        };
-        layerControl = L.control.layers(baseMaps, overlayMaps).addTo(map);
-    }
+        // 25 Light Colors
+        '#FFA07A', '#FFA500', '#FFD700', '#FFFF00', '#ADFF2F',
+        '#7FFF00', '#00FF00', '#98FB98', '#00FA9A', '#00FFFF',
+        '#E0FFFF', '#87CEFA', '#87CEEB', '#ADD8E6', '#B0E0E6',
+        '#F0E68C', '#FAFAD2', '#FFFACD', '#FFEFD5', '#FFE4B5',
+        '#FFDAB9', '#FFC0CB', '#FFB6C1', '#DDA0DD', '#EE82EE'
+    ];
+
+function setMarkers(map, locations, initial) {
+    const targetLayer = initial === 1 ? locationsPelanggaran : locationsKecelakaan;
+    const jenisKejadian = initial === 1 ? jenisKejadianKeamanan.data.data_jenis_kejadian : jenisKejadianKeselamatan.data.data_jenis_kejadian;
+    const colorOffset = initial === 2 ? jenisKejadianKeamanan.data.data_jenis_kejadian.length : 0;
+
+    const markers = locations.map(a => {
+        const indexColor = jenisKejadian.findIndex(b => b.id_jenis_kejadian === a.jenis_kejadian.id_jenis_kejadian) + colorOffset;
+        
+        return L.circleMarker([a.latitude, a.longitude], {
+            radius: 8,
+            fillColor: colorRandom[indexColor],
+            color: "#000",
+            weight: 1,
+            opacity: 1,
+            fillOpacity: 0.8,
+            searchProperty: `${a.jenis_kejadian.nama_kejadian} - ${a.nama_kapal} - ${a.lokasi_kejadian}`
+        }).bindPopup(() => createPopupContent(a));
+    });
+
+    targetLayer.addLayers(markers);
+}
+
 </script>
 <!-- END -->
 
@@ -202,36 +444,47 @@ crossorigin=""/>
         });
     }
 
-     async function jenisKejadianKeamanan() {
+     async function jenisKejadian(klasifikasiName) {
         return new Promise((resolve, reject) => {
             $.ajax({
-                url: window.origin+ "/api/kejadian/listKejadian",
+                url: window.origin + "/api/kejadian/listKejadian",
                 method: "POST",
                 data: {
-                    klasifikasi_name: "Keamanan Laut"
+                    klasifikasi_name: klasifikasiName
                 },
                 success: function(response) {
                     resolve(response);
                 },
                 error: function(response) {
-                        Swal.fire({
-                            type: 'error',
-                            title: 'Oops!',
-                            text: response.responseJSON.message
-                        });
-                        reject(response);
-                    }
+                    Swal.fire({
+                        type: 'error',
+                        title: 'Oops!',
+                        text: response.responseJSON.message
+                    });
+                    reject(response);
+                }
             });
         });
     }
 
+    let jenisKejadianKeamanan; // Declare a global variable
+    let jenisKejadianKeselamatan; // Declare a global variable
+
     async function getDataAndRenderChart() {
         try {
-            const jenisKejadian = await jenisKejadianKeamanan()
+            // For Jenis Keamanan Laut
+            jenisKejadianKeamanan = await jenisKejadian("Keamanan Laut");
+            // For Jenis Keselamatan Laut
+            jenisKejadianKeselamatan = await jenisKejadian("Keselamatan Laut");
+
             const kejadianKeamanan = await fetchData("{{.dataKeamananURL}}", 1);
             const kejadianKeselamatan = await fetchData("{{.dataKeselamatanURL}}", 2);
-            console.log('jenisKejadian:', jenisKejadian);
+            console.log('jenisKejadianKeamanan:', jenisKejadianKeamanan);
+            console.log('jenisKejadianKeselamatan:', jenisKejadianKeselamatan);
             console.log('kejadianKeamanan:', kejadianKeamanan);
+
+            // After setting markers, create the legend
+            createLegends(jenisKejadianKeamanan, jenisKejadianKeselamatan);
 
             if (!kejadianKeamanan.data || !kejadianKeamanan.data.data_kejadian_keamanan) {
                 throw new Error('data_kejadian_keamanan is undefined');
