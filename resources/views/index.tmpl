@@ -1,6 +1,10 @@
 {{ define "index.tmpl"}}
 
     <style>
+        .legend-item.filtered {
+            text-decoration: line-through;
+            opacity: 0.5;
+        }
         .card img {
             width: 100%;
             height: 150px;
@@ -270,7 +274,7 @@
     function createLegends(jenisKejadianKeamanan, jenisKejadianKeselamatan) {
         function createLegendContent(title, items, colorStartIndex) {
             let labels = [`<strong>${title}</strong>`];
-            const columns = 3; // Number of columns
+            const columns = 3;
             const itemsPerColumn = Math.ceil(items.length / columns);
 
             for (let i = 0; i < columns; i++) {
@@ -278,8 +282,10 @@
                 for (let j = i * itemsPerColumn; j < (i + 1) * itemsPerColumn && j < items.length; j++) {
                     const colorIndex = j + colorStartIndex;
                     labels.push(
-                        '<div><i style="background:' + colorRandom[colorIndex] + '; width: 10px; height: 10px; display: inline-block; border-radius: 50%;"></i> ' +
-                        items[j].nama_kejadian + '</div>'
+                        `<div class="legend-item" data-type="${items[j].nama_kejadian}" style="cursor:pointer;">
+                            <i style="background:${colorRandom[colorIndex]}; width: 10px; height: 10px; display: inline-block; border-radius: 50%;"></i> 
+                            ${items[j].nama_kejadian}
+                        </div>`
                     );
                 }
                 labels.push('</div>');
@@ -309,6 +315,34 @@
             }
             updateLegendLayout()
         });
+
+        // Add after creating legends
+        $('.legend-item').on('click', function() {
+            const kejadianType = $(this).data('type');
+            $(this).toggleClass('filtered'); // Toggle strikethrough class
+            
+            // Toggle opacity of markers based on type
+            locationsPelanggaran.eachLayer(function(layer) {
+                if (layer.feature && layer.feature.properties.type === kejadianType) {
+                    if (layer.options.opacity === 1) {
+                        layer.setStyle({opacity: 0.2, fillOpacity: 0.2});
+                    } else {
+                        layer.setStyle({opacity: 1, fillOpacity: 0.8});
+                    }
+                }
+            });
+            
+            locationsKecelakaan.eachLayer(function(layer) {
+                if (layer.feature && layer.feature.properties.type === kejadianType) {
+                    if (layer.options.opacity === 1) {
+                        layer.setStyle({opacity: 0.2, fillOpacity: 0.2});
+                    } else {
+                        layer.setStyle({opacity: 1, fillOpacity: 0.8});
+                    }
+                }
+            });
+        });
+
 
         // Initial visibility based on checkbox state
         $('#legend-keamanan').toggle($('#layer-checkbox-0').is(':checked'));
@@ -391,27 +425,37 @@
         '#FFDAB9', '#FFC0CB', '#FFB6C1', '#DDA0DD', '#EE82EE'
     ];
 
-function setMarkers(map, locations, initial) {
-    const targetLayer = initial === 1 ? locationsPelanggaran : locationsKecelakaan;
-    const jenisKejadian = initial === 1 ? jenisKejadianKeamanan.data.data_jenis_kejadian : jenisKejadianKeselamatan.data.data_jenis_kejadian;
-    const colorOffset = initial === 2 ? jenisKejadianKeamanan.data.data_jenis_kejadian.length : 0;
+    function setMarkers(map, locations, initial) {
+        const targetLayer = initial === 1 ? locationsPelanggaran : locationsKecelakaan;
+        const jenisKejadian = initial === 1 ? jenisKejadianKeamanan.data.data_jenis_kejadian : jenisKejadianKeselamatan.data.data_jenis_kejadian;
+        const colorOffset = initial === 2 ? jenisKejadianKeamanan.data.data_jenis_kejadian.length : 0;
 
-    const markers = locations.map(a => {
-        const indexColor = jenisKejadian.findIndex(b => b.id_jenis_kejadian === a.jenis_kejadian.id_jenis_kejadian) + colorOffset;
-        
-        return L.circleMarker([a.latitude, a.longitude], {
-            radius: 8,
-            fillColor: colorRandom[indexColor],
-            color: "#000",
-            weight: 1,
-            opacity: 1,
-            fillOpacity: 0.8,
-            searchProperty: `${a.jenis_kejadian.nama_kejadian} - ${a.nama_kapal} - ${a.lokasi_kejadian}`
-        }).bindPopup(() => createPopupContent(a));
-    });
+        const markers = locations.map(a => {
+            const indexColor = jenisKejadian.findIndex(b => b.id_jenis_kejadian === a.jenis_kejadian.id_jenis_kejadian) + colorOffset;
+            
+            const marker = L.circleMarker([a.latitude, a.longitude], {
+                radius: 8,
+                fillColor: colorRandom[indexColor],
+                color: "#000",
+                weight: 1,
+                opacity: 1,
+                fillOpacity: 0.8,
+                searchProperty: `${a.jenis_kejadian.nama_kejadian} - ${a.nama_kapal} - ${a.lokasi_kejadian}`
+            });
 
-    targetLayer.addLayers(markers);
-}
+            marker.bindPopup(() => createPopupContent(a));
+            marker.feature = {
+                properties: {
+                    type: a.jenis_kejadian.nama_kejadian
+                }
+            };
+
+            return marker;
+        });
+
+        targetLayer.addLayers(markers);
+    }
+
 
 </script>
 <!-- END -->
@@ -501,7 +545,7 @@ function setMarkers(map, locations, initial) {
                 acc[key]++;
                 return acc
             }, {});
-            console.log(x)
+            console.log("x:",x)
 
             const data = Object.keys(x).map(key => {
                 const [nama_kejadian, tahun] = key.split('-');
@@ -513,6 +557,77 @@ function setMarkers(map, locations, initial) {
             })
             console.log('data:', data);
 
+            // First get unique years and kejadian types
+            const years_data = [...new Set(data.map(item => item.periode))].sort();  // [2023, 2024]
+            console.log(years_data)
+
+            const kejadianTypes = jenisKejadianKeamanan.data.data_jenis_kejadian.map(k => k.nama_kejadian);
+            console.log(kejadianTypes)
+
+            // Create result object for each year
+            const result = years_data.reduce((acc, year) => {
+                // Initialize counts array with 0s for each kejadian type
+                const counts = kejadianTypes.map(type => {
+                    const found = data.find(d => d.periode === year && d.name === type);
+                    return found ? found.jumlah : 0;
+                });
+                
+                acc[year] = {
+                    types: kejadianTypes,
+                    counts: counts
+                };
+                return acc;
+            }, {});
+            console.log("result:",result)
+
+            // Create the line chart
+            // Check if result has data
+            if (Object.keys(result).length > 0) {
+                Highcharts.chart('container-keamanan', {
+                    chart: {
+                        type: 'line'
+                    },
+                    title: {
+                        text: 'Trend Kejadian Pelanggaran'
+                    },
+                    xAxis: {
+                        categories: years_data,
+                        title: {
+                            text: 'Tahun'
+                        }
+                    },
+                    yAxis: {
+                        title: {
+                            text: 'Jumlah Kejadian'
+                        },
+                        min: 0
+                    },
+                    legend: {
+                        layout: 'vertical',
+                        align: 'right',
+                        verticalAlign: 'middle',
+                        enabled: true
+                    },
+                    plotOptions: {
+                        line: {
+                            dataLabels: {
+                                enabled: true
+                            }
+                        }
+                    },
+                    series: jenisKejadianKeamanan.data.data_jenis_kejadian.map(type => ({
+                        name: type.nama_kejadian,
+                        data: years_data.map(year => {
+                            const yearData = data.find(d => d.periode === year && d.name === type.nama_kejadian);
+                            return yearData ? yearData.jumlah : 0;
+                        })
+                    }))
+                });
+
+            }
+
+
+            
             let uniqueKejadian = new Set();
             data.forEach(a => {
                 uniqueKejadian.add(a.name);
