@@ -19,6 +19,26 @@
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
     <style>
+         .legend-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        .legend-item {
+            margin: 4px 0;
+            font-size: 0.8rem;
+        }
+
+        .map-legend {
+            background: white;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 465px; /* Match the map width */
+            transition: width 0.3s ease;
+        }
+
         .custom-bg-blue {
             background-color: #0077b6;
             color: white;
@@ -47,6 +67,7 @@
         #logo {
             width: 100px;
             height: 100px;
+            object-fit: contain;
         }
 
         .table-small-text {
@@ -89,6 +110,9 @@
                 </div>
                 <div class="row mb-3">
                     <div class="col-12">
+                        <script>
+                            const jenisKejadian = [];
+                        </script>
                         <table class="table table-custom-size table-bordered table-striped table-sm table-small-text">
                             <tbody>
                                 <tr>
@@ -102,6 +126,9 @@
         
                                 {{$index := 1}}
                                 {{range $kejadian, $weeks := .KejadianKeamananWeek}}
+                                    <script>
+                                        jenisKejadian.push({{$kejadian}});
+                                    </script>
                                 <tr>
                                     <td style="text-align: center;">{{$index}}</td>
                                     <td>{{$kejadian}}</td>
@@ -140,14 +167,32 @@
                     </div>
                 </div>
                 <div class="row mb-3">
-                    <div class="col-12">
-                        <div id="map">
+                    <div class="col-6">
+                        <div id="map"></div>
+                        <script>
+                            const colorRandom = [
+                                // 25 Dark Colors
+                                '#800000', '#8B0000', '#A52A2A', '#B22222', '#DC143C', 
+                                '#8B008B', '#9400D3', '#4B0082', '#483D8B', '#191970',
+                                '#000080', '#00008B', '#0000CD', '#00008B', '#008B8B',
+                                '#006400', '#008000', '#228B22', '#2F4F4F', '#556B2F',
+                                '#8B4513', '#A0522D', '#6B8E23', '#7F0000', '#3A5F0B',
 
-                        </div>
+                                // 25 Light Colors
+                                '#FFA07A', '#FFA500', '#FFD700', '#FFFF00', '#ADFF2F',
+                                '#7FFF00', '#00FF00', '#98FB98', '#00FA9A', '#00FFFF',
+                                '#E0FFFF', '#87CEFA', '#87CEEB', '#ADD8E6', '#B0E0E6',
+                                '#F0E68C', '#FAFAD2', '#FFFACD', '#FFEFD5', '#FFE4B5',
+                                '#FFDAB9', '#FFC0CB', '#FFB6C1', '#DDA0DD', '#EE82EE'
+                            ];
+                        </script>
+
                         <script>
                             const map1 = new L.map('map', {
                                 center: [-2.548926, 118.0148634],
                                 zoom: 4,
+                                minZoom: 4, // Prevents zooming out beyond level 4
+                                maxZoom: 4, // Prevents zooming in beyond level 4
                                 detectRetina: true,
                                 zoomControl: false,
                                 scrollWheelZoom: false
@@ -156,9 +201,24 @@
                             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {}).addTo(map1);
 
                             var marker;
+                            var setNamaKejadian = [];
 
                             {{range $val := .DataKejadianKeamananWeek}}
-                                marker = new L.marker([{{$val.Latitude}}, {{$val.Longitude}}]);
+                                namaKejadian = {{$val.JenisKejadian.NamaKejadian}};
+                                if (setNamaKejadian.indexOf(namaKejadian) === -1) {
+                                    setNamaKejadian.push(namaKejadian);
+                                }
+                                var indexColor = jenisKejadian.indexOf(namaKejadian);
+                                
+                                marker = L.circleMarker([{{$val.Latitude}}, {{$val.Longitude}}], {
+                                    radius:5,
+                                    fillColor: colorRandom[indexColor],
+                                    color: colorRandom[indexColor],
+                                    weight: 0.5, //for thinner border
+                                    opacity: 1,
+                                    fillOpacity: 1,
+                                    interactive: false // Disables marker interaction
+                                });
                                 marker.addTo(map1)
                             {{end}}
                     
@@ -166,6 +226,39 @@
                                 setTimeout(function() {
                                     map1.invalidateSize();
                                 }, 200);
+                            });
+
+                        </script>
+
+                        <div id="legend-keamanan" class="map-legend mt-3"></div>
+                        <script>
+
+                            function createLegendContent(title, items, colorStartIndex) {
+                                var legendHtml = '<div class="legend-title">' + title + '</div>';
+                                legendHtml += '<div class="legend-columns">';
+                                
+                                // Calculate items per column
+                                var itemsPerColumn = Math.ceil(items.length / 3);
+                                
+                                // Create 3 columns
+                                for (var col = 0; col < 3; col++) {
+                                    legendHtml += '<div class="legend-column">';
+                                    for (var i = col * itemsPerColumn; i < (col + 1) * itemsPerColumn && i < items.length; i++) {
+                                        var itemIndex = jenisKejadian.indexOf(items[i]);
+                                        var color = colorRandom[itemIndex + colorStartIndex];
+                                        legendHtml += `<div class="legend-item" data-type="${items[i]}" style="cursor:pointer;">
+                                            <i style="background:${color}; width: 10px; height: 10px; display: inline-block; border-radius: 50%;"></i>
+                                            ${items[i]}
+                                        </div>`;
+                                    }
+                                    legendHtml += '</div>';
+                                }
+                                legendHtml += '</div>';
+                                return legendHtml;
+                            }
+
+                            document.addEventListener('DOMContentLoaded', function() {
+                                document.getElementById('legend-keamanan').innerHTML = createLegendContent('Pelanggaran', setNamaKejadian, 0);
                             });
                         </script>
                     </div>

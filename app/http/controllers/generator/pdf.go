@@ -124,7 +124,8 @@ func (r *Pdf) GenerateSlide(slidePath string) (bool, error) {
 	}
 
 	// Construct the command
-	cmd := exec.Command("wkhtmltoimage", "--enable-local-file-access", "--javascript-delay", "500", inputFile, slidePath)
+	cmd := exec.Command("wkhtmltoimage", "--enable-local-file-access",
+		"--enable-plugins", "--javascript-delay", "500", inputFile, slidePath)
 
 	// Set the command's standard output and error to the current process's standard output and error
 	cmd.Stdout = os.Stdout
@@ -549,6 +550,7 @@ func (r *Pdf) GenerateMingguan(ctx http.Context) http.Response {
 	// // Sort the slice of names
 	// sort.Strings(weeklyDataKeamananSorted)
 	// sort.Strings(weeklyDataKeselamatanSorted)
+	///x
 
 	for _, data := range result_keamanan {
 		// path for download pdf
