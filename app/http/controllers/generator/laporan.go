@@ -30,7 +30,7 @@ func (r *Pdf) LaporanMingguan() {
 	templateKeselamatanPath := "templates/keselamatan.html"
 	newTemplateKeselamatanPath := "keselamatan.html"
 
-	now := time.Date(2024, 9, 16, 0, 0, 0, 0, time.UTC)
+	now := time.Now()
 	bulan := monthNameIndonesia(now.Month())
 	year := strconv.Itoa(now.Year())
 
