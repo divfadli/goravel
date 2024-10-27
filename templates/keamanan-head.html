@@ -190,9 +190,9 @@
                         <script>
                             const map1 = new L.map('map', {
                                 center: [-2.548926, 118.0148634],
-                                zoom: 4,
-                                minZoom: 4, // Prevents zooming out beyond level 4
-                                maxZoom: 4, // Prevents zooming in beyond level 4
+                                zoom: 3.5,
+                                minZoom: 3.5, // Prevents zooming out beyond level 4
+                                maxZoom: 3.5, // Prevents zooming in beyond level 4
                                 detectRetina: true,
                                 zoomControl: false,
                                 scrollWheelZoom: false
@@ -215,7 +215,7 @@
                                     fillColor: colorRandom[indexColor],
                                     color: colorRandom[indexColor],
                                     weight: 0.5, //for thinner border
-                                    opacity: 1,
+                                    opacity: 0.5,
                                     fillOpacity: 1,
                                     interactive: false // Disables marker interaction
                                 });

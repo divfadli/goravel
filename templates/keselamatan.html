@@ -14,6 +14,17 @@
         .leaflet-control-attribution {
             display: none;
         }
+        .legend {
+            background-color: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+        }
+        .legend h4 {
+            margin: 0;
+            font-size: 14px;
+        }
+
         .custom-bg-blue {
             background-color: #0077b6;
             color: white;
@@ -38,6 +49,11 @@
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
         integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-legend@1.0.2/leaflet-legend.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-compass@1.5.6/dist/leaflet-compass.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-legend@1.0.2/leaflet-legend.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-compass@1.5.6/dist/leaflet-compass.min.js"></script>
 
     <title>Hello, world!</title>
 
@@ -128,12 +144,58 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js"
         integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
         crossorigin="anonymous"></script>
+
+        <script>
+            const colorRandom = [
+                // 25 Dark Colors
+                '#800000', '#8B0000', '#A52A2A', '#B22222', '#DC143C', 
+                '#8B008B', '#9400D3', '#4B0082', '#483D8B', '#191970',
+                '#000080', '#00008B', '#0000CD', '#00008B', '#008B8B',
+                '#006400', '#008000', '#228B22', '#2F4F4F', '#556B2F',
+                '#8B4513', '#A0522D', '#6B8E23', '#7F0000', '#3A5F0B',
+
+                // 25 Light Colors
+                '#FFA07A', '#FFA500', '#FFD700', '#FFFF00', '#ADFF2F',
+                '#7FFF00', '#00FF00', '#98FB98', '#00FA9A', '#00FFFF',
+                '#E0FFFF', '#87CEFA', '#87CEEB', '#ADD8E6', '#B0E0E6',
+                '#F0E68C', '#FAFAD2', '#FFFACD', '#FFEFD5', '#FFE4B5',
+                '#FFDAB9', '#FFC0CB', '#FFB6C1', '#DDA0DD', '#EE82EE'
+            ];
+    </script>
     <script>
-        var map = L.map('map').setView([-2.548926, 118.0148634], 3);
+        var map = new L.map('map', {
+            center: [-2.548926, 118.0148634],
+            zoom: 3.5,
+            minZoom: 3.5, // Prevents zooming out beyond level 4
+            maxZoom: 3.5, // Prevents zooming in beyond level 4
+            detectRetina: true,
+            zoomControl: false,
+            scrollWheelZoom: false
+        });
+        const jenisKejadian = [];
+        {{range $kejadian, $weeks := .KejadianKeselamatanWeek}}
+            jenisKejadian.push({{$kejadian}});
+        {{end}}
 
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {}).addTo(map);
 
-        new L.marker([{{.Latitude}}, {{.Longitude}}]).addTo(map);
+        var colorOffset = {{.KejadianKeamananLength}}
+
+        const indexColor = jenisKejadian.indexOf({{.Kejadian}})+colorOffset;
+        const marker = L.circleMarker([{{.Latitude}}, {{.Longitude}}], {
+            radius:5,
+            fillColor: colorRandom[indexColor],
+            color: colorRandom[indexColor],
+            weight: 0.5, //for thinner border
+            opacity: 1,
+            fillOpacity: 1,
+            interactive: false // Disables marker interaction
+        });
+        marker.addTo(map)
+        // new L.marker([{{.Latitude}}, {{.Longitude}}]).addTo(map);
+
+        var comp = new L.Control.Compass({autoActive: true, showDigit:true});
+	    map.addControl(comp);
 
         map.zoomControl.remove();
 
