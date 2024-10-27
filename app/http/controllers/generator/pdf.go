@@ -571,37 +571,39 @@ func (r *Pdf) GenerateMingguan(ctx http.Context) http.Response {
 
 		// html template data
 		templateData := struct {
-			BaseURL          string
-			Title            string
-			NamaKapal        string
-			Kejadian         string
-			Penyebab         string
-			Lokasi           string
-			ABK              string
-			Muatan           string
-			InstansiPenindak string
-			Keterangan       string
-			Waktu            string
-			SumberBerita     string
-			Latitude         float64
-			Longitude        float64
-			Images           []models.FileImage
+			KejadianKeamananWeek map[string]map[string]int
+			BaseURL              string
+			Title                string
+			NamaKapal            string
+			Kejadian             string
+			Penyebab             string
+			Lokasi               string
+			ABK                  string
+			Muatan               string
+			InstansiPenindak     string
+			Keterangan           string
+			Waktu                string
+			SumberBerita         string
+			Latitude             float64
+			Longitude            float64
+			Images               []models.FileImage
 		}{
-			BaseURL:          baseURL,
-			Title:            data.JenisKejadian.NamaKejadian,
-			NamaKapal:        data.NamaKapal,
-			Kejadian:         data.JenisKejadian.NamaKejadian,
-			Penyebab:         "-",
-			Lokasi:           data.LokasiKejadian,
-			ABK:              abk,
-			Muatan:           data.Muatan,
-			InstansiPenindak: data.SumberBerita,
-			Keterangan:       data.TindakLanjut,
-			Waktu:            data.Tanggal.ToDateString(),
-			SumberBerita:     data.LinkBerita,
-			Latitude:         data.Latitude,
-			Longitude:        data.Longitude,
-			Images:           data.FileImage,
+			KejadianKeamananWeek: kejadianKeamananWeek,
+			BaseURL:              baseURL,
+			Title:                data.JenisKejadian.NamaKejadian,
+			NamaKapal:            data.NamaKapal,
+			Kejadian:             data.JenisKejadian.NamaKejadian,
+			Penyebab:             "-",
+			Lokasi:               data.LokasiKejadian,
+			ABK:                  abk,
+			Muatan:               data.Muatan,
+			InstansiPenindak:     data.SumberBerita,
+			Keterangan:           data.TindakLanjut,
+			Waktu:                data.Tanggal.ToDateString(),
+			SumberBerita:         data.LinkBerita,
+			Latitude:             data.Latitude,
+			Longitude:            data.Longitude,
+			Images:               data.FileImage,
 		}
 
 		if err := r.ParseTemplate(templateKeamananPath, newTemplateKeamananPath, templateData); err == nil {
@@ -630,6 +632,7 @@ func (r *Pdf) GenerateMingguan(ctx http.Context) http.Response {
 	outputPath = fmt.Sprintf("storage/temp/kecelakaan%d.png", "default")
 
 	templateDataKeselamatan := struct {
+		KejadianKeamananLength      int
 		BaseURL                     string
 		Bulan                       string
 		BulanCapital                string
@@ -640,6 +643,7 @@ func (r *Pdf) GenerateMingguan(ctx http.Context) http.Response {
 		CountOfWeek                 map[string]int
 		DataKejadianKeselamatanWeek []models.KejadianKeselamatanImage
 	}{
+		KejadianKeamananLength:      len(kejadianKeamananWeek),
 		BaseURL:                     baseURL,
 		Bulan:                       bulan,
 		BulanCapital:                strings.ToUpper(bulan),
@@ -719,37 +723,41 @@ func (r *Pdf) GenerateMingguan(ctx http.Context) http.Response {
 
 		// html template data
 		templateData := struct {
-			BaseURL          string
-			Title            string
-			NamaKapal        string
-			Kejadian         string
-			Penyebab         string
-			Lokasi           string
-			Korban           string
-			Perpindahan      string
-			Keterangan       string
-			Waktu            string
-			InstansiPenindak string
-			SumberBerita     string
-			Latitude         float64
-			Longitude        float64
-			Images           []models.FileImage
+			KejadianKeamananLength  int
+			KejadianKeselamatanWeek map[string]map[string]int
+			BaseURL                 string
+			Title                   string
+			NamaKapal               string
+			Kejadian                string
+			Penyebab                string
+			Lokasi                  string
+			Korban                  string
+			Perpindahan             string
+			Keterangan              string
+			Waktu                   string
+			InstansiPenindak        string
+			SumberBerita            string
+			Latitude                float64
+			Longitude               float64
+			Images                  []models.FileImage
 		}{
-			BaseURL:          baseURL,
-			Title:            data.JenisKejadian.NamaKejadian,
-			NamaKapal:        data.NamaKapal,
-			Kejadian:         data.JenisKejadian.NamaKejadian,
-			Penyebab:         data.Penyebab,
-			Lokasi:           data.LokasiKejadian,
-			Korban:           korban,
-			Perpindahan:      perpindahan,
-			Keterangan:       data.TindakLanjut,
-			Waktu:            data.Tanggal.ToDateString(),
-			InstansiPenindak: data.SumberBerita,
-			SumberBerita:     data.LinkBerita,
-			Latitude:         data.Latitude,
-			Longitude:        data.Longitude,
-			Images:           data.FileImage,
+			KejadianKeamananLength:  len(kejadianKeamananWeek),
+			KejadianKeselamatanWeek: kejadianKeselamatanWeek,
+			BaseURL:                 baseURL,
+			Title:                   data.JenisKejadian.NamaKejadian,
+			NamaKapal:               data.NamaKapal,
+			Kejadian:                data.JenisKejadian.NamaKejadian,
+			Penyebab:                data.Penyebab,
+			Lokasi:                  data.LokasiKejadian,
+			Korban:                  korban,
+			Perpindahan:             perpindahan,
+			Keterangan:              data.TindakLanjut,
+			Waktu:                   data.Tanggal.ToDateString(),
+			InstansiPenindak:        data.SumberBerita,
+			SumberBerita:            data.LinkBerita,
+			Latitude:                data.Latitude,
+			Longitude:               data.Longitude,
+			Images:                  data.FileImage,
 		}
 
 		if err := r.ParseTemplate(templateKeselamatanPath, newTemplateKeselamatanPath, templateData); err == nil {
