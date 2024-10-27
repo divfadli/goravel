@@ -48,7 +48,7 @@ func MonthlyGenerate() {
 }
 
 // https://pkg.go.dev/github.com/go-co-op/gocron/v2#WeeklyJob
-func WeeklyGenerate() {
+func CronJobGenerateLaporanMingguan() {
 	// create a scheduler
 	s, err := gocron.NewScheduler()
 	if err != nil {
@@ -64,13 +64,11 @@ func WeeklyGenerate() {
 			gocron.NewAtTime(0, 0, 0),
 		)),
 		gocron.NewTask(
-			// TODO: generate laporan mingguan
-			func(a string, b int) {
-				// do things
-				fmt.Println(a, b)
+			// generate laporan mingguan
+			func() {
+				generate := NewPdf("")
+				generate.LaporanMingguan()
 			},
-			"hello",
-			1,
 		),
 	)
 
@@ -80,8 +78,48 @@ func WeeklyGenerate() {
 	}
 
 	// each job has a unique id
-	fmt.Println(j.ID())
+	fmt.Println("Job GenerateLaporanMingguan ID:", j.ID())
 
 	// start the scheduler
 	s.Start()
+}
+
+// https://pkg.go.dev/github.com/go-co-op/gocron/v2#CronJob
+func TestGenerateCronTab() {
+	// create a scheduler
+	s, err := gocron.NewScheduler()
+	if err != nil {
+		// handle error
+		log.Fatal(err)
+	}
+
+	j, err := s.NewJob(
+		gocron.CronJob(
+			// standard cron tab parsing
+			"* * * * *",
+			false,
+		),
+		gocron.NewTask(
+			func() {
+				generate := NewPdf("")
+				generate.LaporanMingguan()
+			},
+		),
+	)
+
+	if err != nil {
+		// handle error
+		log.Fatal(err)
+	}
+
+	// each job has a unique id
+	fmt.Println("Job TestGenerateCronTab ID:", j.ID())
+
+	// start the scheduler
+	s.Start()
+}
+
+func StartCronJob() {
+	// go TestGenerateCronTab()
+	go CronJobGenerateLaporanMingguan()
 }
