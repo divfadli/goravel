@@ -5,13 +5,15 @@ services:
     build:
       context: .
     ports:
-      - "3000:3000"
+      - "5000:5000"
     restart: always
+    volumes:
+      - ./storage:/www/storage
     depends_on:
       - postgres
       - redis
   postgres:
-    image: postgres:16.3-alpine
+    image: postgres:15-alpine
     restart: always
     # set shared memory limit when using docker-compose
     shm_size: 128mb
