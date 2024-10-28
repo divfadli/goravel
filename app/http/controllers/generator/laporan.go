@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"goravel/app/models"
+	"os"
 	"regexp"
 	"sort"
 	"strconv"
@@ -11,8 +12,9 @@ import (
 	"time"
 
 	"github.com/goravel/framework/facades"
-	"github.com/jung-kurt/gofpdf"
 	"github.com/lib/pq"
+	"github.com/pdfcpu/pdfcpu/pkg/api"
+	"github.com/pdfcpu/pdfcpu/pkg/pdfcpu/model"
 )
 
 func (r *Pdf) LaporanMingguan() {
@@ -304,17 +306,19 @@ func (r *Pdf) LaporanMingguan() {
 	}
 
 	countOfWeek := make(map[string]int)
+	var nameOfWeek []string
 	for i, weeks := range weekName {
 		total := 0
 		for _, kejadian := range kejadianKeamananWeek {
 			total += kejadian[weeks]
 		}
 		name := "Minggu " + strconv.Itoa(i+1)
+		nameOfWeek = append(nameOfWeek, name)
 		countOfWeek[name] = total
 	}
 	// kejadianKeamananWeek, jenisKejadianKeamanan, weekName
 	var images []string
-	outputPath := fmt.Sprintf("storage/temp/pelanggaran%s.png", "default")
+	outputPath := fmt.Sprintf("storage/temp/pelanggaran-%s.pdf", "head")
 
 	templateDataKeamanan := struct {
 		BaseURL                  string
@@ -364,7 +368,7 @@ func (r *Pdf) LaporanMingguan() {
 
 	for _, data := range result_keamanan {
 		// path for download pdf
-		outputPath := fmt.Sprintf("storage/temp/pelanggaran%d.png", data.IdKejadianKeamanan)
+		outputPath := fmt.Sprintf("storage/temp/pelanggaran-%d.pdf", data.IdKejadianKeamanan)
 
 		var abk string
 		if strings.Contains(data.Muatan, "ABK") {
@@ -381,37 +385,39 @@ func (r *Pdf) LaporanMingguan() {
 
 		// html template data
 		templateData := struct {
-			BaseURL          string
-			Title            string
-			NamaKapal        string
-			Kejadian         string
-			Penyebab         string
-			Lokasi           string
-			ABK              string
-			Muatan           string
-			InstansiPenindak string
-			Keterangan       string
-			Waktu            string
-			SumberBerita     string
-			Latitude         float64
-			Longitude        float64
-			Images           []models.FileImage
+			KejadianKeamananWeek map[string]map[string]int
+			BaseURL              string
+			Title                string
+			NamaKapal            string
+			Kejadian             string
+			Penyebab             string
+			Lokasi               string
+			ABK                  string
+			Muatan               string
+			InstansiPenindak     string
+			Keterangan           string
+			Waktu                string
+			SumberBerita         string
+			Latitude             float64
+			Longitude            float64
+			Images               []models.FileImage
 		}{
-			BaseURL:          baseURL,
-			Title:            data.JenisKejadian.NamaKejadian,
-			NamaKapal:        data.NamaKapal,
-			Kejadian:         data.JenisKejadian.NamaKejadian,
-			Penyebab:         "-",
-			Lokasi:           data.LokasiKejadian,
-			ABK:              abk,
-			Muatan:           data.Muatan,
-			InstansiPenindak: data.SumberBerita,
-			Keterangan:       data.TindakLanjut,
-			Waktu:            data.Tanggal.ToDateString(),
-			SumberBerita:     data.LinkBerita,
-			Latitude:         data.Latitude,
-			Longitude:        data.Longitude,
-			Images:           data.FileImage,
+			KejadianKeamananWeek: kejadianKeamananWeek,
+			BaseURL:              baseURL,
+			Title:                data.JenisKejadian.NamaKejadian,
+			NamaKapal:            data.NamaKapal,
+			Kejadian:             data.JenisKejadian.NamaKejadian,
+			Penyebab:             "-",
+			Lokasi:               data.LokasiKejadian,
+			ABK:                  abk,
+			Muatan:               data.Muatan,
+			InstansiPenindak:     data.SumberBerita,
+			Keterangan:           data.TindakLanjut,
+			Waktu:                data.Tanggal.ToDateString(),
+			SumberBerita:         data.LinkBerita,
+			Latitude:             data.Latitude,
+			Longitude:            data.Longitude,
+			Images:               data.FileImage,
 		}
 
 		if err := r.ParseTemplate(templateKeamananPath, newTemplateKeamananPath, templateData); err == nil {
@@ -427,17 +433,20 @@ func (r *Pdf) LaporanMingguan() {
 	}
 
 	countOfWeek = make(map[string]int)
+	nameOfWeek = []string{}
 	for i, weeks := range weekName {
 		total := 0
 		for _, kejadian := range kejadianKeselamatanWeek {
 			total += kejadian[weeks]
 		}
 		name := "Minggu " + strconv.Itoa(i+1)
+		nameOfWeek = append(nameOfWeek, name)
 		countOfWeek[name] = total
 	}
-	outputPath = fmt.Sprintf("storage/temp/kecelakaan%s.png", "default")
+	outputPath = fmt.Sprintf("storage/temp/kecelakaan-%s.pdf", "head")
 
 	templateDataKeselamatan := struct {
+		KejadianKeamananLength      int
 		BaseURL                     string
 		Bulan                       string
 		BulanCapital                string
@@ -448,6 +457,7 @@ func (r *Pdf) LaporanMingguan() {
 		CountOfWeek                 map[string]int
 		DataKejadianKeselamatanWeek []models.KejadianKeselamatanImage
 	}{
+		KejadianKeamananLength:      len(kejadianKeamananWeek),
 		BaseURL:                     baseURL,
 		Bulan:                       bulan,
 		BulanCapital:                strings.ToUpper(bulan),
@@ -472,7 +482,7 @@ func (r *Pdf) LaporanMingguan() {
 
 	for _, data := range result_keselamatan {
 		// path for download pdf
-		outputPath := fmt.Sprintf("storage/temp/kecelakaan%d.png", data.IdKejadianKeselamatan)
+		outputPath := fmt.Sprintf("storage/temp/kecelakaan-%d.pdf", data.IdKejadianKeselamatan)
 
 		var perpindahanAwal string
 		if data.PelabuhanAsal != "-" && data.PelabuhanAsal != "" {
@@ -527,37 +537,41 @@ func (r *Pdf) LaporanMingguan() {
 
 		// html template data
 		templateData := struct {
-			BaseURL          string
-			Title            string
-			NamaKapal        string
-			Kejadian         string
-			Penyebab         string
-			Lokasi           string
-			Korban           string
-			Perpindahan      string
-			Keterangan       string
-			Waktu            string
-			InstansiPenindak string
-			SumberBerita     string
-			Latitude         float64
-			Longitude        float64
-			Images           []models.FileImage
+			KejadianKeamananLength  int
+			KejadianKeselamatanWeek map[string]map[string]int
+			BaseURL                 string
+			Title                   string
+			NamaKapal               string
+			Kejadian                string
+			Penyebab                string
+			Lokasi                  string
+			Korban                  string
+			Perpindahan             string
+			Keterangan              string
+			Waktu                   string
+			InstansiPenindak        string
+			SumberBerita            string
+			Latitude                float64
+			Longitude               float64
+			Images                  []models.FileImage
 		}{
-			BaseURL:          baseURL,
-			Title:            data.JenisKejadian.NamaKejadian,
-			NamaKapal:        data.NamaKapal,
-			Kejadian:         data.JenisKejadian.NamaKejadian,
-			Penyebab:         data.Penyebab,
-			Lokasi:           data.LokasiKejadian,
-			Korban:           korban,
-			Perpindahan:      perpindahan,
-			Keterangan:       data.TindakLanjut,
-			Waktu:            data.Tanggal.ToDateString(),
-			InstansiPenindak: data.SumberBerita,
-			SumberBerita:     data.LinkBerita,
-			Latitude:         data.Latitude,
-			Longitude:        data.Longitude,
-			Images:           data.FileImage,
+			KejadianKeamananLength:  len(kejadianKeamananWeek),
+			KejadianKeselamatanWeek: kejadianKeselamatanWeek,
+			BaseURL:                 baseURL,
+			Title:                   data.JenisKejadian.NamaKejadian,
+			NamaKapal:               data.NamaKapal,
+			Kejadian:                data.JenisKejadian.NamaKejadian,
+			Penyebab:                data.Penyebab,
+			Lokasi:                  data.LokasiKejadian,
+			Korban:                  korban,
+			Perpindahan:             perpindahan,
+			Keterangan:              data.TindakLanjut,
+			Waktu:                   data.Tanggal.ToDateString(),
+			InstansiPenindak:        data.SumberBerita,
+			SumberBerita:            data.LinkBerita,
+			Latitude:                data.Latitude,
+			Longitude:               data.Longitude,
+			Images:                  data.FileImage,
 		}
 
 		if err := r.ParseTemplate(templateKeselamatanPath, newTemplateKeselamatanPath, templateData); err == nil {
@@ -572,34 +586,12 @@ func (r *Pdf) LaporanMingguan() {
 		}
 	}
 
-	// Create a new PDF document
-	pdf := gofpdf.New("L", "mm", "A4", "")
-
-	for _, image := range images {
-		// Add a new page to the PDF
-		pdf.AddPage()
-
-		// Get the image dimensions
-		options := gofpdf.ImageOptions{
-			ReadDpi: true,
-		}
-		info := pdf.RegisterImageOptions(image, options)
-		width, height := info.Extent()
-
-		// Calculate the position to center the image on the page
-		pageWidth, pageHeight := pdf.GetPageSize()
-		x := (pageWidth - width) / 2
-		y := (pageHeight - height) / 2
-
-		// Add the image to the PDF
-		pdf.ImageOptions(image, x, y, width, height, false, options, 0, "")
-	}
-
 	// Save the PDF to a file
 	// path := strconv.Itoa(req.TahunKe) + "/" + req.JenisLaporan + "/Bulan " + monthName(req.BulanKe)
-	err := pdf.OutputFileAndClose("storage/laporan-keamanan-mingguan.pdf")
+	err := api.MergeCreateFile(images, "storage/laporan-keamanan-mingguan.pdf", false, model.NewDefaultConfiguration())
 	if err != nil {
-		fmt.Printf("Error saving PDF: %s", err)
+		fmt.Println("Error merging PDF files:", err)
+		os.Exit(1)
 	}
 
 	fmt.Println("PDF created successfully!")

@@ -18,8 +18,9 @@ import (
 
 	"github.com/goravel/framework/contracts/http"
 	"github.com/goravel/framework/facades"
-	"github.com/jung-kurt/gofpdf"
 	"github.com/lib/pq"
+	"github.com/pdfcpu/pdfcpu/pkg/api"
+	"github.com/pdfcpu/pdfcpu/pkg/pdfcpu/model"
 )
 
 type UintArray []uint8
@@ -124,9 +125,10 @@ func (r *Pdf) GenerateSlide(slidePath string) (bool, error) {
 	}
 
 	// Construct the command
-	cmd := exec.Command("wkhtmltoimage", "--enable-local-file-access",
-		"--enable-plugins", "--javascript-delay", "500", inputFile, slidePath)
-
+	cmd := exec.Command("wkhtmltopdf", "--enable-local-file-access",
+		"--enable-plugins", "--javascript-delay", "500", "--page-size", "A4", "--orientation", "Landscape",
+		"--margin-top", "0", "--margin-bottom", "0", "--margin-left", "0", "--margin-right", "0", "--zoom", "0.8",
+		"--enable-smart-shrinking", inputFile, slidePath)
 	// Set the command's standard output and error to the current process's standard output and error
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -503,7 +505,7 @@ func (r *Pdf) GenerateMingguan(ctx http.Context) http.Response {
 	}
 	// kejadianKeamananWeek, jenisKejadianKeamanan, weekName
 	var images []string
-	outputPath := fmt.Sprintf("storage/temp/pelanggaran%d.png", "default")
+	outputPath := fmt.Sprintf("storage/temp/pelanggaran-%s.pdf", "head")
 
 	templateDataKeamanan := struct {
 		BaseURL                  string
@@ -554,7 +556,7 @@ func (r *Pdf) GenerateMingguan(ctx http.Context) http.Response {
 
 	for _, data := range result_keamanan {
 		// path for download pdf
-		outputPath := fmt.Sprintf("storage/temp/pelanggaran%d.png", data.IdKejadianKeamanan)
+		outputPath := fmt.Sprintf("storage/temp/pelanggaran-%d.pdf", data.IdKejadianKeamanan)
 
 		var abk string
 		if strings.Contains(data.Muatan, "ABK") {
@@ -629,7 +631,7 @@ func (r *Pdf) GenerateMingguan(ctx http.Context) http.Response {
 		nameOfWeek = append(nameOfWeek, name)
 		countOfWeek[name] = total
 	}
-	outputPath = fmt.Sprintf("storage/temp/kecelakaan%d.png", "default")
+	outputPath = fmt.Sprintf("storage/temp/kecelakaan-%s.pdf", "head")
 
 	templateDataKeselamatan := struct {
 		KejadianKeamananLength      int
@@ -668,7 +670,7 @@ func (r *Pdf) GenerateMingguan(ctx http.Context) http.Response {
 
 	for _, data := range result_keselamatan {
 		// path for download pdf
-		outputPath := fmt.Sprintf("storage/temp/kecelakaan%d.png", data.IdKejadianKeselamatan)
+		outputPath := fmt.Sprintf("storage/temp/kecelakaan-%d.pdf", data.IdKejadianKeselamatan)
 
 		var perpindahanAwal string
 		if data.PelabuhanAsal != "-" && data.PelabuhanAsal != "" {
@@ -772,34 +774,12 @@ func (r *Pdf) GenerateMingguan(ctx http.Context) http.Response {
 		}
 	}
 
-	// Create a new PDF document
-	pdf := gofpdf.New("L", "mm", "A4", "")
-
-	for _, image := range images {
-		// Add a new page to the PDF
-		pdf.AddPage()
-
-		// Get the image dimensions
-		options := gofpdf.ImageOptions{
-			ReadDpi: true,
-		}
-		info := pdf.RegisterImageOptions(image, options)
-		width, height := info.Extent()
-
-		// Calculate the position to center the image on the page
-		pageWidth, pageHeight := pdf.GetPageSize()
-		x := (pageWidth - width) / 2
-		y := (pageHeight - height) / 2
-
-		// Add the image to the PDF
-		pdf.ImageOptions(image, x, y, width, height, false, options, 0, "")
-	}
-
 	// Save the PDF to a file
 	// path := strconv.Itoa(req.TahunKe) + "/" + req.JenisLaporan + "/Bulan " + monthName(req.BulanKe)
-	err := pdf.OutputFileAndClose("storage/laporan-keamanan-mingguan.pdf")
+	err := api.MergeCreateFile(images, "storage/laporan-keamanan-mingguan.pdf", false, model.NewDefaultConfiguration())
 	if err != nil {
-		fmt.Printf("Error saving PDF: %s", err)
+		fmt.Println("Error merging PDF files:", err)
+		os.Exit(1)
 	}
 
 	fmt.Println("PDF created successfully!")
