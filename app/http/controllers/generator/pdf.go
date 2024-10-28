@@ -779,7 +779,7 @@ func (r *Pdf) GenerateMingguan(ctx http.Context) http.Response {
 	err := api.MergeCreateFile(images, "storage/laporan-keamanan-mingguan.pdf", false, model.NewDefaultConfiguration())
 	if err != nil {
 		fmt.Println("Error merging PDF files:", err)
-		os.Exit(1)
+		return nil
 	}
 
 	fmt.Println("PDF created successfully!")

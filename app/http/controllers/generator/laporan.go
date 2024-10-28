@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"goravel/app/models"
-	"os"
 	"regexp"
 	"sort"
 	"strconv"
@@ -591,7 +590,7 @@ func (r *Pdf) LaporanMingguan() {
 	err := api.MergeCreateFile(images, "storage/laporan-keamanan-mingguan.pdf", false, model.NewDefaultConfiguration())
 	if err != nil {
 		fmt.Println("Error merging PDF files:", err)
-		os.Exit(1)
+		return
 	}
 
 	fmt.Println("PDF created successfully!")
