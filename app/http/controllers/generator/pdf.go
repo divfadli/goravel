@@ -125,10 +125,16 @@ func (r *Pdf) GenerateSlide(slidePath string) (bool, error) {
 	}
 
 	// Construct the command
-	cmd := exec.Command("wkhtmltopdf", "--enable-local-file-access",
-		"--enable-plugins", "--javascript-delay", "500", "--page-size", "A4", "--orientation", "Landscape",
-		"--margin-top", "0", "--margin-bottom", "0", "--margin-left", "0", "--margin-right", "0", "--zoom", "0.8",
-		"--enable-smart-shrinking", inputFile, slidePath)
+	cmd := exec.Command("wkhtmltopdf", "--enable-local-file-access", "--enable-smart-shrinking",
+		"--enable-plugins", "--javascript-delay", "2000", "--no-stop-slow-scripts", "--debug-javascript",
+		"--page-size", "A4", "--orientation", "Landscape",
+		"--margin-top", "0", "--margin-bottom", "0", "--margin-left", "0", "--margin-right", "0",
+		"--zoom", "0.8", inputFile, slidePath,
+	)
+	// cmd := exec.Command("wkhtmltopdf", "--enable-local-file-access", "--enable-plugins",
+	// 	"--javascript-delay", "500", "--debug-javascript", "--page-size", "A4", "--orientation", "Landscape",
+	// 	"--margin-top", "0", "--margin-bottom", "0", "--margin-left", "0", "--margin-right", "0", "--zoom", "0.8",
+	// 	"--enable-smart-shrinking", inputFile, slidePath)
 	// Set the command's standard output and error to the current process's standard output and error
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
