@@ -132,7 +132,15 @@
                         </tr>
                         <tr>
                             <td>Sumber Berita</td>
-                            <td><a href="{{.SumberBerita}}">{{.SumberBerita}}</a></td>
+                            <td>
+                                {{range $index, $url := split .SumberBerita "\n"}}
+                                    {{if contains $url "http"}}
+                                        <a href="{{trim $url}}" target="_blank">{{trim $url}}</a><br>
+                                    {{else}}
+                                        <u>{{trim $url}}</u><br>
+                                    {{end}}
+                                {{end}}
+                            </td>                            
                         </tr>
                     </tbody>
                 </table>
