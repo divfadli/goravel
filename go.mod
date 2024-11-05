@@ -1,13 +1,14 @@
 module goravel
 
-go 1.20
+go 1.21
 
 require (
 	github.com/SebastiaanKlippert/go-wkhtmltopdf v1.9.2
 	github.com/gin-gonic/gin v1.9.1
-	github.com/go-co-op/gocron/v2 v2.12.1
+	github.com/go-co-op/gocron/v2 v2.12.3
 	github.com/go-playground/validator/v10 v10.19.0
 	github.com/golang-module/carbon/v2 v2.2.8
+	github.com/google/uuid v1.6.0
 	github.com/goravel/framework v1.13.9
 	github.com/goravel/gin v1.1.7
 	github.com/lib/pq v1.10.2
@@ -73,7 +74,6 @@ require (
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/google/s2a-go v0.1.4 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
-	github.com/google/uuid v1.6.0 // indirect
 	github.com/google/wire v0.5.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.2.3 // indirect
 	github.com/googleapis/gax-go/v2 v2.11.0 // indirect
