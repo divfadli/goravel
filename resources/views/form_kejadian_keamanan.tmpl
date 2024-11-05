@@ -58,7 +58,9 @@
                                 <label class="col-sm-4 col-form-label" for="link_berita">Link Berita</label>
                                 <div class="col-sm-8">
                                     <textarea id="link_berita" name="link_berita" class="form-control form-control-sm" required 
-                                    style="font-size:1em;" oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Link Berita harus diisi..!!')"></textarea>
+                                    style="font-size:1em; min-height:100px; overflow:hidden; resize:none;" 
+                                    oninput="setCustomValidity('')" 
+                                    oninvalid="this.setCustomValidity('Link Berita harus diisi..!!')">• </textarea>
                                 </div>
                             </div>
                             <div class="form-group row">
@@ -179,6 +181,31 @@
  {{ template "layouts/script.tmpl" . }}
 
 <script>
+    const linkBeritaTextarea = document.getElementById('link_berita');
+
+    linkBeritaTextarea.value = '• ';
+
+    linkBeritaTextarea.addEventListener('input', function() {
+        if (this.value === '') {
+            this.value = '• ';
+            this.selectionStart = this.selectionEnd = 2;
+        }
+        this.style.height = 'auto';
+        this.style.height = this.scrollHeight + 'px';
+    });
+
+    linkBeritaTextarea.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const cursorPosition = this.selectionStart;
+            const currentValue = this.value;
+            const newValue = currentValue.slice(0, cursorPosition) + '\n• ' + currentValue.slice(cursorPosition);
+            this.value = newValue;
+            this.selectionStart = this.selectionEnd = cursorPosition + 3;
+        }
+    });
+
+
     var id_kejadian_keamanan = {{.idKejadianKeamanan}};
     var jenisPelanggaranSelected = null;
 
@@ -206,7 +233,13 @@
                 $("#jenis_pelanggaran").prop('disabled',true);
                 $("#nama_kapal").val(data.nama_kapal);
                 $("#sumber_berita").val(data.sumber_berita);
-                $("#link_berita").val(data.link_berita);
+                const links = data.link_berita.split('\n');
+                const bulletPoints = links.map(link => `• ${link}`).join('\n');
+                $("#link_berita").val(bulletPoints);
+
+                linkBeritaTextarea.style.height = 'auto';
+                linkBeritaTextarea.style.height = linkBeritaTextarea.scrollHeight + 'px';
+
                 $("#lokasi_kejadian").val(`${data.latitude} ${data.longitude}`);
                 search_location()
                 $("#muatan").val(data.muatan);
@@ -315,7 +348,7 @@
         }
     </script>
 
-    <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAeQVXtdaEgd0Cfvjy41mjGZ6_f5thMVt4&loading=async&callback=initMap"></script>
+    <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAeQVXtdaEgd0Cfvjy41mjGZ6_f5thMVt4&loading=async&language=id&callback=initMap"></script>
     <script>
         let marker;
 
@@ -400,6 +433,13 @@
                 e.preventDefault();
 
                 var formData = new FormData(this);
+                
+                // Get textarea content and process bullet points
+                let linkBeritaContent = $('#link_berita').val();
+                let items = linkBeritaContent.split('\n').map(item => item.trim().replace('• ', '')).filter(Boolean);
+                let processedContent = items.join('\n');
+                
+                formData.set('link_berita', processedContent);
                 formData.append("jenis_kejadian_id", $('#jenis_pelanggaran').val());
 
                 $.ajax({
