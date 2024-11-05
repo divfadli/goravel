@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/go-co-op/gocron/v2"
+	"github.com/google/uuid"
 )
 
 // https://pkg.go.dev/github.com/go-co-op/gocron/v2#MonthlyJob
@@ -56,7 +57,7 @@ func CronJobGenerateLaporanMingguan() {
 		log.Fatal(err)
 	}
 
-	defer func() { _ = s.Shutdown() }()
+	// defer func() { _ = s.Shutdown() }()
 
 	// add a job to the scheduler
 	j, err := s.NewJob(
@@ -69,6 +70,18 @@ func CronJobGenerateLaporanMingguan() {
 				generate := NewPdf("")
 				generate.LaporanMingguan()
 			},
+		),
+		gocron.WithName("WeeklyGenerateLaporanMingguan"),
+		gocron.WithEventListeners(
+			gocron.BeforeJobRuns(func(jobID uuid.UUID, jobName string) {
+				fmt.Printf("Job %s with ID %s is about to run\n", jobName, jobID)
+			}),
+			gocron.AfterJobRuns(func(jobID uuid.UUID, jobName string) {
+				fmt.Printf("Job %s with ID %s has run\n", jobName, jobID)
+			}),
+			gocron.AfterJobRunsWithError(func(jobID uuid.UUID, jobName string, err error) {
+				fmt.Printf("Job %s with ID %s has run with error %v\n", jobName, jobID, err)
+			}),
 		),
 	)
 
@@ -87,11 +100,13 @@ func CronJobGenerateLaporanMingguan() {
 // https://pkg.go.dev/github.com/go-co-op/gocron/v2#CronJob
 func TestGenerateCronTab() {
 	// create a scheduler
-	s, err := gocron.NewScheduler()
-	if err != nil {
-		// handle error
-		log.Fatal(err)
-	}
+	s, _ := gocron.NewScheduler()
+	// if err != nil {
+	// 	// handle error
+	// 	log.Fatal(err)
+	// }
+
+	// defer func() { _ = s.Shutdown() }()
 
 	j, err := s.NewJob(
 		gocron.CronJob(
@@ -100,10 +115,25 @@ func TestGenerateCronTab() {
 			false,
 		),
 		gocron.NewTask(
-			func() {
-				generate := NewPdf("")
-				generate.LaporanMingguan()
+			func(a string, b int) {
+				// do things
+				x := NewPdf("")
+				x.LaporanMingguan()
 			},
+			"hello",
+			1,
+		),
+		gocron.WithName("TestGenerateCronTab"),
+		gocron.WithEventListeners(
+			gocron.BeforeJobRuns(func(jobID uuid.UUID, jobName string) {
+				fmt.Printf("Job %s with ID %s is about to run\n", jobName, jobID)
+			}),
+			gocron.AfterJobRuns(func(jobID uuid.UUID, jobName string) {
+				fmt.Printf("Job %s with ID %s has run\n", jobName, jobID)
+			}),
+			gocron.AfterJobRunsWithError(func(jobID uuid.UUID, jobName string, err error) {
+				fmt.Printf("Job %s with ID %s has run with error %v\n", jobName, jobID, err)
+			}),
 		),
 	)
 
