@@ -415,9 +415,8 @@
                 linkBeritaTextarea.style.height = linkBeritaTextarea.scrollHeight + 'px';
 
                 $("#lokasi_kejadian").val(`${data.latitude} ${data.longitude}`);
+                
                 let coordinates = $('#lokasi_kejadian').val().split(' ');
-                let latLng = new google.maps.LatLng(parseFloat(coordinates[0]), parseFloat(coordinates[1]));
-                handleLocation(latLng);
 
                 $("#muatan").val(data.muatan);
                 $("#asal").val(data.asal);
@@ -429,6 +428,12 @@
                 $("#mmsi_kapal").val(data.mmsi_kapal);
                 $("#informasi_kategori").val(data.informasi_kategori);
                 $("#zona").val(data.zona);
+
+                let coordinateLatlng = new google.maps.LatLng(
+                    parseFloat(coordinates[0]), 
+                    parseFloat(coordinates[1])
+                );
+                handleLocation(coordinateLatlng);
 
                 const container = new DataTransfer();
 
