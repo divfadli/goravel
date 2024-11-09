@@ -216,7 +216,7 @@ func (r *Pdf) GenerateLaporan(laporanPath string) (bool, error) {
 }
 
 func (r *Pdf) GenerateMingguanLastMonth(ctx http.Context, date time.Time) http.Response {
-	baseURL := ctx.Request().Host()
+	baseURL := "http://" + ctx.Request().Host()
 
 	// html template path
 	templateKeamananPath := "templates/keamanan.html"
@@ -816,7 +816,8 @@ func (r *Pdf) GenerateMingguanLastMonth(ctx http.Context, date time.Time) http.R
 }
 
 func (r *Pdf) GenerateMingguan(ctx http.Context) http.Response {
-	baseURL := ctx.Request().Host()
+	baseURL := "http://" + ctx.Request().Host()
+	fmt.Println("baseURL:", baseURL)
 
 	//html template path
 	templateKeamananPath := "templates/keamanan.html"
@@ -1507,7 +1508,7 @@ func daysInMonth(tanggal time.Time) int {
 func (r *Pdf) GenerateBulanan(ctx http.Context) http.Response {
 	//html template path
 	// now := time.Now()
-	now := time.Date(2024, 6, 1, 0, 0, 0, 0, time.UTC)
+	now := time.Date(2024, 7, 1, 0, 0, 0, 0, time.UTC)
 	bulan := monthNameIndonesia(now.Month())
 	// intBulan := int(now.Month())
 	year := strconv.Itoa(now.Year())

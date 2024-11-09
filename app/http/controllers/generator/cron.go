@@ -9,69 +9,52 @@ import (
 	"github.com/google/uuid"
 )
 
-// https://pkg.go.dev/github.com/go-co-op/gocron/v2#MonthlyJob
-func MonthlyGenerate() {
-	// create a scheduler
-	s, err := gocron.NewScheduler()
-	if err != nil {
-		// handle error
-		log.Fatal(err)
-	}
+func QuarterlyGenerate() {
+	s, _ := gocron.NewScheduler()
 
-	defer func() { _ = s.Shutdown() }()
+	// Create jobs and store their IDs
+	jobs := make(map[string]uuid.UUID)
 
-	// add a job to the scheduler
-	j, err := s.NewJob(
-		gocron.MonthlyJob(1, gocron.NewDaysOfTheMonth(-1), gocron.NewAtTimes(
-			gocron.NewAtTime(0, 0, 0),
+	// QuarterlyJob Every 3 Month
+	QuarterlyJob, _ := s.NewJob(
+		gocron.MonthlyJob(3, gocron.NewDaysOfTheMonth(-1), gocron.NewAtTimes(
+			gocron.NewAtTime(23, 50, 0),
 		)),
 		gocron.NewTask(
-			// TODO: generate laporan bulanan
-			func(a string, b int) {
-				// do things
-				fmt.Println(a, b)
+			func() {
+				currentTime := time.Now()
+				month := currentTime.Month()
+
+				// Only generate for quarter-end months (3,6,9,12)
+				if month == time.March || month == time.June ||
+					month == time.September || month == time.December {
+					generate := NewPdf("")
+					generate.LaporanTriwulan()
+				}
 			},
-			"hello",
-			1,
+		),
+		gocron.WithName("QuarterlyReportJob"),
+		gocron.WithEventListeners(
+			gocron.BeforeJobRuns(func(jobID uuid.UUID, jobName string) {
+				fmt.Printf("Quarterly Job %s with ID %s is about to run\n", jobName, jobID)
+			}),
 		),
 	)
+	jobs["QuarterlyReportJob"] = QuarterlyJob.ID()
 
-	if err != nil {
-		// handle error
-		log.Fatal(err)
-	}
-
-	// each job has a unique id
-	fmt.Println(j.ID())
-
-	// start the scheduler
-	s.Start()
-}
-
-// https://pkg.go.dev/github.com/go-co-op/gocron/v2#WeeklyJob
-func CronJobGenerateLaporanMingguan() {
-	// create a scheduler
-	s, err := gocron.NewScheduler()
-	if err != nil {
-		// handle error
-		log.Fatal(err)
-	}
-
-	// defer func() { _ = s.Shutdown() }()
-
-	// add a job to the scheduler
-	j, err := s.NewJob(
+	// Update QuarterlyUpdateJob Every Monday
+	QuarterlyUpdateJob, _ := s.NewJob(
 		gocron.WeeklyJob(1, gocron.NewWeekdays(time.Monday), gocron.NewAtTimes(
-			gocron.NewAtTime(0, 0, 0),
+			gocron.NewAtTime(0, 10, 0),
 		)),
 		gocron.NewTask(
 			// generate laporan mingguan
 			func() {
 				generate := NewPdf("")
-				generate.LaporanMingguan()
+				generate.LaporanTriwulanUpdate(6, 2024)
 			},
 		),
-		gocron.WithName("WeeklyGenerateLaporanMingguan"),
+		gocron.WithName("QuarterlyReportUpdateJob"),
 		gocron.WithEventListeners(
 			gocron.BeforeJobRuns(func(jobID uuid.UUID, jobName string) {
 				fmt.Printf("Job %s with ID %s is about to run\n", jobName, jobID)
@@ -84,14 +67,163 @@ func CronJobGenerateLaporanMingguan() {
 			}),
 		),
 	)
+	jobs["QuarterlyReportUpdateJob"] = QuarterlyUpdateJob.ID()
 
+	// Display all job IDs
+	fmt.Println("=== All Scheduled Quarterly Jobs ===")
+	for name, id := range jobs {
+		fmt.Printf("Job Name: %s, ID: %s\n", name, id)
+	}
+
+	s.Start()
+}
+
+// https://pkg.go.dev/github.com/go-co-op/gocron/v2#MonthlyJob
+func MonthlyGenerate() {
+	// create a scheduler
+	s, err := gocron.NewScheduler()
 	if err != nil {
 		// handle error
 		log.Fatal(err)
 	}
 
-	// each job has a unique id
-	fmt.Println("Job GenerateLaporanMingguan ID:", j.ID())
+	// defer func() { _ = s.Shutdown() }()
+	// Create jobs and store their IDs
+	jobs := make(map[string]uuid.UUID)
+
+	// add a job to the scheduler
+	monthlyJob, _ := s.NewJob(
+		gocron.MonthlyJob(1, gocron.NewDaysOfTheMonth(-1), gocron.NewAtTimes(
+			gocron.NewAtTime(00, 00, 00),
+		)),
+		gocron.NewTask(
+			// TODO: generate laporan bulanan
+			func() {
+				generate := NewPdf("")
+				generate.LaporanBulanan()
+			},
+		),
+		gocron.WithName("MonthlyReportJob"),
+		gocron.WithEventListeners(
+			gocron.BeforeJobRuns(func(jobID uuid.UUID, jobName string) {
+				fmt.Printf("Job %s with ID %s is about to run\n", jobName, jobID)
+			}),
+			gocron.AfterJobRuns(func(jobID uuid.UUID, jobName string) {
+				fmt.Printf("Job %s with ID %s has run\n", jobName, jobID)
+			}),
+			gocron.AfterJobRunsWithError(func(jobID uuid.UUID, jobName string, err error) {
+				fmt.Printf("Job %s with ID %s has run with error %v\n", jobName, jobID, err)
+			}),
+		),
+	)
+	jobs["MonthlyReportJob"] = monthlyJob.ID()
+
+	// Update MonthlyReportJob every Monday
+	monthlyUpdateJob, _ := s.NewJob(
+		gocron.WeeklyJob(1, gocron.NewWeekdays(time.Monday), gocron.NewAtTimes(
+			gocron.NewAtTime(0, 10, 0),
+		)),
+		gocron.NewTask(
+			// generate laporan mingguan
+			func() {
+				generate := NewPdf("")
+				generate.LaporanBulananUpdate(6, 2024)
+			},
+		),
+		gocron.WithName("MonthlyReportUpdateJob"),
+		gocron.WithEventListeners(
+			gocron.BeforeJobRuns(func(jobID uuid.UUID, jobName string) {
+				fmt.Printf("Job %s with ID %s is about to run\n", jobName, jobID)
+			}),
+			gocron.AfterJobRuns(func(jobID uuid.UUID, jobName string) {
+				fmt.Printf("Job %s with ID %s has run\n", jobName, jobID)
+			}),
+			gocron.AfterJobRunsWithError(func(jobID uuid.UUID, jobName string, err error) {
+				fmt.Printf("Job %s with ID %s has run with error %v\n", jobName, jobID, err)
+			}),
+		),
+	)
+	jobs["MonthlyReportUpdateJob"] = monthlyUpdateJob.ID()
+
+	// Display all job IDs
+	fmt.Println("=== All Scheduled Monthly Jobs ===")
+	for name, id := range jobs {
+		fmt.Printf("Job Name: %s, ID: %s\n", name, id)
+	}
+
+	// start the scheduler
+	s.Start()
+}
+
+// https://pkg.go.dev/github.com/go-co-op/gocron/v2#WeeklyJob
+func WeeklyGenerate() {
+	// create a scheduler
+	s, _ := gocron.NewScheduler()
+
+	// defer func() { _ = s.Shutdown() }()
+
+	// Create jobs and store their IDs
+	jobs := make(map[string]uuid.UUID)
+
+	// add a job to the scheduler
+	weeklyJob, _ := s.NewJob(
+		gocron.WeeklyJob(1, gocron.NewWeekdays(time.Monday), gocron.NewAtTimes(
+			gocron.NewAtTime(0, 0, 0),
+		)),
+		gocron.NewTask(
+			// generate laporan mingguan
+			func() {
+				generate := NewPdf("")
+				generate.LaporanMingguan()
+			},
+		),
+		gocron.WithName("WeeklyReportJob"),
+		gocron.WithEventListeners(
+			gocron.BeforeJobRuns(func(jobID uuid.UUID, jobName string) {
+				fmt.Printf("Job %s with ID %s is about to run\n", jobName, jobID)
+			}),
+			gocron.AfterJobRuns(func(jobID uuid.UUID, jobName string) {
+				fmt.Printf("Job %s with ID %s has run\n", jobName, jobID)
+			}),
+			gocron.AfterJobRunsWithError(func(jobID uuid.UUID, jobName string, err error) {
+				fmt.Printf("Job %s with ID %s has run with error %v\n", jobName, jobID, err)
+			}),
+		),
+	)
+	jobs["WeeklyReportJob"] = weeklyJob.ID()
+
+	// Update WeeklyReportJob
+	weeklyUpdateJob, _ := s.NewJob(
+		gocron.WeeklyJob(1, gocron.NewWeekdays(time.Monday), gocron.NewAtTimes(
+			gocron.NewAtTime(0, 10, 0),
+		)),
+		gocron.NewTask(
+			// generate laporan mingguan
+			func() {
+				generate := NewPdf("")
+				generate.LaporanMingguanUpdate(1, 9, 2024)
+			},
+		),
+		gocron.WithName("WeeklyReportUpdateJob"),
+		gocron.WithEventListeners(
+			gocron.BeforeJobRuns(func(jobID uuid.UUID, jobName string) {
+				fmt.Printf("Job %s with ID %s is about to run\n", jobName, jobID)
+			}),
+			gocron.AfterJobRuns(func(jobID uuid.UUID, jobName string) {
+				fmt.Printf("Job %s with ID %s has run\n", jobName, jobID)
+			}),
+			gocron.AfterJobRunsWithError(func(jobID uuid.UUID, jobName string, err error) {
+				fmt.Printf("Job %s with ID %s has run with error %v\n", jobName, jobID, err)
+			}),
+		),
+	)
+	jobs["WeeklyReportUpdateJob"] = weeklyUpdateJob.ID()
+
+	// Display all job IDs
+	fmt.Println("=== All Scheduled Weekly Jobs ===")
+	for name, id := range jobs {
+		fmt.Printf("Job Name: %s, ID: %s\n", name, id)
+	}
 
 	// start the scheduler
 	s.Start()
@@ -118,7 +250,7 @@ func TestGenerateCronTab() {
 			func(a string, b int) {
 				// do things
 				x := NewPdf("")
-				x.LaporanMingguan()
+				x.LaporanMingguanUpdate(1, 9, 2024)
 			},
 			"hello",
 			1,
@@ -151,5 +283,7 @@ func TestGenerateCronTab() {
 
 func StartCronJob() {
 	// go TestGenerateCronTab()
-	go CronJobGenerateLaporanMingguan()
+	go WeeklyGenerate()
+	go MonthlyGenerate()
+	go QuarterlyGenerate()
 }
