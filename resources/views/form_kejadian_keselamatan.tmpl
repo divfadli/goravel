@@ -12,6 +12,10 @@
                             <input type="hidden" id="longitude" name="longitude" />
                             <input type="hidden" id="nik" name="nik" value="99999" />
                             <input type="hidden" id="id_kejadian_keselamatan" name="id_kejadian_keselamatan" value="" />
+
+                            <div class="form-group row">
+                                <label class="col-sm tex-blue"><h5><u>Data Kejadian</u></h5></label>
+                            </div>
                             <div class="form-group row">
                                 <label class="col-sm-4 col-form-label" for="tanggal_kejadian">Tanggal</label>
                                 <div class="col-sm-8">
@@ -22,7 +26,9 @@
                             <div class="form-group row">
                                 <label class="col-sm-4 col-form-label" for="jenis_kecelakaan">Jenis Kecelakaan</label>
                                 <div class="col-sm-8">
-                                    <select name="jenis_kejadian_id" id="jenis_kecelakaan" data-error="Pilih Jenis Kecelakaan" class="form-control form-control-sm" required>
+                                    <select name="jenis_kejadian_id" id="jenis_kecelakaan" 
+                                        data-error="Pilih Jenis Kecelakaan required" 
+                                        class="form-control form-control-sm select2_jenis_kecelakaan">
                                     </select>
                                 </div>
                             </div>
@@ -34,20 +40,24 @@
                                 </div>
                             </div>
                             <div class="form-group row">
-                                <label class="col-sm-4 col-form-label" for="sumber_berita">Sumber Berita</label>
+                                <label class="col-sm-4 col-form-label" for="pelabuhan_asal">Pelabuhan Asal</label>
                                 <div class="col-sm-8">
-                                    <input type="text" id="sumber_berita" name="sumber_berita" class="form-control form-control-sm" required
-                                    oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Sumber Berita harus diisi..!!')">
+                                    <input type="text" id="pelabuhan_asal" name="pelabuhan_asal" class="form-control form-control-sm" required
+                                    oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Pelabuhan Asal harus diisi..!!')">
                                 </div>
                             </div>
                             <div class="form-group row">
-                                <label class="col-sm-4 col-form-label" for="link_berita">Link Berita</label>
+                                <label class="col-sm-4 col-form-label" for="pelabuhan_tujuan">Pelabuhan Tujuan</label>
                                 <div class="col-sm-8">
-                                    <textarea id="link_berita" name="link_berita" class="form-control form-control-sm" required 
-                                    style="font-size:1em;" oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Link Berita harus diisi..!!')"></textarea>
+                                    <input type="text" id="pelabuhan_tujuan" name="pelabuhan_tujuan" class="form-control form-control-sm" required
+                                    oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Pelabuhan Tujuan harus diisi..!!')">
                                 </div>
                             </div>
-                             <div class="form-group row">
+
+                            <div class="form-group row">
+                                <label class="col-sm tex-blue"><h5><u>Keterangan Kejadian</u></h5></label>
+                            </div>
+                            <div class="form-group row">
                                 <label class="col-sm-4 col-form-label" for="korban_tewas">Korban Tewas</label>
                                 <div class="col-sm-8">
                                     <input type="number" value="0" min="0" id="korban_tewas" name="korban_tewas" class="form-control form-control-sm" required
@@ -76,32 +86,54 @@
                                 </div>
                             </div>
                             <div class="form-group row">
-                                <label class="col-sm-4 col-form-label" for="pelabuhan_asal">Pelabuhan Asal</label>
+                                <label class="col-sm-4 col-form-label" for="tindak_lanjut">Tindak Lanjut</label>
                                 <div class="col-sm-8">
-                                    <input type="text" id="pelabuhan_asal" name="pelabuhan_asal" class="form-control form-control-sm" required
-                                    oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Pelabuhan Asal harus diisi..!!')">
+                                    <textarea id="tindak_lanjut" name="tindak_lanjut" class="form-control form-control-sm" required 
+                                    style="font-size:1em;" oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Tindak Lanjut harus diisi..!!')"></textarea>
+                                </div>
+                            </div>
+
+                            <div class="form-group row">
+                                <label class="col-sm-4 col-form-label" for="informasi_kategori">Informasi Tambahan</label>
+                                <div class="col-sm-8">
+                                    <textarea id="informasi_kategori" name="keterangan" class="form-control form-control-sm" required 
+                                    style="font-size:1em;" oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Informasi Tambahan harus diisi..!!')"></textarea>
                                 </div>
                             </div>
                             <div class="form-group row">
-                                <label class="col-sm-4 col-form-label" for="pelabuhan_tujuan">Pelabuhan Tujuan</label>
+                                <label class="col-sm-4 col-form-label" for="sumber_berita">Instansi Penindak</label>
                                 <div class="col-sm-8">
-                                    <input type="text" id="pelabuhan_tujuan" name="pelabuhan_tujuan" class="form-control form-control-sm" required
-                                    oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Pelabuhan Tujuan harus diisi..!!')">
+                                    <input type="text" id="sumber_berita" name="sumber_berita" class="form-control form-control-sm" required
+                                    oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Instansi Penindak harus diisi..!!')">
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-sm-4 col-form-label" for="link_berita">Sumber Link Berita</label>
+                                <div class="col-sm-8">
+                                    <textarea id="link_berita" name="link_berita" class="form-control form-control-sm" required 
+                                    style="font-size:1em;" oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Sumber Link Berita harus diisi..!!')"></textarea>
                                 </div>
                             </div>
                             <div class="form-group row">
                                 <label class="col-sm-4 col-form-label" for="kategori_sumber">Kategori Sumber</label>
                                 <div class="col-sm-8">
                                     <select name="kategori_sumber" id="kategori_sumber" data-error="Pilih Kategori Sumber" class="form-control form-control-sm" required>
-                                        <option value="" selected disabled hidden> Pilih </option>
                                         <option value="Media Online"> Media Online </option>
                                         <option value="Puldata"> Puldata </option>
                                         <option value="Media Online dan Puldata"> Media Online dan Puldata </option>
-                                        <option value="Media Online dan KPIML"> Media Online dan KPIML </option>
+                                        <option value="Media Online dan KPIML" selected> Media Online dan KPIML </option>
                                         <option value="Media Online dan Operasi"> Media Online dan Operasi </option>
                                     </select>
                                 </div>
                             </div>
+                            <div class="form-group row">
+                                <label class="col-sm-4 col-form-label" for="files">Image</label>
+                                <div class="col-sm-8">
+                                    <input type="file" id="file_input" name="files" accept="image/*" multiple>
+                                    <div id="file-list"></div>
+                                </div>
+                            </div>
+
                         </div>
 
                         <div class="col-md-6">
@@ -138,29 +170,7 @@
                                 </div>
                             </div>
                             
-                           <div class="form-group row">
-                                <label class="col-sm-4 col-form-label" for="tindak_lanjut">Tindak Lanjut</label>
-                                <div class="col-sm-8">
-                                    <textarea id="tindak_lanjut" name="tindak_lanjut" class="form-control form-control-sm" required 
-                                    style="font-size:1em;" oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Tindak Lanjut harus diisi..!!')"></textarea>
-                                </div>
-                            </div>
 
-                            <div class="form-group row">
-                                <label class="col-sm-4 col-form-label" for="informasi_kategori">Informasi Kategori</label>
-                                <div class="col-sm-8">
-                                    <textarea id="informasi_kategori" name="keterangan" class="form-control form-control-sm" required 
-                                    style="font-size:1em;" oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Informasi Kategori harus diisi..!!')"></textarea>
-                                </div>
-                            </div>
-
-                            <div class="form-group row">
-                                <label class="col-sm-4 col-form-label" for="files">Image</label>
-                                <div class="col-sm-8">
-                                    <input type="file" id="file_input" name="files" accept="image/*" multiple>
-                                    <div id="file-list"></div>
-                                </div>
-                            </div>
                         </div>
                         <!-- /.box-body -->
                     </div>
@@ -177,6 +187,33 @@
  {{ template "layouts/script.tmpl" . }}
 
 <script>
+    $(document).ready(function() {
+        $('.select2_jenis_kecelakaan').select2();
+    });
+    const linkBeritaTextarea = document.getElementById('link_berita');
+
+    linkBeritaTextarea.value = '• ';
+
+    linkBeritaTextarea.addEventListener('input', function() {
+        if (this.value === '') {
+            this.value = '• ';
+            this.selectionStart = this.selectionEnd = 2;
+        }
+        this.style.height = 'auto';
+        this.style.height = this.scrollHeight + 'px';
+    });
+
+    linkBeritaTextarea.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const cursorPosition = this.selectionStart;
+            const currentValue = this.value;
+            const newValue = currentValue.slice(0, cursorPosition) + '\n• ' + currentValue.slice(cursorPosition);
+            this.value = newValue;
+            this.selectionStart = this.selectionEnd = cursorPosition + 3;
+        }
+    });
+
     var id_kejadian_keselamatan = {{.idKejadianKeselamatan}};
     var jenisPelanggaranSelected = null;
 
@@ -200,13 +237,20 @@
             if (data !== null) {
                 $("#id_kejadian_keselamatan").val(data.id_kejadian_keselamatan);
                 $("#tanggal_kejadian").val(data.tanggal);
-                $("#jenis_kecelakaan").val(data.jenis_kejadian_id);
+
+                $("#jenis_kecelakaan").val(data.jenis_kejadian_id).trigger('change');
                 $("#jenis_kecelakaan").prop('disabled',true);
                 $("#nama_kapal").val(data.nama_kapal);
                 $("#sumber_berita").val(data.sumber_berita);
-                $("#link_berita").val(data.link_berita);
+                const links = data.link_berita.split('\n');
+                const bulletPoints = links.map(link => `• ${link}`).join('\n');
+                $("#link_berita").val(bulletPoints);
+
                 $("#lokasi_kejadian").val(`${data.latitude} ${data.longitude}`);
-                search_location()
+                let coordinates = $('#lokasi_kejadian').val().split(' ');
+                let latLng = new google.maps.LatLng(parseFloat(coordinates[0]), parseFloat(coordinates[1]));
+                handleLocation(latLng);
+
                 $("#penyebab").val(data.penyebab);
                 $("#pelabuhan_asal").val(data.pelabuhan_asal);
                 $("#bendera").val(data.bendera);
@@ -346,15 +390,30 @@
             });
         }
 
-        function search_location() {
-            let address = $('#lokasi_kejadian').val();
-            geocoder.geocode({ 'address': address }, function(results, status) {
-                if (status === google.maps.GeocoderStatus.OK && results[0]) {
-                    updateLocationInfo(results[0]);
-                } else {
-                    console.error('Geocode was not successful for the following reason: ' + status);
-                }
-            });
+ function search_location() {
+            let searchInput = $('#lokasi_kejadian').val();
+            
+            // Check if input contains coordinates
+            let coordinateMatch = searchInput.match(/^(-?\d+\.?\d*)\s*[,\s]\s*(-?\d+\.?\d*)$/);
+            
+            if (coordinateMatch) {
+                // Handle coordinate search
+                let latLng = new google.maps.LatLng(
+                    parseFloat(coordinateMatch[1]), 
+                    parseFloat(coordinateMatch[2])
+                );
+                handleLocation(latLng);
+            } else {
+                // Handle address search
+                geocoder.geocode({ 'address': searchInput }, function(results, status) {
+                    if (status === google.maps.GeocoderStatus.OK && results[0]) {
+                        let location = results[0].geometry.location;
+                        handleLocation(location);
+                    } else {
+                        console.error('Geocode was not successful: ' + status);
+                    }
+                });
+            }
         }
 
         function updateLocationInfo(result) {
@@ -399,6 +458,13 @@
                 e.preventDefault();
 
                 var formData = new FormData(this);
+
+                // Get textarea content and process bullet points
+                let linkBeritaContent = $('#link_berita').val();
+                let items = linkBeritaContent.split('\n').map(item => item.trim().replace('• ', '')).filter(Boolean);
+                let processedContent = items.join('\n');
+
+                formData.set('link_berita', processedContent);
                 formData.append("jenis_kejadian_id", $('#jenis_kecelakaan').val());
 
                 $.ajax({
