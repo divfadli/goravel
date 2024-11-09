@@ -95,20 +95,16 @@
                 <table class="table table-custom-size table-bordered table-striped table-sm">
                     <tbody>
                         <tr>
-                            <td>Jenis & Nama Kapal</td>
-                            <td>{{.NamaKapal}}</td>
+                            <td>Tanggal</td>
+                            <td>{{.Waktu}}</td>
                         </tr>
                         <tr>
                             <td>Kejadian</td>
                             <td>{{.Kejadian}}</td>
                         </tr>
                         <tr>
-                            <td>Penyebab</td>
-                            <td>{{.Penyebab}}</td>
-                        </tr>
-                        <tr>
-                            <td>Lokasi Kejadian</td>
-                            <td>{{.Lokasi}}</td>
+                            <td>Jenis & Nama Kapal</td>
+                            <td>{{.NamaKapal}}</td>
                         </tr>
                         <tr>
                             <td>ABK</td>
@@ -119,16 +115,16 @@
                             <td>{{.Muatan}}</td>
                         </tr>
                         <tr>
+                            <td>Lokasi Kejadian</td>
+                            <td>{{.Lokasi}}</td>
+                        </tr>
+                        <tr>
                             <td>Instansi Penindak</td>
                             <td>{{.InstansiPenindak}}</td>
                         </tr>
                         <tr>
                             <td>Keterangan</td>
                             <td>{{.Keterangan}}</td>
-                        </tr>
-                        <tr>
-                            <td>Waktu</td>
-                            <td>{{.Waktu}}</td>
                         </tr>
                         <tr>
                             <td>Sumber Berita</td>
@@ -151,7 +147,7 @@
                     {{$baseURL := .BaseURL}}
                     {{range .Images}}
                     <div class="col">
-                        <img src="http://{{$baseURL}}/api/files/{{.Url}}" alt="Image" class="img-fluid">
+                        <img src="{{$baseURL}}/api/files/{{.Url}}" alt="Image" class="img-fluid">
                     </div>                  
                     {{end}}
                 </div>

@@ -98,12 +98,16 @@
                 <table class="table table-custom-size table-bordered table-striped table-sm">
                     <tbody>
                         <tr>
-                            <td>Jenis & Nama Kapal</td>
-                            <td>{{.NamaKapal}}</td>
+                            <td>Tanggal</td>
+                            <td>{{.Waktu}}</td>
                         </tr>
                         <tr>
                             <td>Kejadian</td>
                             <td>{{.Kejadian}}</td>
+                        </tr>
+                        <tr>
+                            <td>Jenis & Nama Kapal</td>
+                            <td>{{.NamaKapal}}</td>
                         </tr>
                         <tr>
                             <td>Penyebab</td>
@@ -118,20 +122,20 @@
                             <td>{{.Korban}}</td>
                         </tr>
                         <tr>
-                            <td>Asal - Tujuan</td>
-                            <td>{{.Perpindahan}}</td>
-                        </tr>
-                        <tr>
                             <td>Keterangan</td>
                             <td>{{.Keterangan}}</td>
                         </tr>
                         <tr>
-                            <td>Waktu</td>
-                            <td>{{.Waktu}}</td>
-                        </tr>
-                        <tr>
                             <td>Sumber Berita</td>
-                            <td>{{.InstansiPenindak}} dan <a href="{{.SumberBerita}}">{{.SumberBerita}}</a></td>
+                            <td>
+                                {{range $index, $url := split .SumberBerita "\n"}}
+                                    {{if contains $url "http"}}
+                                        <a href="{{trim $url}}" target="_blank">{{trim $url}}</a><br>
+                                    {{else}}
+                                        <u>{{trim $url}}</u><br>
+                                    {{end}}
+                                {{end}}
+                            </td>  
                         </tr>
                     </tbody>
                 </table>
@@ -142,7 +146,7 @@
                     {{$baseURL := .BaseURL}}
                     {{range .Images}}
                     <div class="col">
-                        <img src="http://{{$baseURL}}/api/files/{{.Url}}" alt="Image" class="img-fluid">
+                        <img src="{{$baseURL}}/api/files/{{.Url}}" alt="Image" class="img-fluid">
                     </div>
                     {{end}}
                 </div>
