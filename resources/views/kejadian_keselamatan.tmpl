@@ -19,16 +19,13 @@
                             <div style="margin-left:10px">
                                 <select class="custom-select my-1 mr-sm-2" name="zona" id="zona" data-error="Pilih Zona" required>
                                     <option value="" selected disabled hidden> Pilih Zona </option>
+                                    <option value="">Semua</option>
                                     <option value="BARAT"> Barat </option>
                                     <option value="TENGAH"> Tengah </option>
                                     <option value="TIMUR"> Timur </option>
                                 </select>
-                            </div>
-
-                            <div style="margin-right:10px">   
-                                <input type="text" name="key" id="key" class="form-control bg-light border-0 small" placeholder="Key" aria-label="Search" aria-describedby="basic-addon2">
                                 <button onclick="searchDataKeselamatan()" class="btn btn-primary">
-                                    <i class="fas fa-search fa-sm"> Search</i>
+                                    <i class="fas fa-search fa-sm"></i>
                                 </button>
                             </div>
 
@@ -53,7 +50,8 @@
                                         <th>Jenis Kecelakaan</th>
                                         <th>Lokasi Kejadian</th>
                                         <th>Zona</th>
-                                        <th>Action</th>
+                                        <th>Pilihan</th>
+                                        <th>Lihat Detail</th>
                                     </tr>
                                 </thead>
 
@@ -109,7 +107,7 @@
 
 <script type="text/javascript">
     let table = $('#kt_datatable').DataTable({
-        dom: '<"pull-left"f>tip',
+        dom: '<"row justify-content-end"<"col-sm-2"f>>tip',
         scrollY: '80vh',
         scrollX: true,
         scrollCollapse: true,
@@ -121,7 +119,7 @@
         processing: true,
         bLengthChange: true,
         language: {
-            search: "Filter"
+            search: "Search"
         }
     });
 </script>
@@ -156,13 +154,24 @@
                         var lokasi_kejadian = `<span class="font-weight-bold font-size-sm text-dark-50">${x.lokasi_kejadian}</span>`
                         var zona = `<span class="font-weight-bold font-size-sm text-dark-50">${x.zona}</span>`
                         var url = window.location.href + `form_kejadian_keselamatan?id_kejadian_keselamatan=${x.id_kejadian_keselamatan}`
-                        var action = `  <a href="${url}" class="btn btn-icon my-2 btn-sm btn-warning">
-                                            <i class="flaticon2-edit">Edit</i>
-                                        </a>
-                                        <button type="button" onclick="deleteKejadianKeselamatan('${x.id_kejadian_keselamatan}')" class="btn btn-icon my-2 btn-sm btn-danger">
-                                            <i class="flaticon2-trash">Delete</i>
-                                        </button>`
-                        table.row.add([tanggal, nama_kapal, jenis_pelanggaran, lokasi_kejadian, zona, action]).draw(false)
+                        var action = `  <div class="form-inline"> 
+                                            <div class="ml-auto"> 
+                                                <a href="${url}" class="btn btn-icon my-2 btn-sm btn-warning">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                            </div>
+                                            <div class="ml-auto">
+                                                <button type="button" onclick="deleteKejadianKeamanan('${x.id_kejadian_keamanan}')" class="btn btn-icon my-2 btn-sm btn-danger">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>`
+                        var detail = `  <div class="ml-auto"> 
+                                            <a href="#" class="btn btn-icon my-2 btn-sm btn-info">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </div>`
+                        table.row.add([tanggal, nama_kapal, jenis_pelanggaran, lokasi_kejadian, zona, action,detail]).draw(false)
                     })
                 }
             },
