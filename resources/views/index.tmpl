@@ -184,6 +184,31 @@
         "Keselamatan": locationsKecelakaan
     };
 
+    const indonesiaBorders = L.geoJSON();
+    // Fetch Indonesia GeoJSON data
+    fetch('https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_admin_0_countries.geojson')
+    .then(response => response.json())
+    .then(data => {
+        // Filter for Indonesia
+        const indonesiaFeature = data.features.find(feature => feature.properties.ISO_A3 === 'IDN');
+        
+        // Add Indonesia borders to map
+        indonesiaBorders.addData(indonesiaFeature);
+        indonesiaBorders.setStyle({
+        color: '#FF0000',
+        weight: 2,
+        opacity: 0.8,
+        fillColor: 'transparent'
+        });
+        
+        indonesiaBorders.addTo(map);
+        
+        // Fit map bounds to Indonesia borders
+        map.fitBounds(indonesiaBorders.getBounds());
+    });
+    // Add a layer control
+    // overlayMaps["Indonesia Borders"] = indonesiaBorders
+
     const layerControl = L.control.layers(baseMaps, overlayMaps).addTo(map);
 
     $('.leaflet-control-layers-overlays input[type="checkbox"]').each(function(index) {
@@ -210,7 +235,7 @@
 
 <script type="text/javascript">
     const start = moment().startOf('year');
-    const end = moment().endOf('year');
+    const end = moment();
     var years = [];
 
     function cb(start, end) {
@@ -228,12 +253,13 @@
 
     $('#reportrange').daterangepicker({
         startDate: start,
-        endDate: end,
+        endDate: moment(),
+        maxDate: moment(),
         ranges: {
-            'This Year': [moment().startOf('year'), moment().endOf('year')],
-            'Last Year': [moment().subtract(1, 'year').startOf('year'), moment().endOf('year')],
-            'Last 3 Year': [moment().subtract(2, 'year').startOf('year'), moment().endOf('year')],
-            'Last 5 Year': [moment().subtract(4, 'year').startOf('year'), moment().endOf('year')],
+            'This Year': [moment().startOf('year'), moment()],
+            'Last Year': [moment().subtract(1, 'year').startOf('year'), moment()],
+            'Last 3 Year': [moment().subtract(2, 'year').startOf('year'), moment()],
+            'Last 5 Year': [moment().subtract(4, 'year').startOf('year'), moment()],
         }
     }, cb);
 
