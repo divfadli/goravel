@@ -89,7 +89,7 @@
                                 <label class="col-sm-4 col-form-label" for="bendera">Negara</label>
                                 <!-- Replace the existing bendera input with this select -->
                                 <div class="col-sm-8">
-                                    <select id="bendera" name="bendera" class="form-control form-control-sm" required
+                                    <select id="bendera" name="bendera" class="form-control form-control-sm select2_bendera" required
                                         oninput="setCustomValidity('')" 
                                         oninvalid="this.setCustomValidity('Pilih negara. Jika kosong isi dengan `-`')">
                                         <option value="-"> - </option>
@@ -404,7 +404,7 @@
                 e.preventDefault();
 
                 // Check if element has value for Select2
-                if ($(this).hasClass('select2_jenis_pelanggaran')) {
+                if ($(this).hasClass('select2_jenis_pelanggaran') || $(this).hasClass('select2_bendera')) {
                     if (this.value) {
                         $(this).next('.select2-container').find('.select2-selection').removeClass('is-invalid');
                         $(this).siblings('.error-message').text('');
@@ -415,7 +415,7 @@
                 const errorMessage = this.validationMessage;
 
                 // Handle Select2 validation
-                if ($(this).hasClass('select2_jenis_pelanggaran')) {
+                if ($(this).hasClass('select2_jenis_pelanggaran') || $(this).hasClass('select2_bendera')) {
                     $(this).next('.select2-container').find('.select2-selection').addClass('is-invalid');
                     $(this).siblings('.error-message').text(errorMessage);
                 } else {
@@ -424,7 +424,7 @@
 
                 // Clear error on input/change
                 $(element).on('change select2:select', function() {
-                    if ($(this).hasClass('select2_jenis_pelanggaran')) {
+                    if ($(this).hasClass('select2_jenis_pelanggaran') || $(this).hasClass('select2_bendera')) {
                         $(this).next('.select2-container').find('.select2-selection').removeClass('is-invalid');
                     }
                     $(this).siblings('.error-message').text('');
@@ -455,7 +455,7 @@
         `;
         document.head.appendChild(style);
         
-        $('#bendera').select2({
+        $('.select2_bendera').select2({
             language: {
                 inputTooShort: function() {
                     return "Silahkan Masukkan 1 atau lebih karakter";
@@ -640,7 +640,49 @@
 
                     $("#muatan").val(data.muatan);
                     $("#asal").val(data.asal);
-                    $("#bendera").val(data.bendera);
+
+                    // Fetch and set the flag
+                   fetch(`https://restcountries.com/v3.1/name/${data.bendera}`)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Country not found');
+                            }
+                            return response.json();
+                        })
+                        .then(response => {
+                            if(data.bendera == "-"){
+                                $("#bendera").val(data.bendera).trigger('change');
+                                return
+                            }
+                            if (response && response.length > 0) {
+                                let flagUrl = response[0].flags.png;
+                                let datas = {
+                                    id: data.bendera,
+                                    text: data.bendera,
+                                    flag: flagUrl
+                                }
+                                // Add option data with custom format for Select2
+                                let newOption = new Option(datas.text, datas.id, true, true);
+                                $('#bendera').append(newOption);
+
+                                // Initialize Select2 with custom format
+                                $('#bendera').select2({
+                                    templateResult: formatOption,
+                                    templateSelection: formatOption
+                                }).trigger('change');
+
+                                // Function to format the options with flag images
+                                function formatOption(option) {
+                                    if (!option.id) return option.text;
+                                    let flagImg = `<img src="${datas.flag}" style="width:20px; margin-right:10px"/>`;
+                                    return $(`<span>${flagImg} ${option.text}</span>`);
+                                }
+                            }
+                        })
+
+                    // Disable the select after setting value
+                    $("#bendera").prop('disabled', true);
+
                     $("#tujuan").val(data.tujuan);
                     $("#kategori_sumber").val(data.kategori_sumber);
                     $("#tindak_lanjut").val(data.tindak_lanjut);
