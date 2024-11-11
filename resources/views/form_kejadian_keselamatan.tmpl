@@ -20,15 +20,19 @@
                                 <label class="col-sm-4 col-form-label" for="tanggal_kejadian">Tanggal</label>
                                 <div class="col-sm-8">
                                     <input type="date" id="tanggal_kejadian" name="tanggal" class="form-control form-control-sm" required
-                                    oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Tanggal kejadian harus diisi..!!')">
+                                    oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Pilih tanggal kejadian.')">
                                 </div>
+                                <script>
+                                    document.getElementById('tanggal_kejadian').max = new Date().toISOString().split('T')[0]; 
+                                </script>
                             </div>
                             <div class="form-group row">
                                 <label class="col-sm-4 col-form-label" for="jenis_kecelakaan">Jenis Kecelakaan</label>
                                 <div class="col-sm-8">
                                     <select name="jenis_kejadian_id" id="jenis_kecelakaan" 
-                                        data-error="Pilih Jenis Kecelakaan required" 
-                                        class="form-control form-control-sm select2_jenis_kecelakaan">
+                                        class="form-control form-control-sm select2_jenis_kecelakaan"
+                                        data-placeholder="Pilih Jenis Kecelakaan"
+                                        oninvalid="this.setCustomValidity('Pilih jenis kecelakaan')" required>
                                     </select>
                                 </div>
                             </div>
@@ -36,21 +40,21 @@
                                 <label class="col-sm-4 col-form-label" for="nama_kapal">Nama Kapal</label>
                                 <div class="col-sm-8">
                                     <input type="text" id="nama_kapal" name="nama_kapal" class="form-control form-control-sm" required
-                                    oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Nama Kapal harus diisi..!!')">
+                                    oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Nama kapal harus diisi. Jika kosong isi dengan `-`')">
                                 </div>
                             </div>
                             <div class="form-group row">
                                 <label class="col-sm-4 col-form-label" for="pelabuhan_asal">Pelabuhan Asal</label>
                                 <div class="col-sm-8">
                                     <input type="text" id="pelabuhan_asal" name="pelabuhan_asal" class="form-control form-control-sm" required
-                                    oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Pelabuhan Asal harus diisi..!!')">
+                                    oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Pelabuhan Asal harus diisi. Jika kosong isi dengan `-`')">
                                 </div>
                             </div>
                             <div class="form-group row">
                                 <label class="col-sm-4 col-form-label" for="pelabuhan_tujuan">Pelabuhan Tujuan</label>
                                 <div class="col-sm-8">
                                     <input type="text" id="pelabuhan_tujuan" name="pelabuhan_tujuan" class="form-control form-control-sm" required
-                                    oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Pelabuhan Tujuan harus diisi..!!')">
+                                    oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Pelabuhan tujuan harus diisi. Jika kosong isi dengan `-`')">
                                 </div>
                             </div>
 
@@ -60,36 +64,47 @@
                             <div class="form-group row">
                                 <label class="col-sm-4 col-form-label" for="korban_tewas">Korban Tewas</label>
                                 <div class="col-sm-8">
-                                    <input type="number" value="0" min="0" id="korban_tewas" name="korban_tewas" class="form-control form-control-sm" required
-                                    oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Korban Tewas harus diisi..!!')">
+                                    <input type="number" value="0" min="0" id="korban_tewas" name="korban_tewas" 
+                                    class="form-control form-control-sm no-spinner" required
+                                    oninput="this.value = this.value === '0' ? '0' : this.value.replace(/^0+/, '').replace(/[^0-9]/g, ''); setCustomValidity('')"
+                                    
+                                    oninvalid="this.setCustomValidity('Korban tewas harus diisi.')">
                                 </div>
                             </div>
                             <div class="form-group row">
                                 <label class="col-sm-4 col-form-label" for="korban_selamat">Korban Selamat</label>
                                 <div class="col-sm-8">
-                                    <input type="number" value="0" min="0" id="korban_selamat" name="korban_selamat" class="form-control form-control-sm" required
-                                    oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Korban Selamat harus diisi..!!')">
+                                    <input type="number" value="0" min="0" id="korban_selamat" name="korban_selamat" 
+                                    class="form-control form-control-sm no-spinner" required
+                                    oninput="this.value = this.value === '0' ? '0' : this.value.replace(/^0+/, '').replace(/[^0-9]/g, ''); setCustomValidity('')"
+                                    
+                                    oninvalid="this.setCustomValidity('Korban selamat harus diisi.')">
                                 </div>
                             </div>
                             <div class="form-group row">
                                 <label class="col-sm-4 col-form-label" for="korban_hilang">Korban Hilang</label>
                                 <div class="col-sm-8">
-                                    <input type="number" value="0" min="0" id="korban_hilang" name="korban_hilang" class="form-control form-control-sm" required
-                                    oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Korban Hilang harus diisi..!!')">
+                                    <input type="number" value="0" min="0" id="korban_hilang" name="korban_hilang" 
+                                    class="form-control form-control-sm no-spinner" required
+                                    oninput="this.value = this.value === '0' ? '0' : this.value.replace(/^0+/, '').replace(/[^0-9]/g, ''); setCustomValidity('')"
+                                    
+                                    oninvalid="this.setCustomValidity('Korban hilang harus diisi.')">
                                 </div>
                             </div>
                             <div class="form-group row">
                                 <label class="col-sm-4 col-form-label" for="penyebab">Penyebab</label>
                                 <div class="col-sm-8">
                                     <textarea id="penyebab" name="penyebab" class="form-control form-control-sm" required 
-                                    style="font-size:1em;" oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Penyebab harus diisi..!!')"></textarea>
+                                    style="font-size:1em;" oninput="setCustomValidity('')" 
+                                    oninvalid="this.setCustomValidity('Penyebab harus diisi.')"></textarea>
                                 </div>
                             </div>
                             <div class="form-group row">
                                 <label class="col-sm-4 col-form-label" for="tindak_lanjut">Tindak Lanjut</label>
                                 <div class="col-sm-8">
                                     <textarea id="tindak_lanjut" name="tindak_lanjut" class="form-control form-control-sm" required 
-                                    style="font-size:1em;" oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Tindak Lanjut harus diisi..!!')"></textarea>
+                                    style="font-size:1em;" oninput="setCustomValidity('')" 
+                                    oninvalid="this.setCustomValidity('Tindak lanjut harus diisi. Jika kosong isi dengan `-`')"></textarea>
                                 </div>
                             </div>
 
@@ -97,40 +112,38 @@
                                 <label class="col-sm-4 col-form-label" for="informasi_kategori">Informasi Tambahan</label>
                                 <div class="col-sm-8">
                                     <textarea id="informasi_kategori" name="keterangan" class="form-control form-control-sm" required 
-                                    style="font-size:1em;" oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Informasi Tambahan harus diisi..!!')"></textarea>
+                                    style="font-size:1em;" oninput="setCustomValidity('')" 
+                                    oninvalid="this.setCustomValidity('Informasi tambahan harus diisi. Jika kosong isi dengan `-`')"></textarea>
                                 </div>
                             </div>
                             <div class="form-group row">
                                 <label class="col-sm-4 col-form-label" for="sumber_berita">Instansi Penindak</label>
                                 <div class="col-sm-8">
                                     <input type="text" id="sumber_berita" name="sumber_berita" class="form-control form-control-sm" required
-                                    oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Instansi Penindak harus diisi..!!')">
+                                    oninput="setCustomValidity('')" 
+                                    oninvalid="this.setCustomValidity('Instansi penindak harus diisi. Jika kosong isi dengan `-`')">
                                 </div>
                             </div>
                             <div class="form-group row">
                                 <label class="col-sm-4 col-form-label" for="link_berita">Sumber Link Berita</label>
                                 <div class="col-sm-8">
                                     <textarea id="link_berita" name="link_berita" class="form-control form-control-sm" required 
-                                    style="font-size:1em;" oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Sumber Link Berita harus diisi..!!')"></textarea>
+                                    style="font-size:1em;" oninput="setCustomValidity('')" 
+                                    oninvalid="this.setCustomValidity('Sumber link berita harus diisi. Jika kosong isi dengan `-`')"></textarea>
+                                    <small class="text-danger error-text" id="link_berita_error"></small>
                                 </div>
                             </div>
                             <div class="form-group row">
                                 <label class="col-sm-4 col-form-label" for="kategori_sumber">Kategori Sumber</label>
                                 <div class="col-sm-8">
-                                    <select name="kategori_sumber" id="kategori_sumber" data-error="Pilih Kategori Sumber" class="form-control form-control-sm" required>
+                                    <select name="kategori_sumber" id="kategori_sumber"
+                                        class="form-control form-control-sm" required>
                                         <option value="Media Online"> Media Online </option>
                                         <option value="Puldata"> Puldata </option>
                                         <option value="Media Online dan Puldata"> Media Online dan Puldata </option>
                                         <option value="Media Online dan KPIML" selected> Media Online dan KPIML </option>
                                         <option value="Media Online dan Operasi"> Media Online dan Operasi </option>
                                     </select>
-                                </div>
-                            </div>
-                            <div class="form-group row">
-                                <label class="col-sm-4 col-form-label" for="files">Image</label>
-                                <div class="col-sm-8">
-                                    <input type="file" id="file_input" name="files" accept="image/*" multiple>
-                                    <div id="file-list"></div>
                                 </div>
                             </div>
 
@@ -140,7 +153,7 @@
                             <div class="form-group row">
                                 <div class="col-sm-6">
                                     <div class="input-group">
-                                        <input type="text" name="lokasi_kejadian" id="lokasi_kejadian" class="form-control bg-light border-0 small" placeholder="Cari Lokasi" aria-label="Search" aria-describedby="basic-addon2">
+                                    <input type="text" name="cari_lokasi" id="cari_lokasi" class="form-control bg-light border-0 small auto-width"  placeholder="Cari Lokasi" aria-label="Search" aria-describedby="basic-addon2">
                                         <div class="input-group-append">
                                             <button onclick="search_location(); return false;" class="btn btn-primary" type="button">
                                                 <i class="fas fa-search fa-sm"></i>
@@ -152,7 +165,8 @@
 
                                 <div class="ml-auto">
                                     <div class="form-inline">
-                                        <select class="custom-select my-1 mr-sm-2" name="zona" id="zona" data-error="Pilih Zona" required>
+                                        <select class="custom-select my-1 mr-sm-2" name="zona" id="zona" 
+                                        oninvalid="this.setCustomValidity('Pilih zona')" required>
                                             <option value="" selected disabled hidden> Pilih Zona </option>
                                             <option value="BARAT"> Barat </option>
                                             <option value="TENGAH"> Tengah </option>
@@ -160,17 +174,33 @@
                                         </select>
                                     </div>
                                 </div>
-                                
                             </div>
 
                             <div id="map_location" style="border:1px solid #CCC; height:420px;"></div>
                             <div class="form-group row">
                                 <div class="col-sm-12">
-                                    <input type="text" style="text-align: center" id="koordinat" name="koordinat" readonly="readonly" class="form-control form-control-sm" data-error="Koordinat harus diisi." required>
+                                    <input type="text" style="text-align: center" id="koordinat" name="koordinat" readonly="readonly" 
+                                    class="form-control form-control-sm" required
+                                    oninput="setCustomValidity('')"
+                                    oninvalid="this.setCustomValidity('Koordinat harus diisi. Jika kosong isi dengan `-`')">
                                 </div>
                             </div>
-                            
 
+                            <div class="form-group row">
+                                <label class="col-sm-4 col-form-label" for="lokasi_kejadian">Lokasi Kejadian</label>
+                                <div class="col-sm-8">
+                                   <input type="text" id="lokasi_kejadian" name="lokasi_kejadian" class="form-control form-control-sm" required
+                                    oninput="setCustomValidity('')" 
+                                    oninvalid="this.setCustomValidity('Lokasi kejadian harus diisi.')">
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-sm-4 col-form-label" for="files">Image</label>
+                                <div class="col-sm-8">
+                                    <input type="file" id="file_input" name="files" accept="image/*" multiple>
+                                    <div id="file-list"></div>
+                                </div>
+                            </div>
                         </div>
                         <!-- /.box-body -->
                     </div>
@@ -184,152 +214,12 @@
         <!-- /.box-footer -->
     </form>
 {{ template "layouts/footer.tmpl" . }}
- {{ template "layouts/script.tmpl" . }}
+{{ template "layouts/script.tmpl" . }}
 
-<script>
-    $(document).ready(function() {
-        $('.select2_jenis_kecelakaan').select2();
-    });
-    const linkBeritaTextarea = document.getElementById('link_berita');
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAeQVXtdaEgd0Cfvjy41mjGZ6_f5thMVt4&loading=async&callback=initMap"></script>
 
-    linkBeritaTextarea.value = '• ';
-
-    linkBeritaTextarea.addEventListener('input', function() {
-        if (this.value === '') {
-            this.value = '• ';
-            this.selectionStart = this.selectionEnd = 2;
-        }
-        this.style.height = 'auto';
-        this.style.height = this.scrollHeight + 'px';
-    });
-
-    linkBeritaTextarea.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            const cursorPosition = this.selectionStart;
-            const currentValue = this.value;
-            const newValue = currentValue.slice(0, cursorPosition) + '\n• ' + currentValue.slice(cursorPosition);
-            this.value = newValue;
-            this.selectionStart = this.selectionEnd = cursorPosition + 3;
-        }
-    });
-
-    var id_kejadian_keselamatan = {{.idKejadianKeselamatan}};
-    var jenisPelanggaranSelected = null;
-
-    const fileInput = document.querySelector('#file_input');
-    const fileList = document.querySelector('#file-list');
-
-    if (id_kejadian_keselamatan !== null && id_kejadian_keselamatan !== "" && id_kejadian_keselamatan !== "<nil>") {
-        getKejadianKeselamatan(id_kejadian_keselamatan);
-    }
-
-    fileInput.addEventListener('change', handleFileSelect);
-
-    async function getKejadianKeselamatan(id) {
-        try {
-            const response = await $.ajax({
-                url: window.location.origin + {{ .getKejadianKeselamatanURL }} + "?id_kejadian_keselamatan=" + id,
-                type: 'GET'
-            });
-
-            const data = response.data.data_kejadian_keselamatan;
-            if (data !== null) {
-                $("#id_kejadian_keselamatan").val(data.id_kejadian_keselamatan);
-                $("#tanggal_kejadian").val(data.tanggal);
-
-                $("#jenis_kecelakaan").val(data.jenis_kejadian_id).trigger('change');
-                $("#jenis_kecelakaan").prop('disabled',true);
-                $("#nama_kapal").val(data.nama_kapal);
-                $("#sumber_berita").val(data.sumber_berita);
-                const links = data.link_berita.split('\n');
-                const bulletPoints = links.map(link => `• ${link}`).join('\n');
-                $("#link_berita").val(bulletPoints);
-
-                $("#lokasi_kejadian").val(`${data.latitude} ${data.longitude}`);
-                let coordinates = $('#lokasi_kejadian').val().split(' ');
-                let latLng = new google.maps.LatLng(parseFloat(coordinates[0]), parseFloat(coordinates[1]));
-                handleLocation(latLng);
-
-                $("#penyebab").val(data.penyebab);
-                $("#pelabuhan_asal").val(data.pelabuhan_asal);
-                $("#bendera").val(data.bendera);
-                $("#pelabuhan_tujuan").val(data.pelabuhan_tujuan);
-                $("#kategori_sumber").val(data.tipe_sumber_kejadian);
-                $("#tindak_lanjut").val(data.tindak_lanjut);
-                $("#korban_tewas").val(data.korban.korban_tewas);
-                $("#korban_selamat").val(data.korban.korban_selamat);
-                $("#korban_hilang").val(data.korban.korban_hilang);
-                $("#informasi_kategori").val(data.keterangan);
-                $("#zona").val(data.zona);
-
-                const container = new DataTransfer();
-
-                for (const file of data.file_image) {
-                    const imgBlob = await getImgURLPromise(file);
-                    const fileName = file.filename;
-                    const newFile = new File([imgBlob], fileName, { type: "image/jpeg", lastModified: new Date().getTime() }, 'utf-8');
-                    container.items.add(newFile);
-                }
-
-                fileInput.files = container.files;
-                updateFileList();
-            }
-        } catch (error) {
-            console.log(error);
-        }
-    }
-
-    function getImgURLPromise(file) {
-        return new Promise((resolve, reject) => {
-            const xhr = new XMLHttpRequest();
-            xhr.onload = function() {
-                resolve(xhr.response);
-            };
-            xhr.onerror = function() {
-                reject(xhr.statusText);
-            };
-            xhr.open('GET', window.origin + "/api/files/" + file.url);
-            xhr.responseType = 'blob';
-            xhr.send();
-        });
-    }
-
-    function handleFileSelect() {
-        const container = new DataTransfer();
-        for (const file of fileInput.files) {
-            container.items.add(file);
-        }
-        fileInput.files = container.files;
-        updateFileList();
-    }
-
-    function removeFile(file) {
-        const container = new DataTransfer();
-        for (const f of fileInput.files) {
-            if (f !== file) {
-                container.items.add(f);
-            }
-        }
-        fileInput.files = container.files;
-        updateFileList();
-    }
-
-    function updateFileList() {
-        fileList.innerHTML = '';
-        for (const file of fileInput.files) {
-            const fileItem = document.createElement('div');
-            fileItem.textContent = file.name;
-            const removeButton = document.createElement('button');
-            removeButton.textContent = 'Remove';
-            removeButton.addEventListener('click', () => {
-                removeFile(file);
-            });
-            fileItem.appendChild(removeButton);
-            fileList.appendChild(fileItem);
-        }
-    }
-</script>
 
     <script>
         getJenisPelanggaran();
@@ -358,7 +248,6 @@
         }
     </script>
 
-    <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAeQVXtdaEgd0Cfvjy41mjGZ6_f5thMVt4&loading=async&callback=initMap"></script>
     <script>
         let marker;
 
@@ -390,11 +279,16 @@
             });
         }
 
- function search_location() {
-            let searchInput = $('#lokasi_kejadian').val();
+        function search_location() {
+            let searchInput = $('#cari_lokasi').val();
             
             // Check if input contains coordinates
             let coordinateMatch = searchInput.match(/^(-?\d+\.?\d*)\s*[,\s]\s*(-?\d+\.?\d*)$/);
+
+            // Clear error message koordinat
+            $('#koordinat').removeClass('is-invalid');
+            $('#koordinat').next('.error-message').text('');
+            $('#koordinat')[0].setCustomValidity('');
             
             if (coordinateMatch) {
                 // Handle coordinate search
@@ -404,11 +298,25 @@
                 );
                 handleLocation(latLng);
             } else {
+                $('#lokasi_kejadian').val(searchInput);
+                // Clear error message when lokasi_kejadian has content
+                $('#lokasi_kejadian').removeClass('is-invalid');
+                $('#lokasi_kejadian').next('.error-message').text('');
+                $('#lokasi_kejadian')[0].setCustomValidity('');
+
                 // Handle address search
                 geocoder.geocode({ 'address': searchInput }, function(results, status) {
                     if (status === google.maps.GeocoderStatus.OK && results[0]) {
-                        let location = results[0].geometry.location;
-                        handleLocation(location);
+                        let coordinates = results[0].geometry.location;
+                        let location = results[0].formatted_address;
+                        let index = location.indexOf(' ') + 1;
+                        let address = location.substring(index);
+
+                        $('#latitude').val(coordinates.lat());
+                        $('#longitude').val(coordinates.lng());
+                        $('#cari_lokasi').val(address);
+                        $('#koordinat').val(`Latitude: ${coordinates.lat()}; Longitude: ${coordinates.lng()}`);
+                        setMarker(coordinates,address);
                     } else {
                         console.error('Geocode was not successful: ' + status);
                     }
@@ -416,21 +324,8 @@
             }
         }
 
-        function updateLocationInfo(result) {
-            infoWindow.close();
-
-            let location = result.formatted_address;
-            let index = location.indexOf(' ') + 1;
-            let address = location.substring(index);
-
-            let coordinates = result.geometry.location;
-            $('#latitude').val(coordinates.lat());
-            $('#longitude').val(coordinates.lng());
-
-            $('#lokasi_kejadian').val(address);
-            $('#koordinat').val(`Latitude: ${coordinates.lat()}; Longitude: ${coordinates.lng()}`);
-
-            if (marker) {
+        function setMarker(coordinates,address) {
+             if (marker) {
                 marker.setMap(null);
             }
 
@@ -450,19 +345,295 @@
                 handleLocation(evt.latLng);
             });
         }
+
+        function updateLocationInfo(result) {
+            infoWindow.close();
+
+            let location = result.formatted_address;
+            let index = location.indexOf(' ') + 1;
+            let address = location.substring(index);
+
+            let coordinates = result.geometry.location;
+            $('#latitude').val(coordinates.lat());
+            $('#longitude').val(coordinates.lng());
+
+            $('#cari_lokasi').val(address);
+            $('#koordinat').val(`Latitude: ${coordinates.lat()}; Longitude: ${coordinates.lng()}`);
+            setMarker(coordinates,address);
+        }
+     
+    </script>
+    
+    <script>
+        $('.select2_jenis_kecelakaan').select2();
+
+        // Auto-resize textarea function
+        function autoResize(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = textarea.scrollHeight + 'px';
+        }
+        // Apply to all textareas
+        document.querySelectorAll('textarea').forEach(textarea => {
+            textarea.addEventListener('input', function() {
+                autoResize(this);
+            });
+            // Initial resize
+            autoResize(textarea);
+        });
+
+        // Add this script to handle custom validation messages
+        document.querySelectorAll('input,textarea, select').forEach(element => {
+            // Create error span for each input
+            const errorSpan = document.createElement('span');
+            errorSpan.className = 'text-danger error-message';
+            element.parentNode.appendChild(errorSpan);
+
+            // Handle validation
+            element.addEventListener('invalid', function(e) {
+                e.preventDefault();
+                
+                // Check if element has value for Select2
+                if ($(this).hasClass('select2_jenis_kecelakaan')) {
+                    if (this.value) {
+                        $(this).next('.select2-container').find('.select2-selection').removeClass('is-invalid');
+                        $(this).siblings('.error-message').text('');
+                        return;
+                    }
+                }
+
+                const errorMessage = this.validationMessage;
+
+                // Handle Select2 validation
+                if ($(this).hasClass('select2_jenis_kecelakaan')) {
+                    $(this).next('.select2-container').find('.select2-selection').addClass('is-invalid');
+                    $(this).siblings('.error-message').text(errorMessage);
+                } else {
+                    this.nextElementSibling.textContent = errorMessage;
+                }
+
+                // Clear error on input/change
+                $(element).on('change select2:select', function() {
+                    if ($(this).hasClass('select2_jenis_kecelakaan')) {
+                        $(this).next('.select2-container').find('.select2-selection').removeClass('is-invalid');
+                    }
+                    $(this).siblings('.error-message').text('');
+                    this.setCustomValidity('');
+                });
+
+                element.addEventListener('input', function() {
+                    // Clear error message
+                    this.classList.remove('is-invalid');
+                    const errorSpan = this.nextElementSibling;
+                    if (errorSpan && errorSpan.classList.contains('error-message')) {
+                        errorSpan.textContent = '';
+                    }
+                    // Clear custom validity
+                    this.setCustomValidity('');
+                });
+            });
+        });
+
+        // Add CSS for error messages
+        const style = document.createElement('style');
+        style.textContent = `
+            .error-message {
+                display: block;
+                font-size: 12px;
+                margin-top: 5px;
+            }
+        `;
+        document.head.appendChild(style);
+
+        const linkBeritaTextarea = document.getElementById('link_berita');
+
+        linkBeritaTextarea.addEventListener('input', function() {
+            $("#link_berita_error").text("")
+            if (this.value === '') {
+                this.value = '• ';
+                // Set cursor position after bullet point
+                this.selectionStart = this.selectionEnd = this.value.length;
+            }
+            this.style.height = 'auto';
+            this.style.height = this.scrollHeight + 'px';
+        });
+
+        linkBeritaTextarea.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const cursorPosition = this.selectionStart;
+                const currentValue = this.value;
+                const newValue = currentValue.slice(0, cursorPosition) + '\n• ' + currentValue.slice(cursorPosition);
+                this.value = newValue;
+                this.selectionStart = this.selectionEnd = cursorPosition + 3;
+            }
+        });
+
+        var id_kejadian_keselamatan = {{.idKejadianKeselamatan}};
+        var jenisPelanggaranSelected = null;
+
+        const fileInput = document.querySelector('#file_input');
+        const fileList = document.querySelector('#file-list');
+
+        fileInput.addEventListener('change', handleFileSelect);
+
+        function getImgURLPromise(file) {
+            return new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.onload = function() {
+                    resolve(xhr.response);
+                };
+                xhr.onerror = function() {
+                    reject(xhr.statusText);
+                };
+                xhr.open('GET', window.origin + "/api/files/" + file.url);
+                xhr.responseType = 'blob';
+                xhr.send();
+            });
+        }
+
+        function handleFileSelect() {
+            const container = new DataTransfer();
+            for (const file of fileInput.files) {
+                container.items.add(file);
+            }
+            fileInput.files = container.files;
+            updateFileList();
+        }
+
+        function removeFile(file) {
+            const container = new DataTransfer();
+            for (const f of fileInput.files) {
+                if (f !== file) {
+                    container.items.add(f);
+                }
+            }
+            fileInput.files = container.files;
+            updateFileList();
+        }
+
+        function updateFileList() {
+            fileList.innerHTML = '';
+            const row = document.createElement('div');
+            row.className = 'row g-2 mb-4'; // Added mb-4 for bottom margin
+            fileList.appendChild(row);
+
+            for (const file of fileInput.files) {
+                const col = document.createElement('div');
+                col.className = 'col-6 col-sm-4 col-md-3 mb-3 mt-3';
+                
+                const imageContainer = document.createElement('div');
+                imageContainer.className = 'position-relative h-100';
+                
+                const preview = document.createElement('img');
+                preview.className = 'img-fluid rounded w-100 h-100';
+                preview.style.objectFit = 'cover';
+                preview.style.minHeight = '100px';
+                preview.style.maxHeight = '120px';
+                
+                const reader = new FileReader();
+                reader.onload = (e) => preview.src = e.target.result;
+                reader.readAsDataURL(file);
+                
+                const removeButton = document.createElement('button');
+                removeButton.className = 'btn btn-danger btn-sm position-absolute';
+                removeButton.style.top = '5px';
+                removeButton.style.right = '5px';
+                removeButton.innerHTML = '<i class="fas fa-times"></i>';
+                removeButton.addEventListener('click', () => removeFile(file));
+                
+                imageContainer.appendChild(preview);
+                imageContainer.appendChild(removeButton);
+                col.appendChild(imageContainer);
+                row.appendChild(col);
+            }
+        }
     </script>
 
     <script>
+        async function getKejadianKeselamatan(id) {
+            try {
+                const response = await $.ajax({
+                    url: window.location.origin + {{ .getKejadianKeselamatanURL }} + "?id_kejadian_keselamatan=" + id,
+                    type: 'GET'
+                });
+
+                const data = response.data.data_kejadian_keselamatan;
+                if (data !== null) {
+                    $("#id_kejadian_keselamatan").val(data.id_kejadian_keselamatan);
+                    $("#tanggal_kejadian").val(data.tanggal);
+
+                    $("#jenis_kecelakaan").val(data.jenis_kejadian_id).trigger('change');
+                    $("#jenis_kecelakaan").prop('disabled',true);
+                    $("#nama_kapal").val(data.nama_kapal);
+                    $("#sumber_berita").val(data.sumber_berita);
+                    const links = data.link_berita.split('\n');
+                    const bulletPoints = links.map(link => `• ${link}`).join('\n');
+                    $("#link_berita").val(bulletPoints);
+
+                    linkBeritaTextarea.style.height = 'auto';
+                    linkBeritaTextarea.style.height = linkBeritaTextarea.scrollHeight + 'px';
+
+                    $("#cari_lokasi").val(`${data.latitude} ${data.longitude}`);
+                    $("#lokasi_kejadian").val(data.lokasi_kejadian);
+                    let coordinates = $('#cari_lokasi').val().split(' ');
+
+                    $("#penyebab").val(data.penyebab);
+                    $("#pelabuhan_asal").val(data.pelabuhan_asal);
+                    $("#bendera").val(data.bendera);
+                    $("#pelabuhan_tujuan").val(data.pelabuhan_tujuan);
+                    $("#kategori_sumber").val(data.tipe_sumber_kejadian);
+                    $("#tindak_lanjut").val(data.tindak_lanjut);
+                    $("#korban_tewas").val(data.korban.korban_tewas);
+                    $("#korban_selamat").val(data.korban.korban_selamat);
+                    $("#korban_hilang").val(data.korban.korban_hilang);
+                    $("#informasi_kategori").val(data.keterangan);
+                    $("#zona").val(data.zona);
+
+                    let coordinateLatlng = new google.maps.LatLng(
+                        parseFloat(coordinates[0]), 
+                        parseFloat(coordinates[1])
+                    );
+                    handleLocation(coordinateLatlng);
+
+                    const container = new DataTransfer();
+
+                    for (const file of data.file_image) {
+                        const imgBlob = await getImgURLPromise(file);
+                        const fileName = file.filename;
+                        const newFile = new File([imgBlob], fileName, { type: "image/jpeg", lastModified: new Date().getTime() }, 'utf-8');
+                        container.items.add(newFile);
+                    }
+
+                    fileInput.files = container.files;
+                    updateFileList();
+                }
+            } catch (error) {
+                console.log(error);
+            }
+        }
+        if (id_kejadian_keselamatan !== null && id_kejadian_keselamatan !== "" && id_kejadian_keselamatan !== "<nil>") {
+            getKejadianKeselamatan(id_kejadian_keselamatan);
+        }
         $(document).ready(function() {
             $("#form-kejadian-keselamatan").submit(function(e) {
                 e.preventDefault();
 
+                $("#link_berita_error").text("");
+
                 var formData = new FormData(this);
 
-                // Get textarea content and process bullet points
+                // Process bullet points
                 let linkBeritaContent = $('#link_berita').val();
-                let items = linkBeritaContent.split('\n').map(item => item.trim().replace('• ', '')).filter(Boolean);
+                let items = linkBeritaContent.split('\n')
+                    .map(item => item.trim().replace(/^[•]\s*/, ''))  // Using regex to match bullet at start
+                    .filter(Boolean);
                 let processedContent = items.join('\n');
+
+                if (processedContent === ''){
+                    $("#link_berita_error").text("Link berita harus diisi. Jika kosong isi dengan `-`");
+                    $("#link_berita")[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    return false;
+                }
 
                 formData.set('link_berita', processedContent);
                 formData.append("jenis_kejadian_id", $('#jenis_kecelakaan').val());

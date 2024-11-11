@@ -19,8 +19,11 @@
                                 <label class="col-sm-4 col-form-label" for="tanggal_kejadian">Tanggal</label>
                                 <div class="col-sm-8">
                                     <input type="date" id="tanggal_kejadian" name="tanggal" class="form-control form-control-sm" required
-                                    oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Tanggal kejadian harus diisi!')">
+                                    oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Pilih tanggal kejadian.')">
                                 </div>
+                                <script>
+                                    document.getElementById('tanggal_kejadian').max = new Date().toISOString().split('T')[0]; 
+                                </script>
                             </div>
                             <div class="form-group row">
                                 <label class="col-sm-4 col-form-label" for="jenis_pelanggaran">Jenis Pelanggaran</label>
@@ -28,7 +31,7 @@
                                     <select name="jenis_kejadian_id" id="jenis_pelanggaran" 
                                         class="form-control form-control-sm select2_jenis_pelanggaran"
                                         data-placeholder="Pilih Jenis Pelanggaran"
-                                        oninvalid="this.setCustomValidity('Jenis Pelanggaran harus diisi!')" required>
+                                        oninvalid="this.setCustomValidity('Pilih jenis pelanggaran)" required>
                                     </select>
                                 </div>
                             </div>
@@ -36,7 +39,7 @@
                                 <label class="col-sm-4 col-form-label" for="nama_kapal">Nama Kapal</label>
                                 <div class="col-sm-8">
                                     <input type="text" id="nama_kapal" name="nama_kapal" class="form-control form-control-sm auto-width" required
-                                    oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Nama kapal harus diisi!')">
+                                    oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Nama kapal harus diisi. Jika kosong isi dengan `-`')">
                                 </div>
                             </div>
                             <div class="form-group row">
@@ -79,7 +82,7 @@
                                 <label class="col-sm-4 col-form-label" for="asal">Pelabuhan Asal</label>
                                 <div class="col-sm-8">
                                     <input type="text" id="asal" name="asal" class="form-control form-control-sm auto-width" required
-                                    oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Pelabuhan asal harus diisi!')">
+                                    oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Pelabuhan asal harus diisi. Jika kosong isi dengan `-`')">
                                 </div>
                             </div>
                             <div class="form-group row">
@@ -88,7 +91,7 @@
                                 <div class="col-sm-8">
                                     <select id="bendera" name="bendera" class="form-control form-control-sm" required
                                         oninput="setCustomValidity('')" 
-                                        oninvalid="this.setCustomValidity('Negara harus diisi!')">
+                                        oninvalid="this.setCustomValidity('Pilih negara. Jika kosong isi dengan `-`')">
                                         <option value="-"> - </option>
                                     </select>
                                 </div>
@@ -97,7 +100,7 @@
                                 <label class="col-sm-4 col-form-label" for="tujuan">Pelabuhan Tujuan</label>
                                 <div class="col-sm-8">
                                     <input type="text" id="tujuan" name="tujuan" class="form-control form-control-sm auto-width" required
-                                    oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Pelabuhan tujuan harus diisi!')">
+                                    oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Pelabuhan tujuan harus diisi. Jika kosong isi dengan `-`')">
                                 </div>
                             </div>
 
@@ -108,28 +111,28 @@
                                 <label class="col-sm-4 col-form-label" for="muatan">Muatan</label>
                                 <div class="col-sm-8">
                                     <textarea id="muatan" name="muatan" class="form-control form-control-sm" required 
-                                    style="font-size:1em;" oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Muatan harus diisi!')"></textarea>
+                                    style="font-size:1em;" oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Muatan harus diisi. Jika kosong isi dengan `-`')"></textarea>
                                 </div>
                             </div>
                             <div class="form-group row">
                                 <label class="col-sm-4 col-form-label" for="tindak_lanjut">Tindak Lanjut</label>
                                 <div class="col-sm-8">
                                     <textarea id="tindak_lanjut" name="tindak_lanjut" class="form-control form-control-sm" required 
-                                    style="font-size:1em;" oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Tindak lanjut harus diisi!')"></textarea>
+                                    style="font-size:1em;" oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Tindak lanjut harus diisi. Jika kosong isi dengan `-`')"></textarea>
                                 </div>
                             </div>
                             <div class="form-group row">
                                 <label class="col-sm-4 col-form-label" for="informasi_kategori">Informasi Tambahan</label>
                                 <div class="col-sm-8">
                                     <textarea id="informasi_kategori" name="informasi_kategori" class="form-control form-control-sm" required 
-                                    style="font-size:1em;" oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Informasi tambahan harus diisi!')"></textarea>
+                                    style="font-size:1em;" oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Informasi tambahan harus diisi. Jika kosong isi dengan `-`')"></textarea>
                                 </div>
                             </div>
                             <div class="form-group row">
                                 <label class="col-sm-4 col-form-label" for="sumber_berita">Instansi Penindak</label>
                                 <div class="col-sm-8">
                                     <input type="text" id="sumber_berita" name="sumber_berita" class="form-control form-control-sm auto-width" required
-                                    oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Instansi penindak harus diisi!')">
+                                    oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Instansi penindak harus diisi. Jika kosong isi dengan `-`')">
                                 </div>
                             </div>
                             <div class="form-group row">
@@ -138,7 +141,8 @@
                                     <textarea id="link_berita" name="link_berita" class="form-control form-control-sm" required 
                                     style="font-size:1em; min-height:100px; overflow:hidden; resize:none;" 
                                     oninput="setCustomValidity('')" 
-                                    oninvalid="this.setCustomValidity('Link berita harus diisi!')">• </textarea>
+                                    oninvalid="this.setCustomValidity('Link berita harus diisi. Jika kosong isi dengan `-`')"></textarea>
+                                    <small class="text-danger error-text" id="link_berita_error"></small>
                                 </div>
                             </div>
                             <div class="form-group row">
@@ -172,7 +176,7 @@
                                 <div class="ml-auto">
                                     <div class="form-inline">
                                         <select class="custom-select my-1 mr-sm-2" name="zona" id="zona" 
-                                        oninvalid="this.setCustomValidity('Zona harus diisi!')" required>
+                                        oninvalid="this.setCustomValidity('Pilih zona')" required>
                                             <option value="" selected disabled hidden> Pilih Zona </option>
                                             <option value="BARAT"> Barat </option>
                                             <option value="TENGAH"> Tengah </option>
@@ -198,7 +202,7 @@
                                 <div class="col-sm-8">
                                    <input type="text" id="lokasi_kejadian" name="lokasi_kejadian" class="form-control form-control-sm" required
                                     oninput="setCustomValidity('')" 
-                                    oninvalid="this.setCustomValidity('Lokasi kejadian harus diisi!')">
+                                    oninvalid="this.setCustomValidity('Lokasi kejadian harus diisi.')">
                                 </div>
                             </div>
                             <div class="form-group row">
@@ -225,335 +229,10 @@
 
  {{ template "layouts/script.tmpl" . }}
 
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
-<script>
-    // Auto-resize textarea function
-    function autoResize(textarea) {
-        textarea.style.height = 'auto';
-        textarea.style.height = textarea.scrollHeight + 'px';
-    }
-
-    // Apply to all textareas
-    document.querySelectorAll('textarea').forEach(textarea => {
-        textarea.addEventListener('input', function() {
-            autoResize(this);
-        });
-        // Initial resize
-        autoResize(textarea);
-    });
-
-    // Add this script to handle custom validation messages
-    document.querySelectorAll('input,textarea, select').forEach(element => {
-        // Create error span for each input
-        const errorSpan = document.createElement('span');
-        errorSpan.className = 'text-danger error-message';
-        element.parentNode.appendChild(errorSpan);
-
-        // Handle validation
-        element.addEventListener('invalid', function(e) {
-            e.preventDefault();
-            
-            // Check if element has value for Select2
-            if ($(this).hasClass('select2_jenis_pelanggaran')) {
-                if (this.value) {
-                    $(this).next('.select2-container').find('.select2-selection').removeClass('is-invalid');
-                    $(this).siblings('.error-message').text('');
-                    return;
-                }
-            }
-
-            const errorMessage = this.validationMessage;
-
-            // Handle Select2 validation
-            if ($(this).hasClass('select2_jenis_pelanggaran')) {
-                $(this).next('.select2-container').find('.select2-selection').addClass('is-invalid');
-                $(this).siblings('.error-message').text(errorMessage);
-            } else {
-                this.nextElementSibling.textContent = errorMessage;
-            }
-
-            // Clear error on input/change
-            $(element).on('change select2:select', function() {
-                if ($(this).hasClass('select2_jenis_pelanggaran')) {
-                    $(this).next('.select2-container').find('.select2-selection').removeClass('is-invalid');
-                }
-                $(this).siblings('.error-message').text('');
-                this.setCustomValidity('');
-            });
-
-             element.addEventListener('input', function() {
-                // Clear error message
-                this.classList.remove('is-invalid');
-                const errorSpan = this.nextElementSibling;
-                if (errorSpan && errorSpan.classList.contains('error-message')) {
-                    errorSpan.textContent = '';
-                }
-                // Clear custom validity
-                this.setCustomValidity('');
-            });
-        });
-    });
-
-
-    // Add CSS for error messages
-    const style = document.createElement('style');
-    style.textContent = `
-        .error-message {
-            display: block;
-            font-size: 12px;
-            margin-top: 5px;
-        }
-    `;
-    document.head.appendChild(style);
-    
-    $('#bendera').select2({
-        language: {
-            inputTooShort: function() {
-                return "Silahkan Masukkan 1 atau lebih karakter";
-            }
-        },
-        placeholder: 'Pilih Negara',
-        allowClear: true,
-        minimumInputLength: 1,
-        data: [{ id: '-', text: '-' }], // Add default option
-        ajax: {
-            url: function(params) {
-                return 'https://restcountries.com/v3.1/name/' + params.term;
-            },
-            dataType: 'json',
-            delay: 250,
-            data: function(params) {
-                return {
-                    search: params.term
-                };
-            },
-            processResults: function(data) {
-                let results = [{ id: '-', text: '-' }]; // Include default option
-                results = results.concat(data.map(function(item) {
-                    return {
-                        id: item.name.common,
-                        text: item.name.common,
-                        flag: item.flags.png
-                    };
-                }).sort((a, b) => a.text.localeCompare(b.text)));
-                return { results };
-            },
-            cache: true
-        },
-        templateResult: function(data) {
-            if (!data.flag) return data.text;
-            return $(`<span><img src="${data.flag}" style="width:20px; margin-right:10px"/> ${data.text}</span>`);
-        },
-        templateSelection: function(data) {
-            if (!data.flag) return data.text;
-            return $(`<span><img src="${data.flag}" style="width:20px; margin-right:10px"/> ${data.text}</span>`);
-        }
-    });
-        
-    $('.select2_jenis_pelanggaran').select2();
-  
-    const linkBeritaTextarea = document.getElementById('link_berita');
-
-    linkBeritaTextarea.value = '• ';
-
-    linkBeritaTextarea.addEventListener('input', function() {
-        if (this.value === '') {
-            this.value = '• ';
-            this.selectionStart = this.selectionEnd = 2;
-        }
-        this.style.height = 'auto';
-        this.style.height = this.scrollHeight + 'px';
-    });
-
-    linkBeritaTextarea.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            const cursorPosition = this.selectionStart;
-            const currentValue = this.value;
-            const newValue = currentValue.slice(0, cursorPosition) + '\n• ' + currentValue.slice(cursorPosition);
-            this.value = newValue;
-            this.selectionStart = this.selectionEnd = cursorPosition + 3;
-        }
-    });
-
-
-    var id_kejadian_keamanan = {{.idKejadianKeamanan}};
-    var jenisPelanggaranSelected = null;
-
-    const fileInput = document.querySelector('#file_input');
-    const fileList = document.querySelector('#file-list');
-
-    if (id_kejadian_keamanan !== null && id_kejadian_keamanan !== "" && id_kejadian_keamanan !== "<nil>") {
-        getKejadianKeamanan(id_kejadian_keamanan);
-    }
-
-    fileInput.addEventListener('change', handleFileSelect);
-
-    async function getKejadianKeamanan(id) {
-        try {
-            const response = await $.ajax({
-                url: window.location.origin + {{ .getKejadianKeamananURL }} + "?id_kejadian_keamanan=" + id,
-                type: 'GET'
-            });
-
-            const data = response.data.data_kejadian_keamanan;
-            if (data !== null) {
-                $("#id_kejadian_keamanan").val(data.id_kejadian_keamanan);
-                $("#tanggal_kejadian").val(data.tanggal);
-                
-                $("#jenis_pelanggaran").val(data.jenis_kejadian_id).trigger('change');
-                $("#jenis_pelanggaran").prop('disabled',true);
-                $("#nama_kapal").val(data.nama_kapal);
-                $("#sumber_berita").val(data.sumber_berita);
-                const links = data.link_berita.split('\n');
-                const bulletPoints = links.map(link => `• ${link}`).join('\n');
-                $("#link_berita").val(bulletPoints);
-
-                linkBeritaTextarea.style.height = 'auto';
-                linkBeritaTextarea.style.height = linkBeritaTextarea.scrollHeight + 'px';
-
-                $("#lokasi_kejadian").val(`${data.latitude} ${data.longitude}`);
-                
-                let coordinates = $('#lokasi_kejadian').val().split(' ');
-
-                $("#muatan").val(data.muatan);
-                $("#asal").val(data.asal);
-                $("#bendera").val(data.bendera);
-                $("#tujuan").val(data.tujuan);
-                $("#kategori_sumber").val(data.kategori_sumber);
-                $("#tindak_lanjut").val(data.tindak_lanjut);
-                $("#imo_kapal").val(data.imo_kapal);
-                $("#mmsi_kapal").val(data.mmsi_kapal);
-                $("#informasi_kategori").val(data.informasi_kategori);
-                $("#zona").val(data.zona);
-
-                let coordinateLatlng = new google.maps.LatLng(
-                    parseFloat(coordinates[0]), 
-                    parseFloat(coordinates[1])
-                );
-                handleLocation(coordinateLatlng);
-
-                const container = new DataTransfer();
-
-                for (const file of data.file_image) {
-                    const imgBlob = await getImgURLPromise(file);
-                    const fileName = file.filename;
-                    const newFile = new File([imgBlob], fileName, { type: "image/jpeg", lastModified: new Date().getTime() }, 'utf-8');
-                    container.items.add(newFile);
-                }
-
-                fileInput.files = container.files;
-                updateFileList();
-            }
-        } catch (error) {
-            console.log(error);
-        }
-    }
-
-    function getImgURLPromise(file) {
-        return new Promise((resolve, reject) => {
-            const xhr = new XMLHttpRequest();
-            xhr.onload = function() {
-                resolve(xhr.response);
-            };
-            xhr.onerror = function() {
-                reject(xhr.statusText);
-            };
-            xhr.open('GET', window.origin + "/api/files/" + file.url);
-            xhr.responseType = 'blob';
-            xhr.send();
-        });
-    }
-
-    function handleFileSelect() {
-        const container = new DataTransfer();
-        for (const file of fileInput.files) {
-            container.items.add(file);
-        }
-        fileInput.files = container.files;
-        updateFileList();
-    }
-
-    function removeFile(file) {
-        const container = new DataTransfer();
-        for (const f of fileInput.files) {
-            if (f !== file) {
-                container.items.add(f);
-            }
-        }
-        fileInput.files = container.files;
-        updateFileList();
-    }
-
-    function updateFileList() {
-        fileList.innerHTML = '';
-        const row = document.createElement('div');
-        row.className = 'row g-2 mb-4'; // Added mb-4 for bottom margin
-        fileList.appendChild(row);
-
-        for (const file of fileInput.files) {
-            const col = document.createElement('div');
-            col.className = 'col-6 col-sm-4 col-md-3 mb-3 mt-3';
-            
-            const imageContainer = document.createElement('div');
-            imageContainer.className = 'position-relative h-100';
-            
-            const preview = document.createElement('img');
-            preview.className = 'img-fluid rounded w-100 h-100';
-            preview.style.objectFit = 'cover';
-            preview.style.minHeight = '100px';
-            preview.style.maxHeight = '120px';
-            
-            const reader = new FileReader();
-            reader.onload = (e) => preview.src = e.target.result;
-            reader.readAsDataURL(file);
-            
-            const removeButton = document.createElement('button');
-            removeButton.className = 'btn btn-danger btn-sm position-absolute';
-            removeButton.style.top = '5px';
-            removeButton.style.right = '5px';
-            removeButton.innerHTML = '<i class="fas fa-times"></i>';
-            removeButton.addEventListener('click', () => removeFile(file));
-            
-            imageContainer.appendChild(preview);
-            imageContainer.appendChild(removeButton);
-            col.appendChild(imageContainer);
-            row.appendChild(col);
-        }
-    }
-
-</script>
-
-    <script>
-        getJenisPelanggaran();
-
-        function getJenisPelanggaran() {
-            $.ajax({
-                url: window.location.origin + '/api/kejadian/listKejadian',
-                type: 'POST',
-                data: {
-                    klasifikasi_name: "Keamanan Laut"
-                },
-                success: function(response) {
-                    $("#jenis_pelanggaran").empty();
-                    var awal = `<option value="" selected disabled hidden> Pilih </option>`
-                    $("#jenis_pelanggaran").append(awal);
-
-                    response.data.data_jenis_kejadian.forEach((x, i) => {
-                        $("#jenis_pelanggaran").append("<option value='" + x.id_jenis_kejadian + "'>" + x.nama_kejadian + "</option>");
-                    });
-
-                },
-                error: function(response) {
-                    Swal.fire('Gagal!', 'Data Tidak Ada!!', 'error');
-                }
-            });
-        }
-    </script>
-
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAeQVXtdaEgd0Cfvjy41mjGZ6_f5thMVt4&loading=async&language=id&callback=initMap"></script>
+    
     <script>
         let marker;
 
@@ -670,6 +349,332 @@
     </script>
 
     <script>
+        getJenisPelanggaran();
+
+        function getJenisPelanggaran() {
+            $.ajax({
+                url: window.location.origin + '/api/kejadian/listKejadian',
+                type: 'POST',
+                data: {
+                    klasifikasi_name: "Keamanan Laut"
+                },
+                success: function(response) {
+                    $("#jenis_pelanggaran").empty();
+                    var awal = `<option value="" selected disabled hidden> Pilih </option>`
+                    $("#jenis_pelanggaran").append(awal);
+
+                    response.data.data_jenis_kejadian.forEach((x, i) => {
+                        $("#jenis_pelanggaran").append("<option value='" + x.id_jenis_kejadian + "'>" + x.nama_kejadian + "</option>");
+                    });
+
+                },
+                error: function(response) {
+                    Swal.fire('Gagal!', 'Data Tidak Ada!!', 'error');
+                }
+            });
+        }
+    </script>
+
+    <script>
+        // Auto-resize textarea function
+        function autoResize(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = textarea.scrollHeight + 'px';
+        }
+
+        // Apply to all textareas
+        document.querySelectorAll('textarea').forEach(textarea => {
+            textarea.addEventListener('input', function() {
+                autoResize(this);
+            });
+            // Initial resize
+            autoResize(textarea);
+        });
+
+        // Add this script to handle custom validation messages
+        document.querySelectorAll('input,textarea, select').forEach(element => {
+
+            // Create error span for each input
+            const errorSpan = document.createElement('span');
+            errorSpan.className = 'text-danger error-message';
+            element.parentNode.appendChild(errorSpan);
+
+            // Handle validation
+            element.addEventListener('invalid', function(e) {
+                e.preventDefault();
+
+                // Check if element has value for Select2
+                if ($(this).hasClass('select2_jenis_pelanggaran')) {
+                    if (this.value) {
+                        $(this).next('.select2-container').find('.select2-selection').removeClass('is-invalid');
+                        $(this).siblings('.error-message').text('');
+                        return;
+                    }
+                }
+
+                const errorMessage = this.validationMessage;
+
+                // Handle Select2 validation
+                if ($(this).hasClass('select2_jenis_pelanggaran')) {
+                    $(this).next('.select2-container').find('.select2-selection').addClass('is-invalid');
+                    $(this).siblings('.error-message').text(errorMessage);
+                } else {
+                    this.nextElementSibling.textContent = errorMessage;
+                }
+
+                // Clear error on input/change
+                $(element).on('change select2:select', function() {
+                    if ($(this).hasClass('select2_jenis_pelanggaran')) {
+                        $(this).next('.select2-container').find('.select2-selection').removeClass('is-invalid');
+                    }
+                    $(this).siblings('.error-message').text('');
+                    this.setCustomValidity('');
+                });
+
+                element.addEventListener('input', function() {
+                    // Clear error message
+                    this.classList.remove('is-invalid');
+                    const errorSpan = this.nextElementSibling;
+                    if (errorSpan && errorSpan.classList.contains('error-message')) {
+                        errorSpan.textContent = '';
+                    }
+                    // Clear custom validity
+                    this.setCustomValidity('');
+                });
+            });
+        });
+
+        // Add CSS for error messages
+        const style = document.createElement('style');
+        style.textContent = `
+            .error-message {
+                display: block;
+                font-size: 12px;
+                margin-top: 5px;
+            }
+        `;
+        document.head.appendChild(style);
+        
+        $('#bendera').select2({
+            language: {
+                inputTooShort: function() {
+                    return "Silahkan Masukkan 1 atau lebih karakter";
+                }
+            },
+            placeholder: 'Pilih Negara',
+            allowClear: true,
+            minimumInputLength: 1,
+            data: [{ id: '-', text: '-' }], // Add default option
+            ajax: {
+                url: function(params) {
+                    return 'https://restcountries.com/v3.1/name/' + params.term;
+                },
+                dataType: 'json',
+                delay: 250,
+                data: function(params) {
+                    return {
+                        search: params.term
+                    };
+                },
+                processResults: function(data) {
+                    let results = [{ id: '-', text: '-' }]; // Include default option
+                    results = results.concat(data.map(function(item) {
+                        return {
+                            id: item.name.common,
+                            text: item.name.common,
+                            flag: item.flags.png
+                        };
+                    }).sort((a, b) => a.text.localeCompare(b.text)));
+                    return { results };
+                },
+                cache: true
+            },
+            templateResult: function(data) {
+                if (!data.flag) return data.text;
+                return $(`<span><img src="${data.flag}" style="width:20px; margin-right:10px"/> ${data.text}</span>`);
+            },
+            templateSelection: function(data) {
+                if (!data.flag) return data.text;
+                return $(`<span><img src="${data.flag}" style="width:20px; margin-right:10px"/> ${data.text}</span>`);
+            }
+        });
+            
+        $('.select2_jenis_pelanggaran').select2();
+    
+        const linkBeritaTextarea = document.getElementById('link_berita');
+
+        linkBeritaTextarea.addEventListener('input', function() {
+            $("#link_berita_error").text("")
+             // Add bullet point if textarea is empty
+            if (this.value === '') {
+                this.value = '• ';
+                // Set cursor position after bullet point
+                this.selectionStart = this.selectionEnd = this.value.length;
+            }
+            
+            this.style.height = 'auto';
+            this.style.height = this.scrollHeight + 'px';
+        });
+
+        linkBeritaTextarea.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const cursorPosition = this.selectionStart;
+                const currentValue = this.value;
+                const newValue = currentValue.slice(0, cursorPosition) + '\n• ' + currentValue.slice(cursorPosition);
+                this.value = newValue;
+                this.selectionStart = this.selectionEnd = cursorPosition + 3;
+            }
+        });
+
+        var id_kejadian_keamanan = {{.idKejadianKeamanan}};
+        var jenisPelanggaranSelected = null;
+
+        const fileInput = document.querySelector('#file_input');
+        const fileList = document.querySelector('#file-list');
+
+        fileInput.addEventListener('change', handleFileSelect);
+
+        function getImgURLPromise(file) {
+            return new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.onload = function() {
+                    resolve(xhr.response);
+                };
+                xhr.onerror = function() {
+                    reject(xhr.statusText);
+                };
+                xhr.open('GET', window.origin + "/api/files/" + file.url);
+                xhr.responseType = 'blob';
+                xhr.send();
+            });
+        }
+
+        function handleFileSelect() {
+            const container = new DataTransfer();
+            for (const file of fileInput.files) {
+                container.items.add(file);
+            }
+            fileInput.files = container.files;
+            updateFileList();
+        }
+
+        function removeFile(file) {
+            const container = new DataTransfer();
+            for (const f of fileInput.files) {
+                if (f !== file) {
+                    container.items.add(f);
+                }
+            }
+            fileInput.files = container.files;
+            updateFileList();
+        }
+
+        function updateFileList() {
+            fileList.innerHTML = '';
+            const row = document.createElement('div');
+            row.className = 'row g-2 mb-4'; // Added mb-4 for bottom margin
+            fileList.appendChild(row);
+
+            for (const file of fileInput.files) {
+                const col = document.createElement('div');
+                col.className = 'col-6 col-sm-4 col-md-3 mb-3 mt-3';
+                
+                const imageContainer = document.createElement('div');
+                imageContainer.className = 'position-relative h-100';
+                
+                const preview = document.createElement('img');
+                preview.className = 'img-fluid rounded w-100 h-100';
+                preview.style.objectFit = 'cover';
+                preview.style.minHeight = '100px';
+                preview.style.maxHeight = '120px';
+                
+                const reader = new FileReader();
+                reader.onload = (e) => preview.src = e.target.result;
+                reader.readAsDataURL(file);
+                
+                const removeButton = document.createElement('button');
+                removeButton.className = 'btn btn-danger btn-sm position-absolute';
+                removeButton.style.top = '5px';
+                removeButton.style.right = '5px';
+                removeButton.innerHTML = '<i class="fas fa-times"></i>';
+                removeButton.addEventListener('click', () => removeFile(file));
+                
+                imageContainer.appendChild(preview);
+                imageContainer.appendChild(removeButton);
+                col.appendChild(imageContainer);
+                row.appendChild(col);
+            }
+        }
+
+    </script>
+
+    <script>
+        async function getKejadianKeamanan(id) {
+            try {
+                const response = await $.ajax({
+                    url: window.location.origin + {{ .getKejadianKeamananURL }} + "?id_kejadian_keamanan=" + id,
+                    type: 'GET'
+                });
+
+                const data = response.data.data_kejadian_keamanan;
+                if (data !== null) {
+                    $("#id_kejadian_keamanan").val(data.id_kejadian_keamanan);
+                    $("#tanggal_kejadian").val(data.tanggal);
+                    
+                    $("#jenis_pelanggaran").val(data.jenis_kejadian_id).trigger('change');
+                    $("#jenis_pelanggaran").prop('disabled',true);
+                    $("#nama_kapal").val(data.nama_kapal);
+                    $("#sumber_berita").val(data.sumber_berita);
+                    const links = data.link_berita.split('\n');
+                    const bulletPoints = links.map(link => `• ${link}`).join('\n');
+                    $("#link_berita").val(bulletPoints);
+
+                    linkBeritaTextarea.style.height = 'auto';
+                    linkBeritaTextarea.style.height = linkBeritaTextarea.scrollHeight + 'px';
+
+                    $("#cari_lokasi").val(`${data.latitude} ${data.longitude}`);
+                    $("#lokasi_kejadian").val(data.lokasi_kejadian);
+                    
+                    let coordinates = $('#cari_lokasi').val().split(' ');
+
+                    $("#muatan").val(data.muatan);
+                    $("#asal").val(data.asal);
+                    $("#bendera").val(data.bendera);
+                    $("#tujuan").val(data.tujuan);
+                    $("#kategori_sumber").val(data.kategori_sumber);
+                    $("#tindak_lanjut").val(data.tindak_lanjut);
+                    $("#imo_kapal").val(data.imo_kapal);
+                    $("#mmsi_kapal").val(data.mmsi_kapal);
+                    $("#informasi_kategori").val(data.informasi_kategori);
+                    $("#zona").val(data.zona);
+
+                    let coordinateLatlng = new google.maps.LatLng(
+                        parseFloat(coordinates[0]), 
+                        parseFloat(coordinates[1])
+                    );
+                    handleLocation(coordinateLatlng);
+
+                    const container = new DataTransfer();
+
+                    for (const file of data.file_image) {
+                        const imgBlob = await getImgURLPromise(file);
+                        const fileName = file.filename;
+                        const newFile = new File([imgBlob], fileName, { type: "image/jpeg", lastModified: new Date().getTime() }, 'utf-8');
+                        container.items.add(newFile);
+                    }
+
+                    fileInput.files = container.files;
+                    updateFileList();
+                }
+            } catch (error) {
+                console.log(error);
+            }
+        }
+        if (id_kejadian_keamanan !== null && id_kejadian_keamanan !== "" && id_kejadian_keamanan !== "<nil>") {
+            getKejadianKeamanan(id_kejadian_keamanan);
+        }
+
         $(document).ready(function() {
             $("#form-kejadian-keamanan").submit(function(e) {
                 console.log("Form submitted");
@@ -678,6 +683,7 @@
                 // Clear previous error messages
                 $("#imo_error").text("");
                 $("#mmsi_error").text("");
+                $("#link_berita_error").text("");
 
                 // Get IMO value
                 const imoValue = $("#imo_kapal").val();
@@ -703,8 +709,16 @@
                 
                 // Get textarea content and process bullet points
                 let linkBeritaContent = $('#link_berita').val();
-                let items = linkBeritaContent.split('\n').map(item => item.trim().replace('• ', '')).filter(Boolean);
+                let items = linkBeritaContent.split('\n')
+                    .map(item => item.trim().replace(/^[•]\s*/, ''))  // Using regex to match bullet at start
+                    .filter(Boolean);
                 let processedContent = items.join('\n');
+
+                if (processedContent === ''){
+                    $("#link_berita_error").text("Link berita harus diisi. Jika kosong isi dengan `-`");
+                    $("#link_berita")[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    return false;
+                }
                 
                 formData.set('link_berita', processedContent);
                 formData.append("jenis_kejadian_id", $('#jenis_pelanggaran').val());
