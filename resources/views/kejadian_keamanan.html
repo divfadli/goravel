@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div style="margin-left:10px">
+        <select class="custom-select my-1 mr-sm-2" name="zona" id="zona" data-error="Pilih Zona" required>
+            <option value="" selected disabled hidden> Pilih Zona </option>
+            <option value="">Semua</option>
+            <option value="BARAT"> Barat </option>
+            <option value="TENGAH"> Tengah </option>
+            <option value="TIMUR"> Timur </option>
+        </select>
+        <button onclick="searchDataKeamanan()" class="btn btn-primary">
+            <i class="fas fa-search fa-sm"> Search</i>
+        </button>
+    </div>
+
+    <div class="ml-auto">   
+        <a href="/kejadian/keamanan/form_kejadian_keamanan" class="btn btn-primary py-2 px-4 font-weight-bolder font-size-m">
+            <i class="flaticon2-plus icon-sm"></i>Tambah Data
+        </a>
+    </div>
+    <div>
+        <a href="#" class="btn btn-icon my-2 btn-sm btn-warning">
+            <i class="fas fa-edit">a</i>
+        </a>
+        <button type="button" class="btn btn-icon my-2 btn-sm btn-danger">
+            <i class="fas fa-trash">b</i>
+        </button>
+    </div>
+
+</body>
+</html>

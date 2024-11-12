@@ -153,6 +153,10 @@
             .thumbnail-list {
                 margin-bottom: 15px;
             }
+            .pagination {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
         }
 
     </style>
@@ -240,17 +244,104 @@
                         <div id="report-container">
                             <!-- Reports will be inserted here -->
                         </div>
+                        <button onclick="openPDF('http://localhost:5000/api/files/2024/Laporan Mingguan/Bulan Januari/LAP MING KE-1 JAN\'24.pdf')">Buka PDF</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Add this right after the report-container div -->
+    <div class="card-footer">
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center" id="pagination">
+                <li class="page-item">
+                    <a class="page-link" href="#" aria-label="Previous" id="prev-page">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="#" aria-label="Next" id="next-page">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 
+    <!-- <script>
+        function isValidDMS(coordinates) {
+            // Regex untuk memvalidasi format DMS dengan semua arah yang didukung (LS, LU, BT, BB, N, S, E, W)
+            const regex = /^(\d{1,2})°\s*(\d{1,2})′\s*(\d{1,2}(\.\d+)?)″\s*(LS|LU|S|N)\s+(\d{1,3})°\s*(\d{1,2})′\s*(\d{1,2}(\.\d+)?)″\s*(BT|BB|E|W)$/;
+            return regex.test(coordinates);
+        }
+
+        // Contoh penggunaan
+        const coordinates1 = "00° 56′ 29″ LS 131° 13′ 10″ BT"; // Valid
+        const coordinates2 = "7°48’10.2″S 110°22’26.9″E";       // Valid
+        const coordinates3 = "00°56'29″ LU 131°13'10″ BB";      // Valid
+        const coordinates4 = "15°32′18″ N 100°45′12″ W";        // Valid
+        const coordinates5 = "45°20′30″ E 120°10′5.5″ N";       // Tidak valid (format arah tidak berpasangan)
+
+        console.log(isValidDMS(coordinates1)); // true
+        console.log(isValidDMS(coordinates2)); // true
+        console.log(isValidDMS(coordinates3)); // true
+        console.log(isValidDMS(coordinates4)); // true
+        console.log(isValidDMS(coordinates5)); // false
+
+    </script>
+
+    <script>
+        function isValidDMS(coordinates) {
+            // Regex untuk memvalidasi format DMS
+            const regex = /^(\d+)°(\d+)’(\d+(\.\d+)?)″[NS]\s+(\d+)°(\d+)’(\d+(\.\d+)?)″[EW]$/;
+            return regex.test(coordinates);
+        }
+
+            // Contoh penggunaan
+        // const coordinates1 = "7°48’10.2″S 110°22’26.9″E";
+        // const coordinates2 = "7.8°48’10″N 110°22’26″W";  // Contoh format salah
+
+        // console.log(isValidDMS(coordinates1)); // true
+        // console.log(isValidDMS(coordinates2)); // false
+        
+        console.log(convertDMSToDecimal(`7°48’10.2″S 110°22’26.9″E`))
+        function convertDMSToDecimal(dms) {
+            // Pisahkan nilai derajat, menit, dan detik
+            const regex = /^(\d{1,2})°\s*(\d{1,2})′\s*(\d{1,2}(\.\d+)?)″\s*(LS|LU|S|N)\s+(\d{1,3})°\s*(\d{1,2})′\s*(\d{1,2}(\.\d+)?)″\s*(BT|BB|E|W)$/
+            const match = dms.match(regex);
+
+            console.log(match)
+
+            // var parts = dms.split(/[^\d\w]+/);
+            // var degrees = parseInt(parts[0], 10);
+            // var minutes = parseInt(parts[1], 10);
+            // var seconds = parseFloat(parts[2].replace(',', '.'));
+            // console.log(parts)
+            // console.log(degrees, minutes, seconds)
+        
+            // // Tentukan arah (N/S untuk latitude, E/W untuk longitude)
+            // var direction = parts[3]; // Asumsikan arah ditulis setelah detik
+        
+            // // Konversi DMS ke Decimal Degrees
+            // var decimal = degrees + (minutes / 60) + (seconds / 3600);
+            
+            // Beri nilai negatif jika arah adalah S atau W
+            if (direction === 'S' || direction === 'W' || direction === 'LS' || direction === 'BB') {
+                decimal = -decimal;
+            }
+            
+            return decimal;
+        }
+    </script> -->
+
 <script>
+    console.log(window.location.href);
+    console.log(window.location.hostname);
 $(document).ready(function() {
     const $jenis = $('#jenis_laporan');
     const $bulan = $('#bulan');
@@ -423,78 +514,129 @@ $(document).ready(function() {
     }
 
     // Add this function to handle form submission
-    function searchListLaporan() {
-        const $btn = $('.search-btn');
-        $btn.html('<span class="spinner-border spinner-border-sm"></span> Mencari...');
-        $btn.prop('disabled', true);
+    // Add these variables at the top of your script
+    let currentPage = 1;
+    const itemsPerPage = 5; // Show 5 items per page
 
+    function renderPaginatedReports(reports) {
+        const totalItems = reports.length;
+        const totalPages = Math.ceil(totalItems / itemsPerPage);
+        
+        // Calculate start and end index for current page
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+        
+        // Get current page items
+        const currentItems = reports.slice(startIndex, endIndex);
+        
+        // Render the reports
+        let html = '<div class="row">';
+        currentItems.forEach(report => {
+            const report_dokumen = report.dokumen.replace(/'/g, "\%27").replace(/\\/g, "/")
+            const final_url = `http://127.0.0.1:5000/api/files/${report_dokumen}`;
+
+            html += `
+                <div class="col-md-12 info-list-panel">
+                    <div class="row">
+                        <div class="col-md-1">
+                            <div class="thumbnail-list">
+                                <i class="fas fa-file-alt fa-4x text-primary mt-3"></i>
+                            </div>
+                        </div>
+                        <div class="col-md-11">
+                            <p class="list-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                ${formatDate(report.CreatedAt)}
+                            </p>
+                            <h4 class="list-title">
+                                ${report.nama_laporan}
+                            </h4>
+                            <button class="btn btn-outline-danger btn-sm" onclick="window.open('${final_url}', '_blank')">Lihat</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        html += '</div>';
+
+        // Render pagination
+        let paginationHtml = `
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                        <a class="page-link" href="#" onclick="changePage(${currentPage - 1})">&laquo;</a>
+                    </li>
+        `;
+
+        for (let i = 1; i <= totalPages; i++) {
+            paginationHtml += `
+                <li class="page-item ${currentPage === i ? 'active' : ''}">
+                    <a class="page-link" href="#" onclick="changePage(${i})">${i}</a>
+                </li>
+            `;
+        }
+
+        paginationHtml += `
+                    <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                        <a class="page-link" href="#" onclick="changePage(${currentPage + 1})">&raquo;</a>
+                    </li>
+                </ul>
+            </nav>
+        `;
+
+        $('#report-container').html(html);
+        $('#pagination').html(paginationHtml);
+    }
+
+    function changePage(page) {
+        currentPage = page;
+        searchListLaporan();
+    }
+
+    // Modify searchListLaporan to use the new pagination
+    function searchListLaporan() {
+        // Show loader
+        $('#loader').removeClass('d-none');
+        $('#report-container').addClass('d-none');
+        
         const formData = {
-            jenis_laporan: $('#jenis_laporan').val(),
+            jenis_laporan: $('#jenis_laporan').val() || "",
             bulan: parseInt($('#bulan').val()) || 0,
             minggu: parseInt($('#minggu').val()) || 0,
             tahun: parseInt($('#tahun').val()) || 0
         };
         
         const params = new URLSearchParams(formData);
-        const url = `http://localhost:5000/listLaporan?${params.toString()}`;
         
-        fetch(url, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(response => response.json())
-        .then(response => {
-            let html = '<div class="row">';
-                
-                response.data.data_laporan.forEach(report => {
-                var report_dokumen = report.dokumen;
-                var url_dokumen = `http://localhost:5000/api/files/` + report_dokumen
-
-                html += `
-                    <div class="col-md-12 info-list-panel">
-                        <div class="row">
-                            <div class="col-md-1">
-                                <div class="thumbnail-list">
-                                    <i class="fas fa-file-alt fa-4x text-primary mt-3"></i>
-                                </div>
-                            </div>
-                            <div class="col-md-11">
-                                <p class="list-date">
-                                    <i class="fas fa-calendar-alt"></i>
-                                    ${formatDate(report.CreatedAt)}
-                                </p>
-                                <h4 class="list-title">
-                                    ${report.nama_laporan}
-                                </h4>
-                                <button class="btn btn-outline-danger btn-sm" onclick="window.open("${url_dokumen}", '_blank')">Lihat</button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-
-            html += '</div>';
-            
-            $('#report-container').html(html);
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showNotification('Terjadi kesalahan saat mengambil data', 'danger');
-        })
-        .finally(() => {
-            $btn.html('<i class="fas fa-search"></i> Cari');
-            $btn.prop('disabled', false);
-        });
-    }
-
-    function openDocument(url) {
-        window.open(url, '_blank');
+        setTimeout(() => {
+            fetch(`http://127.0.0.1:5000/api/laporan/listLaporan?${params.toString()}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(response => {
+                    renderPaginatedReports(response.data.data_laporan)
+                    if (response.data.data_laporan.length === 0) {
+                        showNotification('Data Kosong', 'danger');
+                    } else {
+                        showNotification('Data berhasil dimuat', 'success');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('Gagal memuat data: ' + error.message, 'danger');
+                })
+                .finally(() => {
+                    // Hide loader
+                    $('#loader').addClass('d-none');
+                    $('#report-container').removeClass('d-none');
+                });
+            }, 500); // 1000ms = 1s delay
     }
 
 
-    
     function showNotification(message, type = 'success') {
         const toast = document.getElementById('notification-toast');
         const toastBody = toast.querySelector('.toast-body');
@@ -505,9 +647,80 @@ $(document).ready(function() {
         const bsToast = new bootstrap.Toast(toast);
         bsToast.show();
     }
+    function addRefreshButton() {
+        const refreshBtn = `
+            <button type="button" class="btn btn-secondary me-2" onclick="refreshData()">
+                <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+        `;
+        $('.form-inline').append(refreshBtn);
+    }
+
+    function refreshData() {
+        currentPage = 1;
+        searchListLaporan();
+    }
+
+// Auto refresh every 5 minutes
+setInterval(refreshData, 300000);
 
     // showNotification('Data berhasil diperbarui', 'success');
     // showNotification('Terjadi kesalahan', 'danger');
 </script>
+
+    <script>
+        function dmsToDecimal(degrees, minutes, seconds, direction) {
+            let decimal = degrees + (minutes / 60) + (seconds / 3600);
+            // Jika arah adalah Selatan atau Barat, buat hasil negatif
+            if (direction === 'S' || direction === 'LS' || direction === 'W' || direction === 'BB') {
+                decimal = -decimal;
+            }
+            return decimal;
+        }
+
+        // Fungsi untuk memproses koordinat dalam format DMS dan mengonversinya ke DD
+        function convertCoordinatesToDD(coordinates) {
+            // Regex untuk menangkap format DMS dengan arah yang berbeda
+            const regex = /^(\d{1,2})°\s*(\d{1,2})[′`']\s*(\d{1,3}(\.\d+)?)[″"]\s*(LS|LU|S|N)\s+(\d{1,3})°\s*(\d{1,2})[′`']\s*(\d{1,2}(\.\d+)?)[″"]\s*(BT|BB|E|W)$/;
+            const match = coordinates.match(regex);
+
+            if (match) {
+                // Ambil nilai lintang
+                const latDegrees = parseInt(match[1], 10);
+                const latMinutes = parseInt(match[2], 10);
+                const latSeconds = parseFloat(match[3]);
+                const latDirection = match[5];
+                console.log(latDegrees, latMinutes, latSeconds, latDirection);
+                
+                // Ambil nilai bujur
+                const lonDegrees = parseInt(match[6], 10);
+                const lonMinutes = parseInt(match[7], 10);
+                const lonSeconds = parseFloat(match[8]);
+                const lonDirection = match[10];
+                console.log(lonDegrees, lonMinutes, lonSeconds, lonDirection);
+
+                // Konversi lintang dan bujur ke DD
+                const latitude = dmsToDecimal(latDegrees, latMinutes, latSeconds, latDirection);
+                const longitude = dmsToDecimal(lonDegrees, lonMinutes, lonSeconds, lonDirection);
+
+                return { latitude, longitude };
+            } else {
+                throw new Error("Format koordinat tidak valid.");
+            }
+        }
+
+        // Contoh penggunaan
+        const coordinates1 = "00° 56' 29″ LS 131° 13' 10″ BT"; // Valid
+        const coordinates2 = "7°48`10.2″S 110°22`26.9″E";  // Valid
+        const coordinates3 = "41° 24`12.2″N 2° 10`26.5″ E";
+
+        try {
+            console.log(convertCoordinatesToDD(coordinates1));
+            console.log(convertCoordinatesToDD(coordinates2));
+        } catch (error) {
+            console.error(error.message);
+        }
+
+    </script>
 </body>
 </html>

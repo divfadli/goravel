@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <form id="form-kejadian-keamanan" enctype="multipart/form-data">
+        <div class="form-group row">
+            <label class="col-sm-4 col-form-label" for="tindak_lanjut">Tindak Lanjut</label>
+            <div class="col-sm-8">
+                <textarea id="tindak_lanjut" name="tindak_lanjut" class="form-control form-control-sm" required 
+                style="font-size:1em;" oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Tindak Lanjut harus diisi!')"></textarea>
+            </div>
+        </div>
+        <div class="form-group row">
+            <label class="col-sm-4 col-form-label" for="sumber_berita">Instansi Penindak</label>
+            <div class="col-sm-8">
+                <input type="text" id="sumber_berita" name="sumber_berita" class="form-control form-control-sm" required
+                oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Instansi Penindak harus diisi!')">
+            </div>
+        </div>
+        <div class="form-group row">
+            <label class="col-sm-4 col-form-label" for="tanggal_kejadian">Tanggal</label>
+            <div class="col-sm-8">
+                <input type="date" id="tanggal_kejadian" name="tanggal" class="form-control form-control-sm" required
+                oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Tanggal kejadian harus diisi!')">
+            </div>
+        </div>
+        <div class="form-group row">
+            <label class="col-sm-4 col-form-label" for="jenis_pelanggaran">Jenis Pelanggaran</label>
+            <div class="col-sm-8">
+                <select name="jenis_kejadian_id" id="jenis_pelanggaran" 
+                    class="form-control form-control-sm is-invalid select2_jenis_pelanggaran" 
+                    oninvalid="this.setCustomValidity('Jenis Pelanggaran harus diisi!')" required>
+                    <option value="">-- Pilih Jenis Pelanggaran --</option>
+                    <option value="1">-- 1 --</option>
+                    <option value="2">-- 2 --</option>
+                    <option value="3">-- 3 --</option> 
+                </select>
+            </div>
+        </div>
+        <div class="form-group row">
+            <label class="col-sm-4 col-form-label" for="sumber_berita">Jenis Pelanggaran</label>
+            <div class="col-sm-8">
+                <select name="sumber_berita[]" multiple="multiple" id="sumber_berita" 
+                    class="form-control form-control-sm is-invalid select2_sumber_berita" 
+                    oninvalid="this.setCustomValidity('Sumber berita harus diisi!')" required>
+                    <option value="1">-- 1 --</option>
+                    <option value="2">-- 2 --</option>
+                    <option value="3">-- 3 --</option> 
+                </select>
+            </div>
+        </div>
+
+        <div class="card-footer text-right">
+            <button type="button" class="btn btn-primary" onclick="test()">Save</button>
+            <button type="button" id="btn_batal" class="btn btn-danger">Cancel</button>
+        </div>
+
+    </form>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/8.11.8/sweetalert2.all.min.js"></script>
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="/public/vendor/jquery/jquery.min.js"></script>
+    <script src="/public/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Core plugin JavaScript-->
+    <script src="/public/vendor/jquery-easing/jquery.easing.min.js"></script>
+
+    <!-- Custom scripts for all pages-->
+    <script src="/public/js/sb-admin-2.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <script>
+    document.querySelectorAll('input,textarea, select').forEach(element => {
+        // Create error span for each input
+        const errorSpan = document.createElement('span');
+        errorSpan.className = 'text-danger error-message';
+        element.parentNode.appendChild(errorSpan);
+
+        // Handle validation
+        element.addEventListener('invalid', function(e) {
+            e.preventDefault();
+            
+            // Check if element has value for Select2
+            if ($(this).hasClass('select2_jenis_pelanggaran') || $(this).hasClass('select2_sumber_berita')) {
+                if (this.value) {
+                    $(this).next('.select2-container').find('.select2-selection').removeClass('is-invalid');
+                    $(this).siblings('.error-message').text('');
+                    return;
+                }
+            }
+
+            const errorMessage = this.validationMessage;
+
+            // Handle Select2 validation
+            if ($(this).hasClass('select2_jenis_pelanggaran') || $(this).hasClass('select2_sumber_berita')) {
+                $(this).next('.select2-container').find('.select2-selection').addClass('is-invalid');
+                $(this).siblings('.error-message').text(errorMessage);
+            } else {
+                this.nextElementSibling.textContent = errorMessage;
+            }
+
+            // Clear error on input/change
+            $(element).on('change select2:select', function() {
+                if ($(this).hasClass('select2_jenis_pelanggaran')) {
+                    $(this).next('.select2-container').find('.select2-selection').removeClass('is-invalid');
+                }
+                $(this).siblings('.error-message').text('');
+                this.setCustomValidity('');
+            });
+        
+            element.addEventListener('input', function() {
+                // Clear error message
+                this.classList.remove('is-invalid');
+                const errorSpan = this.nextElementSibling;
+                if (errorSpan && errorSpan.classList.contains('error-message')) {
+                    errorSpan.textContent = '';
+                }
+                // Clear custom validity
+                this.setCustomValidity('');
+            });
+        });
+    });
+
+
+    // Add CSS for error messages
+    const style = document.createElement('style');
+    style.textContent = `
+        .error-message {
+            display: block;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+    `;
+    document.head.appendChild(style);
+
+    $('.select2_jenis_pelanggaran').select2();
+    $('.select2_sumber_berita').select2();
+
+    function test() {
+        console.log('test');
+        console.log($('.select2_jenis_pelanggaran').val());
+        console.log($('.select2_sumber_berita').val());
+        // Convert array to comma-separated string
+        const sumberBerita = $('.select2_sumber_berita').val().join(', ');
+        console.log(sumberBerita);
+
+    }
+    
+    </script>
+</body>
+</html>
