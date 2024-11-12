@@ -264,18 +264,45 @@
             });
         }
 
+        function dmsToDecimal(degrees, minutes, seconds, direction) {
+            let decimal = degrees + (minutes / 60) + (seconds / 3600);
+            // Jika arah adalah Selatan atau Barat, buat hasil negatif
+            if (direction === 'S' || direction === 'LS' || direction === 'W' || direction === 'BB') {
+                decimal = -decimal;
+            }
+            return decimal;
+        }
+
         function search_location() {
             let searchInput = $('#cari_lokasi').val();
             
             // Check if input contains coordinates
+            const regexdms = /^(\d{1,2})°\s*(\d{1,2})[′`']\s*(\d{1,3}(\.\d+)?)[″"]\s*(LS|LU|S|N)\s+(\d{1,3})°\s*(\d{1,2})[′`']\s*(\d{1,2}(\.\d+)?)[″"]\s*(BT|BB|E|W)$/
             let coordinateMatch = searchInput.match(/^(-?\d+\.?\d*)\s*[,\s]\s*(-?\d+\.?\d*)$/);
+            let dmsCoordinateMatch = searchInput.match(regexdms);
 
             // Clear error message koordinat
             $('#koordinat').removeClass('is-invalid');
             $('#koordinat').next('.error-message').text('');
             $('#koordinat')[0].setCustomValidity('');
             
-            if (coordinateMatch) {
+            if (coordinateMatch || dmsCoordinateMatch) {
+                if(dmsCoordinateMatch){
+                    coordinateMatch = [];
+                    const latDegrees = parseInt(dmsCoordinateMatch[1], 10);
+                    const latMinutes = parseInt(dmsCoordinateMatch[2], 10);
+                    const latSeconds = parseFloat(dmsCoordinateMatch[3]);
+                    const latDirection = dmsCoordinateMatch[5];
+                    
+                    // Ambil nilai bujur
+                    const lonDegrees = parseInt(dmsCoordinateMatch[6], 10);
+                    const lonMinutes = parseInt(dmsCoordinateMatch[7], 10);
+                    const lonSeconds = parseFloat(dmsCoordinateMatch[8]);
+                    const lonDirection = dmsCoordinateMatch[10];
+
+                    coordinateMatch[1] = dmsToDecimal(latDegrees, latMinutes, latSeconds, latDirection);
+                    coordinateMatch[2] = dmsToDecimal(lonDegrees, lonMinutes, lonSeconds, lonDirection);
+                }
                 // Handle coordinate search
                 let latLng = new google.maps.LatLng(
                     parseFloat(coordinateMatch[1]), 
