@@ -17,15 +17,22 @@ func (r *ListLaporan) Authorize(ctx http.Context) error {
 }
 
 func (r *ListLaporan) Rules(ctx http.Context) map[string]string {
-	return map[string]string{}
+	return map[string]string{
+		"jenis_laporan": "required|in:Laporan Mingguan,Laporan Bulanan,Laporan Triwulan",
+	}
 }
 
 func (r *ListLaporan) Messages(ctx http.Context) map[string]string {
-	return map[string]string{}
+	return map[string]string{
+		"jenis_laporan.required": "Jenis Laporan wajib diisi",
+        "jenis_laporan.in": "Jenis Laporan harus salah satu dari: Laporan Mingguan, Laporan Bulanan, Laporan Triwulan",
+	}
 }
 
 func (r *ListLaporan) Attributes(ctx http.Context) map[string]string {
-	return map[string]string{}
+	return map[string]string{
+		"jenis_laporan": "Jenis Laporan",
+	}
 }
 
 func (r *ListLaporan) PrepareForValidation(ctx http.Context, data validation.Data) error {

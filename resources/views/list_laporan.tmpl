@@ -1,0 +1,601 @@
+{{ define "list_laporan.tmpl" }}
+    {{ template "templates/layout.tmpl" .}}
+
+    <style>
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            margin-bottom: 25px;
+            border: none;
+            transition: transform 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+            padding: 1.2rem;
+        }
+            
+        .form-select, .form-control {
+            height: 50px; 
+            line-height: 24px;
+            box-sizing: border-box;
+            border-radius: 10px;
+            border: 2px solid #e3e6f0;
+            padding: 12px 15px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            background-color: #f8f9fc;
+        }
+
+        .form-select:hover, .form-control:hover {
+            border-color: #4e73df;
+            background-color: #fff;
+        }
+
+        .form-select:focus, .form-control:focus {
+            border-color: #4e73df;
+            box-shadow: 0 0 0 0.25rem rgba(78, 115, 223, 0.15);
+            background-color: #fff;
+        }
+
+        .btn {
+            height: 50px; /* Match form element height */
+            line-height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            padding: 10px 20px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            border: none;
+            box-shadow: 0 4px 10px rgba(78, 115, 223, 0.2);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(78, 115, 223, 0.3);
+        }
+
+        .info-list-panel {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            border: 1px solid #e3e6f0;
+        }
+
+        .info-list-panel:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(78, 115, 223, 0.1);
+        }
+
+        .list-date {
+            color: #858796;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .list-title {
+            color: #2e59d9;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+    
+        .thumbnail-list {
+            width: 60px;
+            height: 60px;
+            background-color: #f8f9fc;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .thumbnail-list:hover {
+            background-color: #eaecf4;
+            transform: scale(1.05);
+        }
+
+        .loader {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+        }
+
+        .spinner-border {
+            color: #4e73df;
+            width: 3rem;
+            height: 3rem;
+        }
+    
+        .form-inline {
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+    
+        @media (max-width: 768px) {
+            .form-select, .form-control, .btn {
+                height: 50px;
+            }
+            .form-inline {
+                gap: 15px;
+            }
+            
+            .form-inline > div {
+                width: 100%;
+            }
+            
+            .btn {
+                width: 100%;
+                margin-top: 10px;
+            }
+            
+            .info-list-panel {
+                padding: 15px;
+            }
+            
+            .thumbnail-list {
+                margin-bottom: 15px;
+            }
+            .pagination {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+
+    </style>
+
+    <div class="toast-container col-md-12">
+        <div id="notification-toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body ml-auto">
+                    <!-- Message will be inserted here -->
+                    <i class="fas fa-info-circle text-primary me-2"></i>
+                    <strong class="me-auto">Notifikasi</strong>
+                    <small class="text-muted">Baru saja</small>
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="card-body col-md-12 col-lg-12">
+        <div class="card card-custom gutter-b">
+            <div class="card-body py-10">
+                <div class="row">
+                    <div class="col-md-12">
+                        <form class="form-inline">
+                            <div class="me-2">
+                                <select class="form-select" name="jenis_laporan" id="jenis_laporan">
+                                    <option value="" selected disabled hidden>Pilih Jenis Laporan</option>
+                                    <option value="">Semua</option>
+                                    <option value="Laporan Mingguan">Laporan Mingguan</option>
+                                    <option value="Laporan Bulanan">Laporan Bulanan</option>
+                                    <option value="Laporan Triwulan">Laporan Triwulan</option>
+                                </select>
+                            </div>
+                            <div class="me-2">
+                                <input type="number" class="form-control" name="tahun" id="tahun" placeholder="Tahun" min="0">
+                            </div>
+                            <div class="me-2">
+                                <select class="form-select" name="bulan" id="bulan" placeholder="Bulan">
+                                    <option value="" selected hidden>Pilih Bulan</option>
+                                    <option value="1">Januari</option>
+                                    <option value="2">Februari</option>
+                                    <option value="3">Maret</option>
+                                    <option value="4">April</option>
+                                    <option value="5">Mei</option>
+                                    <option value="6">Juni</option>
+                                    <option value="7">Juli</option>
+                                    <option value="8">Agustus</option>
+                                    <option value="9">September</option>
+                                    <option value="10">Oktober</option>
+                                    <option value="11">November</option>
+                                    <option value="12">Desember</option>
+                                </select>
+                            </div>
+                            <div class="me-2">
+                                <select class="form-select" name="minggu" id="minggu"placeholder="Minggu">
+                                    <option value="" selected disabled>Pilih Minggu</option>
+                                </select>
+
+                            </div>
+                            <div class="ml-auto">
+                                <button type="button" onclick="searchListLaporan()" class="btn btn-primary">
+                                    <i class="fas fa-search fa-sm"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <div id="loader" class="text-center d-none">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden"></span>
+                            </div>
+                        </div>
+                        <div id="report-container">
+                            <!-- Reports will be inserted here -->
+                        </div>
+                    </div>
+                </div>
+
+             </div>
+        </div>
+    </div>
+
+    <div class="card-footer">
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center" id="pagination">
+                <li class="page-item">
+                    <a class="page-link" href="#" aria-label="Previous" id="prev-page">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="#" aria-label="Next" id="next-page">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    {{ template "layouts/footer.tmpl" . }}
+    {{ template "layouts/script.tmpl" . }}
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            const $jenis = $('#jenis_laporan');
+            const $bulan = $('#bulan');
+            const $minggu = $('#minggu');
+            const $tahun = $('#tahun');
+            const $searchLaporan = $('button[onclick="searchListLaporan()"]')
+            const $months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+
+            // Initial state
+            disableAllControls();
+            $searchLaporan.prop('disabled', true);
+
+            $jenis.on('change', function() {
+                const selectedValue = $(this).val();
+                resetAllValues();
+
+                resetBulan();
+                
+                switch(selectedValue) {
+                    case '':  // Semua
+                        $searchLaporan.prop('disabled', false);
+                        showAllControls();
+                        disableAllControls();
+                        break;
+                    case 'Laporan Mingguan':
+                        $searchLaporan.prop('disabled', false);
+                        handleWeeklyReport();
+                        break;
+                    case 'Laporan Bulanan':
+                        $searchLaporan.prop('disabled', false);
+                        handleMonthlyReport();
+                        break;
+                    case 'Laporan Triwulan':
+                        $searchLaporan.prop('disabled', false);
+                        handleQuarterlyReport();
+                        break;
+                }
+            });
+
+            function resetBulan() {
+                // Clear existing options
+                $bulan.empty();
+
+                // Add default option
+                $bulan.append('<option value="" selected hidden>Pilih Bulan</option>');
+                $months.forEach((month, index) => {
+                    $bulan.append(`<option value="${index + 1}">${month}</option>`);
+                });
+            }
+
+            function disableAllControls() {
+                $tahun.prop('disabled', true);
+                $bulan.prop('disabled', true);
+                $minggu.prop('disabled', true);
+            }
+
+            function resetAllValues() {
+                $tahun.val('');
+                $bulan.val('');
+                $minggu.val('');
+            }
+
+            function showAllControls() {
+                $tahun.show();
+                $bulan.show();
+                $minggu.show();
+            }
+
+            function handleWeeklyReport() {
+                showAllControls();
+                $tahun.prop('disabled', false);
+                $bulan.prop('disabled', true);
+                $minggu.prop('disabled', true);
+
+                $tahun.off('change').on('change', function() {
+                    if($(this).val()) {
+                        $bulan.prop('disabled', false);
+                    }
+                });
+
+                $bulan.off('change').on('change', function() {
+                    if($(this).val()) {
+                        const weekCount = getWeeksInMonth($tahun.val(), $(this).val());
+                        updateWeekOptions(weekCount);
+                        $minggu.prop('disabled', false);
+                    }
+                });
+            }
+
+            function handleMonthlyReport() {
+                $minggu.hide();
+                $tahun.prop('disabled', false);
+                $bulan.prop('disabled', true);
+
+                $tahun.off('change').on('change', function() {
+                    if($(this).val()) {
+                        $bulan.prop('disabled', false);
+                    }
+                });
+            }
+
+            function handleQuarterlyReport() {
+                $minggu.hide();
+                $tahun.prop('disabled', false);
+                $bulan.prop('disabled', true);
+
+                // Filter only quarter months
+                $bulan.find('option').each(function() {
+                    const val = $(this).val();
+                    if(val) {
+                        const intVal = parseInt(val);
+                        switch(intVal) {
+                            case 3:
+                                $(this).text('Triwulan I Bulan Maret');
+                                $(this).show();
+                                break;
+                            case 6:
+                                $(this).text('Triwulan II Bulan Juni');
+                                $(this).show();
+                                break;
+                            case 9:
+                                $(this).text('Triwulan III Bulan September');
+                                $(this).show();
+                                break;
+                            case 12:
+                                $(this).text('Triwulan IV Bulan Desember');
+                                $(this).show();
+                                break;
+                            default:
+                                $(this).hide();
+                        }
+                    }
+                });
+
+                $tahun.off('change').on('change', function() {
+                    if($(this).val()) {
+                        $bulan.prop('disabled', false);
+                    }
+                });
+            }
+
+            function getWeeksInMonth(year, month) {
+                const firstDay = new Date(year, month - 1, 1);
+                const lastDay = new Date(year, month, 0);
+                const firstDayOfWeek = firstDay.getDay();
+                const totalDays = lastDay.getDate();
+                
+                const daysToAdd = [7, 6, 5, 4, 3, 2, 8][firstDayOfWeek];
+                const adjustedDays = totalDays - (daysToAdd + 1);
+                const completeWeeks = Math.floor(adjustedDays / 7);
+                
+                return adjustedDays % 7 > 1 ? completeWeeks + 2 : completeWeeks + 1;
+            }
+
+            function updateWeekOptions(weekCount) {
+                $minggu.empty().append('<option value="" selected hidden>Pilih Minggu</option>');
+                for(let i = 1; i <= weekCount; i++) {
+                    $minggu.append(`<option value="${i}">Minggu ke-${i}</option>`);
+                }
+            }
+        });
+    </script>
+    
+    <script>
+        function formatDate(dateString) {
+            const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+            const date = new Date(dateString);
+            const day = date.getDate();
+            const month = months[date.getMonth()];
+            const year = date.getFullYear();
+            return `${day} ${month} ${year}`;
+        }
+
+        let currentPage = 1;
+        const itemsPerPage = 5; // Show 5 items per page
+
+        function renderPaginatedReports(reports) {
+            const totalItems = reports.length;
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+            
+            // Calculate start and end index for current page
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+            
+            // Get current page items
+            const currentItems = reports.slice(startIndex, endIndex);
+            
+            // Render the reports
+            let html = '<div class="row">';
+            currentItems.forEach(report => {
+                const report_dokumen = report.dokumen.replace(/'/g, "\%27").replace(/\\/g, "/")
+                const final_url = `/api/files/` + report_dokumen
+
+                html += `
+                    <div class="col-md-12 info-list-panel">
+                        <div class="row">
+                            <div class="col-md-1">
+                                <div class="thumbnail-list">
+                                    <i class="fas fa-file-alt fa-4x text-primary mt-3"></i>
+                                </div>
+                            </div>
+                            <div class="col-md-11">
+                                <p class="list-date">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    ${formatDate(report.CreatedAt)}
+                                </p>
+                                <h4 class="list-title">
+                                    ${report.nama_laporan}
+                                </h4>
+                                <button class="btn btn-outline-danger btn-sm" onclick="window.open('${final_url}', '_blank')">Lihat</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+
+            // Render pagination
+            let paginationHtml = `
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                            <a class="page-link" href="#" onclick="changePage(${currentPage - 1})">&laquo;</a>
+                        </li>
+            `;
+
+            for (let i = 1; i <= totalPages; i++) {
+                paginationHtml += `
+                    <li class="page-item ${currentPage === i ? 'active' : ''}">
+                        <a class="page-link" href="#" onclick="changePage(${i})">${i}</a>
+                    </li>
+                `;
+            }
+
+            paginationHtml += `
+                        <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                            <a class="page-link" href="#" onclick="changePage(${currentPage + 1})">&raquo;</a>
+                        </li>
+                    </ul>
+                </nav>
+            `;
+
+            $('#report-container').html(html);
+            $('#pagination').html(paginationHtml);
+        }
+
+        function changePage(page) {
+            currentPage = page;
+            searchListLaporan();
+        }
+
+        function searchListLaporan() {
+            // Show loader
+            $('#loader').removeClass('d-none');
+            $('#report-container').addClass('d-none');
+            
+            const formData = {
+                jenis_laporan: $('#jenis_laporan').val() || "",
+                bulan: parseInt($('#bulan').val()) || 0,
+                minggu: parseInt($('#minggu').val()) || 0,
+                tahun: parseInt($('#tahun').val()) || 0
+            };
+            
+            const params = new URLSearchParams(formData);
+            const url = '{{.dataLaporanURL}}'+'?'+params.toString();
+            
+            setTimeout(() => {
+                fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(response => {
+                        renderPaginatedReports(response.data.data_laporan)
+                    if (response.data.data_laporan.length === 0) {
+                        showNotification('Data yang Anda cari tidak tersedia', 'warning');
+                    } else {
+                        showNotification('Data berhasil dimuat', 'success');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('Gagal memuat data: ' + error.message, 'danger');
+                })
+                .finally(() => {
+                    // Hide loader
+                    $('#loader').addClass('d-none');
+                    $('#report-container').removeClass('d-none');
+                });
+            }, 500);
+        }
+
+        function showNotification(message, type = 'success') {
+            const toast = document.getElementById('notification-toast');
+            const toastBody = toast.querySelector('.toast-body');
+            
+            // Remove any existing background classes
+            toast.className = 'toast align-items-center text-white border-0';
+            
+            // Add the new background class based on type
+            switch(type) {
+                case 'success':
+                    toast.classList.add('bg-success');
+                    break;
+                case 'warning':
+                    toast.classList.add('bg-warning');
+                    break;
+                case 'danger':
+                    toast.classList.add('bg-danger');
+                    break;
+                default:
+                    toast.classList.add('bg-primary');
+            }
+            
+            toastBody.textContent = message;
+            
+            const bsToast = new bootstrap.Toast(toast, {
+                animation: true,
+                autohide: true,
+                delay: 3000
+            });
+            
+            bsToast.show();
+        }
+
+    </script>
+
+{{end}}
