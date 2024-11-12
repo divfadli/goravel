@@ -995,7 +995,9 @@ func (r *Pdf) LaporanMingguan() {
 		return
 	}
 
+	var id_keamanan_arr []uint8
 	for _, data := range result_keamanan {
+		id_keamanan_arr = append(id_keamanan_arr, data.IdKejadianKeamanan)
 		// path for download pdf
 		outputPath := fmt.Sprintf("storage/temp/pelanggaran-%d.pdf", data.IdKejadianKeamanan)
 
@@ -1107,7 +1109,9 @@ func (r *Pdf) LaporanMingguan() {
 		return
 	}
 
+	var id_keselamatan_arr []uint8
 	for _, data := range result_keselamatan {
+		id_keselamatan_arr = append(id_keselamatan_arr, data.IdKejadianKeselamatan)
 		// path for download pdf
 		outputPath := fmt.Sprintf("storage/temp/kecelakaan-%d.pdf", data.IdKejadianKeselamatan)
 
@@ -1214,13 +1218,14 @@ func (r *Pdf) LaporanMingguan() {
 	}
 
 	// Save the PDF to a file
-	dirPath := "storage/app/" + year + "/Laporan Mingguan/Bulan " + bulan + "/"
-	_ = os.MkdirAll(dirPath, 0755)
+	rootPath := "storage/app/"
+	dirPath := year + "/Laporan Mingguan/Bulan " + bulan + "/"
+	fullPath := rootPath + dirPath
+	_ = os.MkdirAll(fullPath, 0755)
 
 	lastTwoDigits := year[len(year)-2:]
 	nameFile := "LAP MING KE-" + strconv.Itoa(mingguKe) + " " + monthNameEnglishMap[now.Month()] + "'" + lastTwoDigits + ".pdf"
-	path := dirPath + nameFile
-	// jenisFile := Laporan Mingguan
+	path := fullPath + nameFile
 
 	err := api.MergeCreateFile(images, path, false, model.NewDefaultConfiguration())
 	if err != nil {
@@ -1228,9 +1233,63 @@ func (r *Pdf) LaporanMingguan() {
 		return
 	}
 
+	fmt.Println(id_keamanan_arr)
+	fmt.Println(id_keselamatan_arr)
+
+	var kejadianKeamanan models.KejadianKeamanan
+	facades.Orm().Query().Model(&kejadianKeamanan).Where("id_kejadian_keamanan IN (?)", id_keamanan_arr).Update(map[string]interface{}{
+		"is_locked": true,
+	})
+
+	var kejadianKeselamatan models.KejadianKeselamatan
+	facades.Orm().Query().Model(&kejadianKeselamatan).Where("id_kejadian_keselamatan IN (?)", id_keselamatan_arr).Update(map[string]interface{}{
+		"is_locked": true,
+	})
+
+	jenisFile := "Laporan Mingguan"
+	namaLaporan := "Laporan Minggu ke-" + strconv.Itoa(mingguKe) + " " + monthNameEnglishTitleCase(now.Month()) + "'" + lastTwoDigits
+	document := dirPath + nameFile
+	document = strings.ReplaceAll(document, "/", "\\")
+	fmt.Println(document)
+
+	// save to Laporan
+	laporan := models.Laporan{
+		NamaLaporan:  namaLaporan,
+		JenisLaporan: jenisFile,
+		TahunKe:      now.Year(),
+		BulanKe:      int(now.Month()),
+		MingguKe:     mingguKe,
+		Dokumen:      document,
+	}
+
+	var krywn, atasan models.Karyawan
+	facades.Orm().Query().Where("emp_no = ?", result_keamanan[0].CreatedBy).First(&krywn)
+	if krywn.EmpNo == "" {
+		fmt.Println("Data Tidak Ditemukan")
+		return
+	}
+	facades.Orm().Query().Where("emp_no = ?", krywn.IDAtasan).First(&atasan)
+	if atasan.EmpNo == "" {
+		fmt.Println("Data Tidak Ditemukan:")
+		return
+	}
+
+	if err := facades.Orm().Query().Create(&laporan); err != nil {
+		fmt.Println("Data Gagal Ditambahkan:", err)
+		return
+	}
+
+	approval := models.Approval{
+		LaporanID:  laporan.IDLaporan,
+		Status:     "WaitApproved",
+		ApprovedBy: atasan.EmpNo,
+	}
+
+	facades.Orm().Query().Create(&approval)
+
 	fmt.Println("PDF created successfully!")
 }
-func (r *Pdf) LaporanMingguanUpdate(weeksTo int, month int, years int) {
+func (r *Pdf) LaporanMingguanUpdate(id_laporan uint8, weeksTo int, month int, years int) {
 	appHost := facades.Config().Env("APP_HOST", "127.0.0.1")
 	appPort := facades.Config().Env("APP_PORT", "3000")
 	baseURL := fmt.Sprintf("http://%s:%s", appHost, appPort)
@@ -1597,7 +1656,9 @@ func (r *Pdf) LaporanMingguanUpdate(weeksTo int, month int, years int) {
 		return
 	}
 
+	var id_keamanan_arr []uint8
 	for _, data := range result_keamanan {
+		id_keamanan_arr = append(id_keamanan_arr, data.IdKejadianKeamanan)
 		// path for download pdf
 		outputPath := fmt.Sprintf("storage/temp/pelanggaran-%d.pdf", data.IdKejadianKeamanan)
 
@@ -1709,7 +1770,9 @@ func (r *Pdf) LaporanMingguanUpdate(weeksTo int, month int, years int) {
 		return
 	}
 
+	var id_keselamatan_arr []uint8
 	for _, data := range result_keselamatan {
+		id_keselamatan_arr = append(id_keselamatan_arr, data.IdKejadianKeselamatan)
 		// path for download pdf
 		outputPath := fmt.Sprintf("storage/temp/kecelakaan-%d.pdf", data.IdKejadianKeselamatan)
 
@@ -1816,19 +1879,71 @@ func (r *Pdf) LaporanMingguanUpdate(weeksTo int, month int, years int) {
 	}
 
 	// Save the PDF to a file
-	dirPath := "storage/app/" + year + "/Laporan Mingguan/Bulan " + bulan + "/"
-	_ = os.MkdirAll(dirPath, 0755)
+	rootPath := "storage/app/"
+	dirPath := year + "/Laporan Mingguan/Bulan " + bulan + "/"
+	fullPath := rootPath + dirPath
+	_ = os.MkdirAll(fullPath, 0755)
 
 	lastTwoDigits := year[len(year)-2:]
 	nameFile := "LAP MING KE-" + strconv.Itoa(mingguKe) + " " + monthNameEnglishMap[now.Month()] + "'" + lastTwoDigits + ".pdf"
-	path := dirPath + nameFile
-	// jenisFile := Laporan Mingguan
+	path := fullPath + nameFile
 
 	err := api.MergeCreateFile(images, path, false, model.NewDefaultConfiguration())
 	if err != nil {
 		fmt.Println("Error merging PDF files:", err)
 		return
 	}
+
+	var kejadianKeamanan models.KejadianKeamanan
+	facades.Orm().Query().Model(&kejadianKeamanan).Where("id_kejadian_keamanan IN (?)", id_keamanan_arr).Update(map[string]interface{}{
+		"is_locked": true,
+	})
+
+	var kejadianKeselamatan models.KejadianKeselamatan
+	facades.Orm().Query().Model(&kejadianKeselamatan).Where("id_kejadian_keselamatan IN (?)", id_keselamatan_arr).Update(map[string]interface{}{
+		"is_locked": true,
+	})
+
+	jenisFile := "Laporan Mingguan"
+	namaLaporan := "Laporan Minggu ke-" + strconv.Itoa(mingguKe) + " " + monthNameEnglishTitleCase(now.Month()) + "'" + lastTwoDigits
+	document := dirPath + nameFile
+	document = strings.ReplaceAll(document, "/", "\\")
+
+	// // save to Laporan
+	laporan := models.Laporan{
+		IDLaporan:    id_laporan,
+		NamaLaporan:  namaLaporan,
+		JenisLaporan: jenisFile,
+		TahunKe:      now.Year(),
+		BulanKe:      int(now.Month()),
+		MingguKe:     mingguKe,
+		Dokumen:      document,
+	}
+
+	var krywn, atasan models.Karyawan
+	facades.Orm().Query().Where("emp_no = ?", result_keamanan[0].CreatedBy).First(&krywn)
+	if krywn.EmpNo == "" {
+		fmt.Println("Data Tidak Ditemukan")
+		return
+	}
+	facades.Orm().Query().Where("emp_no = ?", krywn.IDAtasan).First(&atasan)
+	if atasan.EmpNo == "" {
+		fmt.Println("Data Tidak Ditemukan:")
+		return
+	}
+
+	if err := facades.Orm().Query().Save(&laporan); err != nil {
+		fmt.Println("Data Gagal Ditambahkan:", err)
+		return
+	}
+
+	// approval := models.Approval{
+	// 	LaporanID:  laporan.IDLaporan,
+	// 	Status:     "WaitApproved",
+	// 	ApprovedBy: atasan.EmpNo,
+	// }
+
+	// facades.Orm().Query().Create(&approval)
 
 	fmt.Println("PDF created successfully!")
 }
@@ -2286,7 +2401,6 @@ func (r *Pdf) LaporanBulanan() {
 
 	nameFile := strconv.Itoa(int(now.Month())) + ". Laporan bulan " + bulan + " Keamanan & Keselamatan di Wilayah Perairan Indonesia.pdf"
 	path := dirPath + nameFile
-	// jenisFile := "Laporan Bulanan"
 
 	if err := r.ParseTemplate(templatePath, newTemplatePath, templateData); err == nil {
 		r.GenerateLaporan(path)

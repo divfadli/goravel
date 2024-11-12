@@ -2034,6 +2034,11 @@ var monthNameMap = map[string]int{
 	"JUL": 7, "AGT": 8, "SEP": 9, "OKT": 10, "NOV": 11, "DES": 12,
 }
 
+func monthNameEnglishTitleCase(month time.Month) string {
+	monthUpper := monthNameEnglishMap[month]
+	return strings.Title(strings.ToLower(monthUpper))
+}
+
 var monthNameEnglishMap = map[time.Month]string{
 	time.January: "JAN", time.February: "FEB", time.March: "MAR",
 	time.April: "APR", time.May: "MEI", time.June: "JUN",

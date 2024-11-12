@@ -201,7 +201,7 @@ func WeeklyGenerate() {
 			// generate laporan mingguan
 			func() {
 				generate := NewPdf("")
-				generate.LaporanMingguanUpdate(1, 9, 2024)
+				generate.LaporanMingguanUpdate(4, 1, 9, 2024)
 			},
 		),
 		gocron.WithName("WeeklyReportUpdateJob"),
@@ -250,7 +250,7 @@ func TestGenerateCronTab() {
 			func(a string, b int) {
 				// do things
 				x := NewPdf("")
-				x.LaporanMingguanUpdate(1, 9, 2024)
+				x.LaporanMingguanUpdate(4, 1, 9, 2024)
 			},
 			"hello",
 			1,
