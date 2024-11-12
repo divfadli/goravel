@@ -78,12 +78,12 @@ func Web() {
 		// // Check if data is available in cache
 		if userInfo != nil {
 			return ctx.Response().View().Make("index.tmpl", map[string]interface{}{
-				"title":           "Dashboard | Rekapitulasi",
-				"pageheading":     "Dashboard",
-				"version":         support.Version,
-				"dataKeamananURL": dataKeamananURL,
+				"title":              "Dashboard | Rekapitulasi",
+				"pageheading":        "Dashboard",
+				"version":            support.Version,
+				"dataKeamananURL":    dataKeamananURL,
 				"dataKeselamatanURL": dataKeselamatanURL,
-				"data":            userInfo,
+				"data":               userInfo,
 			})
 		}
 
@@ -91,7 +91,7 @@ func Web() {
 		// For instance, you might redirect the user to the login page
 		return ctx.Response().Redirect(http.StatusFound, "/login")
 	})
-	
+
 	facades.Route().Prefix("role_user").Group(func(router route.Router) {
 		// Retrieve cached user data
 		router.Get("", func(ctx http.Context) http.Response {
@@ -142,7 +142,7 @@ func Web() {
 
 	facades.Route().Prefix("jenis_kejadian").Group(func(r route.Router) {
 		// Retrieve cached user data
-		
+
 		r.Get("", func(ctx http.Context) http.Response {
 			userInfo := facades.Cache().Get("user_data")
 			dataJenisKejadianURL := "/api/kejadian/listKejadian"
@@ -195,7 +195,7 @@ func Web() {
 				dataKeamananURL := "/api/kejadian/keamanan/listKejadianKeamanan"
 				deleteKejadianKeamananURL := "/api/kejadian/keamanan/deleteKejadianKeamanan"
 				// Retrieve cached user data
-				
+
 				// Check if data is available in cache
 				if userInfo != nil {
 					return ctx.Response().View().Make("kejadian_keamanan.tmpl", map[string]interface{}{
@@ -215,7 +215,7 @@ func Web() {
 			pelanggaran.Get("form_kejadian_keamanan", func(ctx http.Context) http.Response {
 				userInfo := facades.Cache().Get("user_data")
 				idKejadianKeamanan := ctx.Request().Query("id_kejadian_keamanan")
-				
+
 				storeKejadianKeamanan := "/api/kejadian/keamanan/storeKejadianKeamanan"
 				getKejadianKeamanan := "/api/kejadian/keamanan/showDetailKejadianKeamanan"
 
@@ -243,7 +243,7 @@ func Web() {
 				userInfo := facades.Cache().Get("user_data")
 				dataKeselamatanURL := "/api/kejadian/keselamatan/listKejadianKeselamatan"
 				deleteKejadianKeselamatanURL := "/api/kejadian/keselamatan/deleteKejadianKeselamatan"
-				
+
 				// Check if data is available in cache
 				if userInfo != nil {
 					return ctx.Response().View().Make("kejadian_keselamatan.tmpl", map[string]interface{}{
@@ -263,7 +263,7 @@ func Web() {
 			kecelakaan.Get("form_kejadian_keselamatan", func(ctx http.Context) http.Response {
 				userInfo := facades.Cache().Get("user_data")
 				idKejadianKeselamatan := ctx.Request().Query("id_kejadian_keselamatan")
-				
+
 				storeKejadianKeselamatan := "/api/kejadian/keselamatan/storeKejadianKeselamatan"
 				getKejadianKeselamatan := "/api/kejadian/keselamatan/showDetailKejadianKeselamatan"
 
@@ -280,7 +280,7 @@ func Web() {
 					})
 
 				}
-				
+
 				// For instance, you might redirect the user to the login page
 				return ctx.Response().Redirect(http.StatusFound, "/login")
 			})
@@ -288,4 +288,24 @@ func Web() {
 		// facades.Route().Prefix().Static()
 	})
 
+	// List Laporan
+	facades.Route().Prefix("laporan").Group(func(r route.Router) {
+		r.Get("list-laporan", func(ctx http.Context) http.Response {
+			userInfo := facades.Cache().Get("user_data")
+			dataLaporanURL := "/api/laporan/listLaporan"
+			// Retrieve cached user data
+
+			// Check if data is available in cache
+			if userInfo != nil {
+				return ctx.Response().View().Make("list_laporan.tmpl", map[string]interface{}{
+					"title":          "List Laporan",
+					"pageheading":    "List Laporan",
+					"version":        support.Version,
+					"dataLaporanURL": dataLaporanURL,
+					"data":           userInfo,
+				})
+			}
+			return ctx.Response().Redirect(http.StatusFound, "/login")
+		})
+	})
 }

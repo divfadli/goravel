@@ -9,8 +9,10 @@ import (
 )
 
 func Api() {
-	laporan := controllers.NewLaporan()
-	facades.Route().Post("/storeLaporan", laporan.Create)
+	// laporan := controllers.NewLaporan()
+	// facades.Route().Get("/listLaporan", laporan.ListLaporan)
+
+	// facades.Route().Post("/storeLaporan", laporan.Create)
 	generates := pdf.NewPdf("")
 	facades.Route().Static("storage", "./storage")
 
@@ -67,6 +69,12 @@ func Api() {
 
 			router.Post("/storeApproval", approvalController.StoreApproval)
 			router.Get("/listApproval", approvalController.ListApproval)
+		})
+
+		r.Prefix("laporan").Group(func(router route.Router) {
+			laporanController := controllers.NewLaporan()
+
+			router.Get("/listLaporan", laporanController.ListLaporan)
 		})
 	})
 }
