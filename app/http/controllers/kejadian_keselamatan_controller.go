@@ -14,6 +14,7 @@ import (
 	"github.com/goravel/framework/contracts/http"
 	"github.com/goravel/framework/facades"
 	"github.com/goravel/framework/filesystem"
+	"github.com/xuri/excelize/v2"
 )
 
 type KejadianKeselamatanController struct {
@@ -114,7 +115,7 @@ func (r *KejadianKeselamatanController) StoreKejadianKeselamatan(ctx http.Contex
 				newFile, _ := filesystem.NewFileFromRequest(fileHeader)
 
 				waktu := time.Now()
-				folder, err := facades.Storage().PutFileAs(strconv.Itoa(waktu.Year())+"/Photos/Keamanan/"+waktu.Month().String(), newFile, newfileIdentificator)
+				folder, err := facades.Storage().PutFileAs(strconv.Itoa(waktu.Year())+"/Photos/keselamatan/"+waktu.Month().String(), newFile, newfileIdentificator)
 
 				if err != nil {
 					return Error(ctx, http.StatusInternalServerError, err.Error())
@@ -346,4 +347,232 @@ func (r *KejadianKeselamatanController) DeleteKejadianKeselamatan(ctx http.Conte
 	}
 
 	return Success(ctx, "Data Berhasil Dihapus")
+}
+
+func (r *KejadianKeselamatanController) ExportExcel(ctx http.Context) http.Response {
+	var req kejadianKeselamatan.ListKeselamatan
+	if err := ctx.Request().Bind(&req); err != nil {
+		return ErrorSystem(ctx, "Invalid request parameters")
+	}
+
+	// Query data with validation
+	tanggalAwal, err := time.Parse(time.DateOnly, req.TanggalAwal)
+	if err != nil {
+		return ErrorSystem(ctx, "Invalid start date format")
+	}
+	tanggalAkhir, err := time.Parse(time.DateOnly, req.TanggalAkhir)
+	if err != nil {
+		return ErrorSystem(ctx, "Invalid end date format")
+	}
+
+	// Query with eager loading and conditions
+	var kejadianKeselamatan []models.KejadianKeselamatan
+	query := facades.Orm().Query().
+		Join("inner join public.jenis_kejadian k on k.id_jenis_kejadian = jenis_kejadian_id ").
+		With("JenisKejadian")
+
+	if req.Zona != "" && req.Zona != "null" && req.Zona != "undefined" {
+		query = query.Where("lower(zona::text) like lower(?)", "%"+req.Zona+"%")
+	}
+	query = query.Where("tanggal BETWEEN (?) AND (?)", tanggalAwal, tanggalAkhir)
+
+	if err := query.Order("tanggal asc").Find(&kejadianKeselamatan); err != nil {
+		return ErrorSystem(ctx, "Failed to fetch data")
+	}
+
+	// Create Excel file
+	f := excelize.NewFile()
+	defer func() {
+		if err := f.Close(); err != nil {
+			facades.Log().Error(fmt.Sprintf("Failed to close Excel file: %v", err))
+		}
+	}()
+
+	sheet := "Sheet1"
+
+	// Enhanced header style
+	headerStyle, _ := f.NewStyle(&excelize.Style{
+		Font: &excelize.Font{Bold: true, Size: 11},
+		Fill: excelize.Fill{Type: "pattern", Color: []string{"#E0EBF5"}, Pattern: 1},
+		Border: []excelize.Border{
+			{Type: "left", Color: "000000", Style: 1},
+			{Type: "top", Color: "000000", Style: 1},
+			{Type: "bottom", Color: "000000", Style: 1},
+			{Type: "right", Color: "000000", Style: 1},
+		},
+		Alignment: &excelize.Alignment{
+			Horizontal: "center",
+			Vertical:   "center",
+			WrapText:   true,
+		},
+	})
+
+	// Data cell style
+	dataStyle, _ := f.NewStyle(&excelize.Style{
+		Font: &excelize.Font{Size: 10},
+		Border: []excelize.Border{
+			{Type: "left", Color: "000000", Style: 1},
+			{Type: "top", Color: "000000", Style: 1},
+			{Type: "bottom", Color: "000000", Style: 1},
+			{Type: "right", Color: "000000", Style: 1},
+		},
+		Alignment: &excelize.Alignment{
+			Vertical: "center",
+			WrapText: true,
+		},
+	})
+
+	// Set headers with improved column names
+	headers := []string{
+		"Tanggal",
+		"Nama Kapal",
+		"Jenis Pelanggaran",
+		"Lokasi Kejadian",
+		"Muatan",
+		"Zona",
+		"Dokumentasi",
+	}
+
+	// Write headers
+	for i, header := range headers {
+		col := string(rune('A' + i))
+		cell := fmt.Sprintf("%s1", col)
+		f.SetCellValue(sheet, cell, header)
+		f.SetCellStyle(sheet, cell, cell, headerStyle)
+	}
+
+	// Write data rows with optimized image handling
+	for i, item := range kejadianKeselamatan {
+		row := i + 2
+
+		// Start with base row height
+		baseRowHeight := 30.0 // minimum height
+
+		// Calculate content height based on text length and wrapping
+		contentHeight := calculateContentHeightKecelakaan(item)
+		rowHeight := baseRowHeight
+
+		if contentHeight > baseRowHeight {
+			rowHeight = contentHeight
+		}
+
+		// Set initial row height based on content
+		f.SetRowHeight(sheet, row, rowHeight)
+
+		// Set cell values
+		cells := []struct {
+			cell  string
+			value interface{}
+		}{
+			{fmt.Sprintf("A%d", row), item.Tanggal},
+			{fmt.Sprintf("B%d", row), item.NamaKapal},
+			{fmt.Sprintf("C%d", row), item.JenisKejadian.NamaKejadian},
+			{fmt.Sprintf("D%d", row), item.LokasiKejadian},
+			{fmt.Sprintf("E%d", row), item.Penyebab},
+			{fmt.Sprintf("F%d", row), item.Zona},
+		}
+
+		for _, cell := range cells {
+			f.SetCellValue(sheet, cell.cell, cell.value)
+			f.SetCellStyle(sheet, cell.cell, cell.cell, dataStyle)
+		}
+
+		// Handle images with improved layout and consistent sizing
+		imgCell := fmt.Sprintf("G%d", row)
+		f.SetCellStyle(sheet, imgCell, imgCell, dataStyle)
+
+		var images []models.FileImage
+		if err := facades.Orm().Query().
+			Join("inner join public.image_keselamatan imk ON id_file_image = imk.file_image_id").
+			Where("imk.kejadian_keselamatan_id=?", item.IdKejadianKeselamatan).
+			Find(&images); err == nil && len(images) > 0 {
+
+			// Enhanced image placement configuration
+			const (
+				imageScale   = 0.25 // Reduced scale for better fit
+				baseOffsetY  = 5    // Increased top padding
+				imagesPerRow = 2    // 2 images per row for better organization
+				imageSpacing = 20   // Increased spacing between images
+				rowSpacing   = 25   // Vertical spacing between rows
+			)
+
+			for idx, img := range images {
+				physicalPath := facades.Storage().Path(strings.TrimPrefix(img.Url, "/storage/app/"))
+
+				// Calculate grid position
+				rowPosition := idx / imagesPerRow
+				colPosition := idx % imagesPerRow
+
+				// Calculate precise positioning
+				offsetX := float64(colPosition * imageSpacing)
+				offsetY := float64(rowPosition*rowSpacing) + baseOffsetY
+
+				err := f.AddPicture(sheet, imgCell, physicalPath, &excelize.GraphicOptions{
+					ScaleX:      imageScale,
+					ScaleY:      imageScale,
+					Positioning: "oneCell",
+					OffsetX:     int(offsetX),
+					OffsetY:     int(offsetY),
+				})
+				if err != nil {
+					facades.Log().Error(fmt.Sprintf("Failed to add image %s: %v", img.Url, err))
+					continue
+				}
+			}
+
+			// Dynamic row height based on number of images
+			numRows := (len(images) + imagesPerRow - 1) / imagesPerRow
+			rowHeight := float64(baseOffsetY + (numRows * rowSpacing))
+			if rowHeight < 30 {
+				rowHeight = 30 // Minimum row height
+			}
+			f.SetRowHeight(sheet, row, rowHeight)
+		}
+
+	}
+
+	// Optimize column widths
+	columnWidths := map[string]float64{
+		"A": 15, // Tanggal
+		"B": 25, // Nama Kapal
+		"C": 25, // Jenis Kejadian
+		"D": 30, // Lokasi
+		"E": 20, // Penyebab
+		"F": 15, // Zona
+		"G": 45, // Images
+	}
+
+	for col, width := range columnWidths {
+		f.SetColWidth(sheet, col, col, width)
+	}
+
+	// Generate file with timestamp
+	// filename := fmt.Sprintf("kejadian_keselamatan_%s.xlsx", time.Now().Format("20060102_150405"))
+	filename := "kejadian_keselamatan_temp.xlsx"
+	if err := f.SaveAs(filename); err != nil {
+		return ErrorSystem(ctx, "Failed to generate Excel file")
+	}
+
+	return ctx.Response().Download(filename, filename)
+}
+
+func calculateContentHeightKecelakaan(item models.KejadianKeselamatan) float64 {
+	// Base height per line of text
+	lineHeight := 15.0
+
+	// Count approximate number of lines based on content length
+	lines := 1.0
+
+	// Add lines for each field that might wrap
+	if len(item.NamaKapal) > 30 {
+		lines += float64(len(item.NamaKapal)) / 30
+	}
+	if len(item.LokasiKejadian) > 40 {
+		lines += float64(len(item.LokasiKejadian)) / 40
+	}
+	if len(item.Penyebab) > 25 {
+		lines += float64(len(item.Penyebab)) / 25
+	}
+
+	return lines * lineHeight
 }

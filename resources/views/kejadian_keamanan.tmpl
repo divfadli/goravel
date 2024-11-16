@@ -30,8 +30,11 @@
                             </div>
 
                             <div class="ml-auto">   
+                                <button onclick="exportExcel()" class="btn btn-success py-2 px-4 font-weight-bolder font-size-m mr-2">
+                                    <i class="fas fa-download icon-sm mr-2"></i>Export Excel
+                                </button>
                                 <a href="/kejadian/keamanan/form_kejadian_keamanan" class="btn btn-primary py-2 px-4 font-weight-bolder font-size-m">
-                                    <i class="flaticon2-plus icon-sm"></i>Tambah Data
+                                    <i class="fas fa-plus icon-sm mr-2"></i>Tambah Data
                                 </a>
                             </div>
                         </div>
@@ -221,5 +224,47 @@
         });
 
     }
+</script>
+
+<script>
+function exportExcel() {
+    var nik = $('#nik').val();
+    var tanggal_awal = $('#tanggal_awal').val(); 
+    var tanggal_akhir = $('#tanggal_akhir').val();
+    var zona = $('#zona').val();
+
+    // Create form data
+    var formData = new FormData();
+    formData.append('nik', nik);
+    formData.append('tanggal_awal', tanggal_awal);
+    formData.append('tanggal_akhir', tanggal_akhir);
+    formData.append('zona', zona);
+
+    // Make AJAX request
+    $.ajax({
+        url: '/api/kejadian/keamanan/export-excel',
+        method: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        xhrFields: {
+            responseType: 'blob'
+        },
+        success: function(response) {
+            // Create blob link to download
+            const url = window.URL.createObjectURL(new Blob([response]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', 'kejadian_keamanan.xlsx');
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        },
+        error: function(xhr, status, error) {
+            Swal.fire('Gagal!', 'Gagal mengexport data', 'error');
+        }
+    });
+}
+
 </script>
 {{ end }}

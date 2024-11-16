@@ -48,6 +48,8 @@ func Api() {
 			kejadian.Prefix("keamanan").Group(func(keamanan route.Router) {
 				kejadianKeamananController := controllers.NewKejadianKeamananController()
 
+				keamanan.Post("export-excel", kejadianKeamananController.ExportExcel)
+
 				keamanan.Post("storeKejadianKeamanan", kejadianKeamananController.StoreKejadianKeamanan)
 				keamanan.Post("listKejadianKeamanan", kejadianKeamananController.ListKejadianKeamanan)
 				keamanan.Get("showDetailKejadianKeamanan", kejadianKeamananController.ShowDetailKejadianKeamanan)
@@ -56,6 +58,8 @@ func Api() {
 
 			kejadian.Prefix("keselamatan").Group(func(keselamatan route.Router) {
 				kejadianKeselamatanController := controllers.NewKejadianKeselamatanController()
+
+				keselamatan.Post("export-excel", kejadianKeselamatanController.ExportExcel)
 
 				keselamatan.Post("storeKejadianKeselamatan", kejadianKeselamatanController.StoreKejadianKeselamatan)
 				keselamatan.Post("listKejadianKeselamatan", kejadianKeselamatanController.ListKejadianKeselamatan)
