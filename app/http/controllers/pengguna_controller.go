@@ -52,5 +52,14 @@ func (r *PenggunaController) Update(ctx http.Context) http.Response {
 }
 
 func (r *PenggunaController) Destroy(ctx http.Context) http.Response {
-	return nil
+	id := ctx.Request().Route("id")
+	var karyawan models.Karyawan
+	facades.Orm().Query().With("User").Where("user_id=?", id).First(&karyawan)
+	facades.Orm().Query().Delete(&karyawan)
+	facades.Orm().Query().Delete(&karyawan.User)
+	return ctx.Response().Json(200, map[string]interface{}{
+		"status":  "success",
+		"message": "Data berhasil dihapus",
+		"data":    karyawan,
+	})
 }
