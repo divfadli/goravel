@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"goravel/app/models"
+	"strconv"
 
 	"github.com/goravel/framework/contracts/http"
 	"github.com/goravel/framework/facades"
@@ -71,7 +72,37 @@ func (r *PenggunaController) Store(ctx http.Context) http.Response {
 }
 
 func (r *PenggunaController) Update(ctx http.Context) http.Response {
-	return nil
+	id := ctx.Request().Route("id")
+	nama := ctx.Request().Input("nama")
+	email := ctx.Request().Input("email")
+	nik := ctx.Request().Input("nik")
+	jabatan_id, _ := strconv.Atoi(ctx.Request().Input("jabatan"))
+	role_id, _ := strconv.Atoi(ctx.Request().Input("role"))
+
+	var karyawan models.Karyawan
+	facades.Orm().Query().With("Jabatan").With("User.Role").Where("user_id=?", id).First(&karyawan)
+
+	deleteCurrent := karyawan.EmpNo != nik
+	oldNIK := karyawan.EmpNo
+
+	karyawan.Name = nama
+	karyawan.EmpNo = nik
+	karyawan.JabatanID = jabatan_id
+	karyawan.User.Email = email
+	karyawan.User.RoleID = role_id
+
+	facades.Orm().Query().Save(&karyawan)
+	facades.Orm().Query().Save(&karyawan.User)
+
+	if deleteCurrent {
+		facades.Orm().Query().Delete(models.Karyawan{EmpNo: oldNIK})
+	}
+
+	return ctx.Response().Json(200, map[string]interface{}{
+		"status":  "success",
+		"message": "Data berhasil diupdate",
+		"data":    karyawan,
+	})
 }
 
 func (r *PenggunaController) Destroy(ctx http.Context) http.Response {

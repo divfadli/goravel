@@ -4,29 +4,30 @@
 
 <div class="card shadow mb-4">
     <div class="card-body">
-        <form>
+        <form id="updateForm">
+            <input type="hidden" name="_method" value="PUT">
             <div class="row">
                 <div class="col-md-6">
                     <div class="form-group">
                         <label for="nama">Nama</label>
-                        <input type="text" class="form-control" id="nama"
+                        <input type="text" class="form-control" id="nama" name="nama"
                             placeholder="Masukkan nama" value="{{.pengguna.Name}}">
                     </div>
                     <div class="form-group">
                         <label for="email">Email</label>
-                        <input type="email" class="form-control" id="email"
+                        <input type="email" class="form-control" id="email" name="email"
                             placeholder="Masukkan email" value="{{.pengguna.User.Email}}">
                     </div>
                     <div class="form-group">
                         <label for="nik">NIK</label>
-                        <input type="nik" class="form-control" id="nik"
+                        <input type="nik" class="form-control" id="nik" name="nik"
                             placeholder="Masukkan NIK" value="{{.pengguna.EmpNo}}">
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="form-group">
                         <label for="jabatan">Jabatan</label>
-                        <select class="form-control" id="jabatan">
+                        <select class="form-control" id="jabatan" name="jabatan">
                         {{range $index,$val := .jabatan}}
                             <option value="{{$val.IdJabatan}}" {{if eq $val.IdJabatan $.pengguna.Jabatan.IdJabatan}}selected{{end}}>{{$val.Name}}</option>
                         {{end}}
@@ -34,7 +35,7 @@
                     </div>
                     <div class="form-group">
                         <label for="role">Role</label>
-                        <select class="form-control" id="role" value="{{.pengguna.User.Role.IDRole}}">
+                        <select class="form-control" id="role" name="role" value="{{.pengguna.User.Role.IDRole}}">
                         {{range $index,$val := .role}}
                             <option value="{{$val.IDRole}}" {{if eq $val.IDRole $.pengguna.User.Role.IDRole}}selected{{end}}>{{$val.Name}}</option>
                         {{end}}
@@ -42,13 +43,47 @@
                     </div>
                 </div>
             </div>
-            <button type="submit" class="btn btn-primary float-right">Simpan</button>
-        </form>
+            <button type="button" onclick="updatePengguna()" class="btn btn-primary float-right">Simpan</button>
+        </form>   
     </div>
 </div>
 
 {{ template "layouts/footer.tmpl" . }}
 
 {{ template "layouts/script.tmpl" . }}
+
+<script>
+function updatePengguna() {
+    var formData = {
+        nama: $('#nama').val(),
+        email: $('#email').val(),
+        nik: $('#nik').val(),
+        jabatan: $('#jabatan').val(),
+        role: $('#role').val()
+    };
+
+    $.ajax({
+        url: '/pengguna/{{.pengguna.UserID}}',
+        type: 'PUT',
+        data: JSON.stringify(formData),
+        contentType: 'application/json',
+        success: function(response) {
+            Swal.fire({
+                title: "Sukses!",
+                text: "Perubahan berhasil disimpan",
+                icon: "success"
+            });
+            setTimeout(function(){window.location.reload();}, 3000);
+        },
+        error: function(xhr, status, error) {
+            Swal.fire({
+                title: "Gagal!",
+                text: "Terjadi kesalahan saat menyimpan perubahan",
+                icon: "error"
+            });
+        }
+    });
+}
+</script>
 
 {{ end }}
