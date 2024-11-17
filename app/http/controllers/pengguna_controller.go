@@ -40,7 +40,30 @@ func (r *PenggunaController) Index(ctx http.Context) http.Response {
 }
 
 func (r *PenggunaController) Show(ctx http.Context) http.Response {
-	return nil
+	userInfo := facades.Cache().Get("user_data")
+
+	if userInfo != nil {
+		id := ctx.Request().Route("id")
+		var dataKaryawan models.Karyawan
+		facades.Orm().Query().With("Jabatan").With("User.Role").Where("user_id=?", id).Get(&dataKaryawan)
+		var dataJabatan []models.Jabatan
+		facades.Orm().Query().Get(&dataJabatan)
+		var dataRole []models.Role
+		facades.Orm().Query().Get(&dataRole)
+		return ctx.Response().View().Make("pengguna_detail.tmpl", map[string]interface{}{
+			"title":       "Pengguna",
+			"pageheading": "Pengguna",
+			"version":     support.Version,
+			"data":        userInfo,
+			"pengguna":    dataKaryawan,
+			"jabatan":     dataJabatan,
+			"role":        dataRole,
+		})
+	}
+
+	facades.Auth().Logout(ctx)
+	// For instance, you might redirect the user to the login page
+	return ctx.Response().Redirect(http.StatusFound, "/login")
 }
 
 func (r *PenggunaController) Store(ctx http.Context) http.Response {
