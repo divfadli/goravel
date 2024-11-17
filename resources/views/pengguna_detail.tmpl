@@ -1,0 +1,142 @@
+{{ define "pengguna_detail.tmpl"}}
+
+{{ template "templates/layout.tmpl" .}}
+
+<div class="card shadow mb-4">
+    <div class="card-body">
+        <form id="updateForm">
+            <input type="hidden" name="_method" value="PUT">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="nama">Nama</label>
+                        <input type="text" class="form-control" id="nama" name="nama"
+                            placeholder="Masukkan nama" value="{{.pengguna.Name}}">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" class="form-control" id="email" name="email"
+                            placeholder="Masukkan email" value="{{.pengguna.User.Email}}">
+                    </div>
+                    <div class="form-group">
+                        <label for="nik">NIK</label>
+                        <input type="nik" class="form-control" id="nik" name="nik"
+                            placeholder="Masukkan NIK" value="{{.pengguna.EmpNo}}">
+                    </div>
+                    <div class="form-group">
+                        <label for="gender">Gender</label>
+                        <select class="form-control" id="gender" name="gender">
+                            <option value="Laki-Laki" {{if eq "Laki-Laki" $.pengguna.Gender}}selected{{end}}>Laki-Laki</option>
+                            <option value="Perempuan" {{if eq "Perempuan" $.pengguna.Gender}}selected{{end}}>Perempuan</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="agama">Agama</label>
+                        <select class="form-control" id="agama" name="agama">
+                            <option value="Islam" {{if eq "Islam" $.pengguna.Agama}}selected{{end}}>Islam</option>
+                            <option value="Kristen Katolik" {{if eq "Kristen Katolik" $.pengguna.Agama}}selected{{end}}>Kristen Katolik</option>
+                            <option value="Kristen Protestan" {{if eq "Kristen Protestan" $.pengguna.Agama}}selected{{end}}>Kristen Protestan</option>
+                            <option value="Hindu" {{if eq "Hindu" $.pengguna.Agama}}selected{{end}}>Hindu</option>
+                            <option value="Budha" {{if eq "Budha" $.pengguna.Agama}}selected{{end}}>Budha</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="tanggal_lahir">Tanggal Lahir</label>
+                        <input type="date" class="form-control" id="tanggal_lahir" name="tanggal_lahir"
+                        placeholder="Masukkan tanggal lahir" value="{{.pengguna.TanggalLahir}}">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="jabatan">Jabatan</label>
+                        <select class="form-control" id="jabatan" name="jabatan">
+                        {{range $index,$val := .jabatan}}
+                            <option value="{{$val.IdJabatan}}" {{if eq $val.IdJabatan $.pengguna.Jabatan.IdJabatan}}selected{{end}}>{{$val.Name}}</option>
+                        {{end}}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="role">Role</label>
+                        <select class="form-control" id="role" name="role" value="{{.pengguna.User.Role.IDRole}}">
+                        {{range $index,$val := .role}}
+                            <option value="{{$val.IDRole}}" {{if eq $val.IDRole $.pengguna.User.Role.IDRole}}selected{{end}}>{{$val.Name}}</option>
+                        {{end}}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="atasan">Atasan</label>
+                        <select class="form-control" id="atasan" name="atasan">
+                        {{range $index,$val := .listAtasan}}
+                            {{if ne $val.EmpNo $.pengguna.EmpNo}}
+                            <option value="{{$val.EmpNo}}" {{if eq (printf "%v" $val.EmpNo) (printf "%v" $.id_atasan)}}selected{{end}}>{{$val.Name}}</option>
+                            {{end}}
+                        {{end}}
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <button type="button" onclick="updatePengguna()" class="btn btn-primary float-right">Simpan</button>
+        </form>   
+    </div>
+</div>
+
+{{ template "layouts/footer.tmpl" . }}
+
+{{ template "layouts/script.tmpl" . }}
+
+<script>
+function updatePengguna() {
+    var formData = {
+        nama: $('#nama').val(),
+        email: $('#email').val(),
+        nik: $('#nik').val(),
+        jabatan: $('#jabatan').val(),
+        role: $('#role').val(),
+        gender: $('#gender').val(),
+        agama: $('#agama').val(),
+        tanggal_lahir: $('#tanggal_lahir').val(),
+        atasan: $('#atasan').val(),
+    };
+
+    $.ajax({
+        {{if eq .isCreate false}}
+        url: '/pengguna/{{.pengguna.UserID}}',
+        type: 'PUT',
+        {{else}}
+        url: '/pengguna',
+        type: 'POST',
+        {{end}}
+        data: JSON.stringify(formData),
+        contentType: 'application/json',
+        success: function(response) {
+            Swal.fire({
+                title: "Sukses!",
+                {{if eq .isCreate false}}
+                text: "Perubahan berhasil disimpan",
+                {{else}}
+                text: "Pengguna berhasil ditambahkan",
+                {{end}}
+                icon: "success"
+            });
+            {{if eq .isCreate false}}
+            setTimeout(function(){window.location.reload();}, 3000);
+            {{else}}
+            setTimeout(function(){window.location.href = '/pengguna';}, 3000);
+            {{end}}
+        },
+        error: function(xhr, status, error) {
+            Swal.fire({
+                title: "Gagal!",
+                {{if eq .isCreate false}}
+                text: "Terjadi kesalahan saat menyimpan perubahan",
+                {{else}}
+                text: "Terjadi kesalahan saat menambahkan pengguna",
+                {{end}}
+                icon: "error"
+            });
+        }
+    });
+}
+</script>
+
+{{ end }}

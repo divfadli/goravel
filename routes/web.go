@@ -1,6 +1,8 @@
 package routes
 
 import (
+	"goravel/app/http/controllers"
+
 	"github.com/goravel/framework/contracts/http"
 	"github.com/goravel/framework/contracts/route"
 	"github.com/goravel/framework/facades"
@@ -308,4 +310,6 @@ func Web() {
 			return ctx.Response().Redirect(http.StatusFound, "/login")
 		})
 	})
+
+	facades.Route().Resource("pengguna", controllers.NewPenggunaController())
 }

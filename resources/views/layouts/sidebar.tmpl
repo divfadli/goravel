@@ -57,6 +57,16 @@
                 </a>
             </li>
         {{ end }}
+        {{ if .data.is_admin }}
+            <!-- Divider -->
+            <hr class="sidebar-divider">
+
+            <li class="nav-item">
+                <a href="/pengguna/" class="nav-link">
+                    <i class="fas fa-fw fa-user-circle"></i>
+                    <span>Pengguna</span>
+                </a>
+            </li>
 
             <!-- Divider -->
             <hr class="sidebar-divider">
@@ -64,7 +74,7 @@
             <li class="nav-item">
                 <a href="/role_user/form_role_user" class="nav-link">
                     <i class="fas fa-fw fa-user-circle"></i>
-                    <span>Role Pengguna</span>
+                    <span>Akses Kontrol Pengguna</span>
                 </a>
             </li>
 
@@ -77,6 +87,7 @@
                     <span>Jenis Kejadian</span>
                 </a>
             </li>
+        {{ end }}
     </ul>
     <!-- End of Sidebar -->
 {{ end }}

@@ -11,7 +11,8 @@ type Role struct {
 }
 
 type MyRole struct {
-	Name string `json:"name"`
+	IDRole int    `json:"id_role"`
+	Name   string `json:"name"`
 }
 
 func (r *Role) TableName() string {
