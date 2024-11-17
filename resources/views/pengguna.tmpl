@@ -1,0 +1,47 @@
+{{ define "pengguna.tmpl"}}
+
+{{ template "templates/layout.tmpl" .}}
+
+<div class="card shadow mb-4">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>Nama</th>
+                        <th>Email</th>
+                        <th>NIK</th>
+                        <th>Jabatan</th>
+                        <th>Role</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {{range $index,$val := .pengguna}}
+                    <tr>
+                        <td>{{$val.Name}}</td>
+                        <td>{{$val.User.Email}}</td>
+                        <td>{{$val.EmpNo}}</td>
+                        <td>{{$val.Jabatan.Name}}</td>
+                        <td>{{$val.User.Role.Name}}</td>
+                    </tr>
+                {{end}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{{ template "layouts/footer.tmpl" . }}
+
+{{ template "layouts/script.tmpl" . }}
+
+{{ template "layouts/script_datatables.tmpl" . }}
+
+<script>
+// Call the dataTables jQuery plugin
+$(document).ready(function() {
+  $('#dataTable').DataTable();
+});
+</script>
+
+{{ end }}
