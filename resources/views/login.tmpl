@@ -117,16 +117,19 @@
                         <img class="mx-auto d-block" src="/img/logo_bakamla.png" alt="logo" width="150px">
                         <form id="form-login" action="{{.loginURL}}" method="post">
                             <div class="form-group row align-items-center mt-3">
-                                <input type="email" class="form-control" id="email" placeholder="Email" required
-                                oninput="setCustomValidity('')" oninvalid="this.setCustomValidity('Email harus diisi!')">
+                                <input type="email" class="form-control" id="email" name="email" autocomplete="username"
+                                    placeholder="Email" required oninput="setCustomValidity('')"
+                                    oninvalid="this.setCustomValidity('Email harus diisi!')">
+
                             </div>
 
                             <div class="form-group row align-items-center position-relative">
                                 <div class="input-group">
-                                    <input type="password" class="form-control" id="password" placeholder="Password" required
-                                        oninput="setCustomValidity('')"
+                                    <input type="password" class="form-control" id="password"name="password" autocomplete="current-password"
+                                        placeholder="Password" required oninput="setCustomValidity('')"
                                         oninvalid="this.setCustomValidity('Password harus diisi!')"
                                         style="padding-right: 40px;">
+
                                     <div style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); z-index: 10;">
                                         <a href="#" class="text-secondary" id="icon-click">
                                             <i class="fa fa-eye-slash" id="icon"></i>
