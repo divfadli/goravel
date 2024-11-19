@@ -8,7 +8,7 @@ import (
 )
 
 type KejadianKeselamatan struct {
-	IdKejadianKeselamatan uint8           `json:"id_kejadian_keselamatan" gorm:"primary_key" column:"id_kejadian_keselamatan"`
+	IdKejadianKeselamatan int64           `json:"id_kejadian_keselamatan" gorm:"primary_key" column:"id_kejadian_keselamatan"`
 	Tanggal               carbon.Date     `json:"tanggal" gorm:"default:not null"`
 	JenisKejadianId       string          `json:"jenis_kejadian_id" gorm:"default:not null" column:"jenis_kejadian_id"`
 	JenisKejadian         JenisKejadian   `json:"jenis_kejadian" gorm:"foreign_key:JenisKejadianId;references:IDJenisKejadian"`

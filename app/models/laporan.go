@@ -5,7 +5,7 @@ import (
 )
 
 type Laporan struct {
-	IDLaporan    uint8  `json:"id_laporan" gorm:"primary_key" column:"id_laporan"`
+	IDLaporan    int64  `json:"id_laporan" gorm:"primary_key" column:"id_laporan"`
 	NamaLaporan  string `json:"nama_laporan" gorm:"default:not null" column:"nama_laporan"`
 	JenisLaporan string `json:"jenis_laporan" gorm:"default:not null" column:"jenis_laporan"`
 	MingguKe     int    `json:"minggu_ke" gorm:"default:0" column:"minggu_ke"`

@@ -995,7 +995,7 @@ func (r *Pdf) LaporanMingguan() {
 		return
 	}
 
-	var id_keamanan_arr []uint8
+	var id_keamanan_arr []int64
 	for _, data := range result_keamanan {
 		id_keamanan_arr = append(id_keamanan_arr, data.IdKejadianKeamanan)
 		// path for download pdf
@@ -1109,7 +1109,7 @@ func (r *Pdf) LaporanMingguan() {
 		return
 	}
 
-	var id_keselamatan_arr []uint8
+	var id_keselamatan_arr []int64
 	for _, data := range result_keselamatan {
 		id_keselamatan_arr = append(id_keselamatan_arr, data.IdKejadianKeselamatan)
 		// path for download pdf
@@ -1289,7 +1289,7 @@ func (r *Pdf) LaporanMingguan() {
 
 	fmt.Println("PDF created successfully!")
 }
-func (r *Pdf) LaporanMingguanUpdate(id_laporan uint8, weeksTo int, month int, years int) {
+func (r *Pdf) LaporanMingguanUpdate(id_laporan int64, weeksTo int, month int, years int) {
 	appHost := facades.Config().Env("APP_HOST", "127.0.0.1")
 	appPort := facades.Config().Env("APP_PORT", "3000")
 	baseURL := fmt.Sprintf("http://%s:%s", appHost, appPort)
@@ -1656,7 +1656,7 @@ func (r *Pdf) LaporanMingguanUpdate(id_laporan uint8, weeksTo int, month int, ye
 		return
 	}
 
-	var id_keamanan_arr []uint8
+	var id_keamanan_arr []int64
 	for _, data := range result_keamanan {
 		id_keamanan_arr = append(id_keamanan_arr, data.IdKejadianKeamanan)
 		// path for download pdf
@@ -1770,7 +1770,7 @@ func (r *Pdf) LaporanMingguanUpdate(id_laporan uint8, weeksTo int, month int, ye
 		return
 	}
 
-	var id_keselamatan_arr []uint8
+	var id_keselamatan_arr []int64
 	for _, data := range result_keselamatan {
 		id_keselamatan_arr = append(id_keselamatan_arr, data.IdKejadianKeselamatan)
 		// path for download pdf
