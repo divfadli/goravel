@@ -1,6 +1,33 @@
 {{ define "index.tmpl"}}
 
     <style>
+    .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    .loading-spinner {
+        width: 50px;
+        height: 50px;
+        border: 5px solid #f3f3f3;
+        border-top: 5px solid #3498db;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
         .legend-item.filtered {
             text-decoration: line-through;
             opacity: 0.5;
@@ -99,7 +126,12 @@
             </div>
 
             <div class="row align-items-center" style="margin-top:20px">
-                <div id="map" style="width:100%;height:420px;"></div>
+                <div id="map" style="width:100%;height:420px;position:relative;">
+                    <div id="loading-overlay" class="loading-overlay">
+                        <div class="loading-spinner"></div>
+                    </div>
+                </div>
+
                 <div class="legend-container">
                     <div id="legend-keamanan" class="map-legend"></div>
                     <div id="legend-keselamatan" class="map-legend"></div>
@@ -128,10 +160,19 @@
         chunkInterval: 50, // Adjust this value based on performance
         chunkDelay: 10,    // Adjust this value based on performance
         iconCreateFunction: function(cluster) {
+            const count = cluster.getChildCount();
+            let size;
+            if (count < 10) {
+                size = 60;
+            } else if (count < 50) {
+                size = 70;
+            } else {
+                size = 80;
+            }
             return L.divIcon({ 
-                html: '<div style="background-color: #ff0000;">' + cluster.getChildCount() + '</div>',
+                html: '<div style="background-color: #ff0000;">' + count + '</div>',
                 className: 'marker-cluster-custom',
-                iconSize: L.point(40, 40)
+                iconSize: L.point(size, size)
             });
         }
     });
@@ -141,10 +182,19 @@
         chunkInterval: 50, // Adjust this value based on performance
         chunkDelay: 10,    // Adjust this value based on performance
         iconCreateFunction: function(cluster) {
+            const count = cluster.getChildCount();
+            let size;
+            if (count < 10) {
+                size = 30;
+            } else if (count < 50) {
+                size = 40;
+            } else {
+                size = 50;
+            }
             return L.divIcon({ 
-                html: '<div style="background-color: #0000ff;">' + cluster.getChildCount() + '</div>',
+                html: '<div style="background-color: #0000ff;">' + count + '</div>',
                 className: 'marker-cluster-custom',
-                iconSize: L.point(40, 40)
+                iconSize: L.point(size, size)
             });
         }
     });
@@ -295,6 +345,23 @@
         updateLegendLayout();
     }
 
+    function toggleChartVisibility(chartType) {
+        const chartContainer = document.getElementById(`container-${chartType}`);
+        if (chartContainer) {
+            const isVisible = chartContainer.style.display !== 'none';
+            chartContainer.style.display = isVisible ? 'none' : 'block';
+            
+            // Redraw chart when showing to ensure proper rendering
+            if (!isVisible) {
+                if (chartType === 'keamanan' && keamananChart) {
+                    keamananChart.reflow();
+                } else if (chartType === 'keselamatan' && keselamatanChart) {
+                    keselamatanChart.reflow();
+                }
+            }
+        }
+    }
+
     function createLegends(jenisKejadianKeamanan, jenisKejadianKeselamatan) {
         function createLegendContent(title, items, colorStartIndex) {
             let labels = [`<strong>${title}</strong>`];
@@ -328,6 +395,7 @@
             } else {
                 $('#legend-keamanan').hide();
             }
+            toggleChartVisibility('keamanan');
             updateLegendLayout()
         });
 
@@ -337,36 +405,82 @@
             } else {
                 $('#legend-keselamatan').hide();
             }
+            toggleChartVisibility('keselamatan');
             updateLegendLayout()
         });
-
+        
+        let filteredPelanggaranMarkers = [];
+        let filteredKecelakaanMarkers = [];
         // Add after creating legends
         $('.legend-item').on('click', function() {
             const kejadianType = $(this).data('type');
-            $(this).toggleClass('filtered'); // Toggle strikethrough class
+            $(this).toggleClass('filtered');
+            const isFiltered = $(this).hasClass('filtered');
             
-            // Toggle opacity of markers based on type
-            locationsPelanggaran.eachLayer(function(layer) {
-                if (layer.feature && layer.feature.properties.type === kejadianType) {
-                    if (layer.options.opacity === 1) {
-                        layer.setStyle({opacity: 0.2, fillOpacity: 0.2});
-                    } else {
-                        layer.setStyle({opacity: 1, fillOpacity: 0.8});
+            if (isFiltered) {
+                // Remove and store markers when filtering
+                locationsPelanggaran.eachLayer(function(layer) {
+                    if (layer.feature && layer.feature.properties.type === kejadianType) {
+                        filteredPelanggaranMarkers.push(layer);
+                        locationsPelanggaran.removeLayer(layer);
                     }
-                }
-            });
-            
-            locationsKecelakaan.eachLayer(function(layer) {
-                if (layer.feature && layer.feature.properties.type === kejadianType) {
-                    if (layer.options.opacity === 1) {
-                        layer.setStyle({opacity: 0.2, fillOpacity: 0.2});
-                    } else {
-                        layer.setStyle({opacity: 1, fillOpacity: 0.8});
+                });
+                
+                locationsKecelakaan.eachLayer(function(layer) {
+                    if (layer.feature && layer.feature.properties.type === kejadianType) {
+                        filteredKecelakaanMarkers.push(layer);
+                        locationsKecelakaan.removeLayer(layer);
                     }
-                }
-            });
-        });
+                });
+            } else {
+                // Restore markers when unfiltering
+                filteredPelanggaranMarkers = filteredPelanggaranMarkers.filter(layer => {
+                    if (layer.feature.properties.type === kejadianType) {
+                        locationsPelanggaran.addLayer(layer);
+                        return false;
+                    }
+                    return true;
+                });
+                
+                filteredKecelakaanMarkers = filteredKecelakaanMarkers.filter(layer => {
+                    if (layer.feature.properties.type === kejadianType) {
+                        locationsKecelakaan.addLayer(layer);
+                        return false;
+                    }
+                    return true;
+                });
+            }
 
+            // Update clusters
+            locationsPelanggaran.refreshClusters();
+            locationsKecelakaan.refreshClusters();
+
+            // Update charts based on filtered state
+            const chartKeamanan = Highcharts.charts.find(chart => chart?.renderTo?.id === 'container-keamanan');
+            const chartKeselamatan = Highcharts.charts.find(chart => chart?.renderTo?.id === 'container-keselamatan');
+
+            if (chartKeamanan) {
+                const series = chartKeamanan.series.find(s => s.name === kejadianType);
+                if (series) {
+                    if (isFiltered) {
+                        series.hide();
+                    } else {
+                        series.show();
+                    }
+                }
+            }
+
+            if (chartKeselamatan) {
+                const series = chartKeselamatan.series.find(s => s.name === kejadianType);
+                if (series) {
+                    if (isFiltered) {
+                        series.hide();
+                    } else {
+                        series.show();
+                    }
+                }
+            }
+        });
 
         // Initial visibility based on checkbox state
         $('#legend-keamanan').toggle($('#layer-checkbox-0').is(':checked'));
@@ -448,38 +562,143 @@
         '#F0E68C', '#FAFAD2', '#FFFACD', '#FFEFD5', '#FFE4B5',
         '#FFDAB9', '#FFC0CB', '#FFB6C1', '#DDA0DD', '#EE82EE'
     ];
-
     function setMarkers(map, locations, initial) {
+        if (!locations || locations.length === 0) {
+            return;
+        }
         const targetLayer = initial === 1 ? locationsPelanggaran : locationsKecelakaan;
         const jenisKejadian = initial === 1 ? jenisKejadianKeamanan.data.data_jenis_kejadian : jenisKejadianKeselamatan.data.data_jenis_kejadian;
         const colorOffset = initial === 2 ? jenisKejadianKeamanan.data.data_jenis_kejadian.length : 0;
 
-        const markers = locations.map(a => {
-            const indexColor = jenisKejadian.findIndex(b => b.id_jenis_kejadian === a.jenis_kejadian.id_jenis_kejadian) + colorOffset;
+        // Group markers by location
+        const groupedLocations = locations.reduce((acc, location) => {
+            const key = `${location.latitude},${location.longitude}`;
+            if (!acc[key]) {
+                acc[key] = [];
+            }
+            acc[key].push(location);
+            return acc;
+        }, {});
+
+        const markers = Object.entries(groupedLocations).map(([coords, locationGroup]) => {
+            const [lat, lng] = coords.split(',');
             
-            const marker = L.circleMarker([a.latitude, a.longitude], {
-                radius: 8,
-                fillColor: colorRandom[indexColor],
-                color: "#000",
-                weight: 1,
-                opacity: 1,
-                fillOpacity: 0.8,
-                searchProperty: `${a.jenis_kejadian.nama_kejadian} - ${a.nama_kapal} - ${a.lokasi_kejadian}`
-            });
+            if (locationGroup.length === 1) {
+                const location = locationGroup[0];
+                const indexColor = jenisKejadian.findIndex(b => b.id_jenis_kejadian === location.jenis_kejadian.id_jenis_kejadian) + colorOffset;
+                
+                const marker = L.circleMarker([lat, lng], {
+                    radius: 10,
+                    fillColor: colorRandom[indexColor],
+                    color: "#000",
+                    weight: 1,
+                    opacity: 1,
+                    fillOpacity: 0.8,
+                    searchProperty: `${location.jenis_kejadian.nama_kejadian} - ${location.nama_kapal} - ${location.lokasi_kejadian}`
+                });
 
-            marker.bindPopup(() => createPopupContent(a));
-            marker.feature = {
-                properties: {
-                    type: a.jenis_kejadian.nama_kejadian
-                }
-            };
+                marker.bindPopup(() => createPopupContent(location));
+                marker.feature = {
+                    properties: {
+                        type: location.jenis_kejadian.nama_kejadian,
+                        originalColor: colorRandom[indexColor]
+                    }
+                };
 
-            return marker;
+                // Add click handler for single marker
+                marker.on('click', function() {
+                    const markers = targetLayer.getLayers();
+                    markers.forEach(m => {
+                        if (m !== this) {
+                            m.setStyle({
+                                fillColor: m.feature.properties.originalColor,
+                                fillOpacity: 0.8
+                            });
+                        }
+                    });
+                    
+                    this.setStyle({
+                        fillColor: colorRandom[indexColor],
+                        fillOpacity: 1
+                    });
+                });
+
+                return marker;
+            } else {
+                const markers = locationGroup.map((location, index) => {
+                    const indexColor = jenisKejadian.findIndex(b => b.id_jenis_kejadian === location.jenis_kejadian.id_jenis_kejadian) + colorOffset;
+                    
+                    const marker = L.circleMarker([lat, lng],
+                        {
+                            radius: 10,
+                            fillColor: colorRandom[indexColor],
+                            color: "#000",
+                            weight: 1,
+                            opacity: 1,
+                            fillOpacity: 0.8,
+                            searchProperty: `${location.jenis_kejadian.nama_kejadian} - ${location.nama_kapal} - ${location.lokasi_kejadian}`
+                        }
+                    );
+
+                    marker.bindPopup(() => createPopupContent(location));
+                    marker.feature = {
+                        properties: {
+                            type: location.jenis_kejadian.nama_kejadian,
+                            originalColor: colorRandom[indexColor]
+                        }
+                    };
+
+                    // Add click handler for grouped markers
+                    marker.on('click', function() {
+                        const markers = targetLayer.getLayers();
+                        markers.forEach(m => {
+                            if (m !== this) {
+                                m.setStyle({
+                                    fillColor: m.feature.properties.originalColor,
+                                    fillOpacity: 0.8
+                                });
+                            }
+                        });
+                        
+                        this.setStyle({
+                            fillColor: colorRandom[indexColor],
+                            fillOpacity: 1
+                        });
+                    });
+
+                    return marker;
+                });
+                return markers;
+            }
         });
 
-        targetLayer.addLayers(markers);
-    }
+        // Add map click handler to reset all markers
+        map.on('click', function() {
+            const activeMarkers = [];
+            
+            locationsPelanggaran.eachLayer(function(marker) {
+                if (!$('.legend-item[data-type="' + marker.feature.properties.type + '"]').hasClass('filtered')) {
+                    activeMarkers.push(marker);
+                    marker.setStyle({
+                        fillColor: marker.feature.properties.originalColor,
+                        fillOpacity: 0.8
+                    });
+                }
+            });
 
+            locationsKecelakaan.eachLayer(function(marker) {
+                if (!$('.legend-item[data-type="' + marker.feature.properties.type + '"]').hasClass('filtered')) {
+                    activeMarkers.push(marker);
+                    marker.setStyle({
+                        fillColor: marker.feature.properties.originalColor,
+                        fillOpacity: 0.8
+                    });
+                }
+            });
+        });
+
+        targetLayer.addLayers(markers.flat());
+    }
 
 </script>
 <!-- END -->
@@ -545,249 +764,171 @@
     let jenisKejadianKeselamatan; // Declare a global variable
 
     async function getDataAndRenderChart() {
+        $('#loading-overlay').show();
         try {
-            // For Jenis Keamanan Laut
+            // First fetch jenis kejadian data
             jenisKejadianKeamanan = await jenisKejadian("Keamanan Laut");
-            // For Jenis Keselamatan Laut
             jenisKejadianKeselamatan = await jenisKejadian("Keselamatan Laut");
 
+            // Then fetch kejadian data
             const kejadianKeamanan = await fetchData("{{.dataKeamananURL}}", 1);
             const kejadianKeselamatan = await fetchData("{{.dataKeselamatanURL}}", 2);
-            console.log('jenisKejadianKeamanan:', jenisKejadianKeamanan);
-            console.log('jenisKejadianKeselamatan:', jenisKejadianKeselamatan);
-            console.log('kejadianKeamanan:', kejadianKeamanan);
 
             // After setting markers, create the legend
             createLegends(jenisKejadianKeamanan, jenisKejadianKeselamatan);
 
-            if (!kejadianKeamanan.data || !kejadianKeamanan.data.data_kejadian_keamanan) {
-                throw new Error('data_kejadian_keamanan is undefined');
-            }
-
-            console.log('years:', years);
-
-            // chart pelanggaran
-            const x = kejadianKeamanan.data.data_kejadian_keamanan.reduce((acc, kejadian) => {
-                const nama_kejadian = kejadian.jenis_kejadian.nama_kejadian;
-                const date = new Date(kejadian.tanggal);
-                const month = date.getMonth() + 1; // Fix: Changed tahun to date
-                const year = date.getFullYear();
-                const key = `${nama_kejadian}-${year}-${month}`;
-                if (!acc[key]) {
-                    acc[key] = 0;
-                }
-                acc[key]++;
-                return acc;
-            }, {});
-
-            const data_pelanggaran = Object.keys(x).map(key => {
-                const [nama_kejadian, year, month] = key.split('-');
-                return {
-                    periode: year,
-                    bulan: month,
-                    name: nama_kejadian,
-                    jumlah: x[key]
-                }
-            });
-
             const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
 
-            const years_data_pelanggaran = [...new Set(data_pelanggaran.map(item => {
-                const monthName = months[parseInt(item.bulan) - 1];
-                return `${monthName}-${item.periode}`;
-            }))].sort((a,b) => {
-                    const [monthA, yearA] = a.split('-');
-                    const [monthB, yearB] = b.split('-'); 
-                    return yearA === yearB ? 
-                        months.indexOf(monthA) - months.indexOf(monthB) : 
-                        yearA - yearB;
-            });
 
-            const kejadianTypesPelanggaran = jenisKejadianKeamanan.data.data_jenis_kejadian.map(k => k.nama_kejadian);
-
-            // Create result object for each year
-            const result_pelanggaran = years_data_pelanggaran.reduce((acc, monthYear) => {
-                const [monthName, year] = monthYear.split('-');
-                const monthNumber = (months.indexOf(monthName) + 1).toString();
-                
-                // Initialize counts array with 0s for each kejadian type
-                const counts = kejadianTypesPelanggaran.map(type => {
-                    const found = data_pelanggaran.find(d => 
-                        d.periode === year && 
-                        d.bulan === monthNumber && 
-                        d.name === type
-                    );
-                    return found ? found.jumlah : 0;
-                });
-                
-                acc[monthYear] = {
-                    types: kejadianTypesPelanggaran,
-                    counts: counts
-                };
-                return acc;
-            }, {});
-
-            // Create the line chart
-            // Check if result has data
-            if (Object.keys(result_pelanggaran).length > 0) {
-                Highcharts.chart('container-keamanan', {
-                    chart: {
-                        type: 'line'
-                    },
-                    title: {
-                        text: 'Trend Kejadian Pelanggaran'
-                    },
-                    xAxis: {
-                        categories: years_data_pelanggaran,
-                        title: {
-                            text: 'Periode'
-                        }
-                    },
-                    yAxis: {
-                        title: {
-                            text: 'Jumlah Kejadian'
-                        },
-                        min: 0
-                    },
-                    legend: {
-                        layout: 'vertical',
-                        align: 'right',
-                        verticalAlign: 'middle',
-                        enabled: true
-                    },
-                    plotOptions: {
-                        line: {
-                            dataLabels: {
-                                enabled: true
-                            }
-                        }
-                    },
-                    series: jenisKejadianKeamanan.data.data_jenis_kejadian.map(type => ({
-                        name: type.nama_kejadian,
-                        data: years_data_pelanggaran.map(monthYear => {
-                            const [monthName, year] = monthYear.split('-');
-                            const monthNumber = (months.indexOf(monthName) + 1).toString();
-                            const yearData = data_pelanggaran.find(d =>
-                                d.periode === year &&
-                                d.bulan === monthNumber &&
-                                d.name === type.nama_kejadian
-                            );
-                            return yearData ? yearData.jumlah : 0;
-                        })
-                    }))
-                });
-            }
-
-            // chart kecelakaan
-            const y = kejadianKeselamatan.data.data_kejadian_keselamatan.reduce((acc, kejadian) => {
+            if (kejadianKeamanan?.data?.data_kejadian_keamanan) {
+                const x = kejadianKeamanan.data.data_kejadian_keamanan.reduce((acc, kejadian) => {
                 const nama_kejadian = kejadian.jenis_kejadian.nama_kejadian;
                 const date = new Date(kejadian.tanggal);
-                const month = date.getMonth() + 1; // Fix: Changed tahun to date
+                const month = date.getMonth() + 1;
                 const year = date.getFullYear();
                 const key = `${nama_kejadian}-${year}-${month}`;
-                if (!acc[key]) {
-                    acc[key] = 0;
-                }
-                acc[key]++;
+                acc[key] = (acc[key] || 0) + 1;
                 return acc;
-            }, {});
+                }, {});
 
-            const data_kecelakaan = Object.keys(y).map(key => {
-                const [nama_kejadian, year, month] = key.split('-');
-                return {
-                    periode: year,
-                    bulan: month,
-                    name: nama_kejadian,
-                    jumlah: y[key]
-                }
-            });
+                const data_pelanggaran = Object.entries(x).map(([key, value]) => {
+                    const [nama_kejadian, year, month] = key.split('-');
+                    return {
+                        periode: year,
+                        bulan: month,
+                        name: nama_kejadian,
+                        jumlah: value
+                    };
+                });
 
-            const years_data_kecelakaan = [...new Set(data_kecelakaan.map(item => {
-                const monthName = months[parseInt(item.bulan) - 1];
-                return `${monthName}-${item.periode}`;
-            }))].sort((a,b) => {
+                const years_data_pelanggaran = [...new Set(data_pelanggaran.map(item => {
+                    const monthName = months[parseInt(item.bulan) - 1];
+                    return `${monthName}-${item.periode}`;
+                }))].sort((a,b) => {
                     const [monthA, yearA] = a.split('-');
                     const [monthB, yearB] = b.split('-'); 
                     return yearA === yearB ? 
                         months.indexOf(monthA) - months.indexOf(monthB) : 
                         yearA - yearB;
-            });
-
-            const kejadianTypesKecelakaan = jenisKejadianKeselamatan.data.data_jenis_kejadian.map(k => k.nama_kejadian);
-
-            // Create result object for each year
-            const result_kecelakaan = years_data_kecelakaan.reduce((acc, monthYear) => {
-                const [monthName, year] = monthYear.split('-');
-                const monthNumber = (months.indexOf(monthName) + 1).toString();
-                
-                // Initialize counts array with 0s for each kejadian type
-                const counts = kejadianTypesKecelakaan.map(type => {
-                    const found = data_kecelakaan.find(d => 
-                        d.periode === year && 
-                        d.bulan === monthNumber && 
-                        d.name === type
-                    );
-                    return found ? found.jumlah : 0;
                 });
-                
-                acc[monthYear] = {
-                    types: kejadianTypesKecelakaan,
-                    counts: counts
-                };
-                return acc;
-            }, {});
-            // Create the line chart
-            // Check if result has data
-            if (Object.keys(result_kecelakaan).length > 0) {
-                Highcharts.chart('container-keselamatan', {
-                    chart: {
-                        type: 'line'
-                    },
-                    title: {
-                        text: 'Trend Kejadian Kecelakaan'
-                    },
-                    xAxis: {
-                        categories: years_data_kecelakaan,
-                        title: {
-                            text: 'Periode'
-                        }
-                    },
-                    yAxis: {
-                        title: {
-                            text: 'Jumlah Kejadian'
+
+                const kejadianTypesPelanggaran = jenisKejadianKeamanan.data.data_jenis_kejadian.map(k => k.nama_kejadian);
+
+                if (years_data_pelanggaran.length > 0) {
+                    Highcharts.chart('container-keamanan', {
+                        chart: { type: 'line' },
+                        title: { text: 'Trend Kejadian Pelanggaran' },
+                        xAxis: {
+                            categories: years_data_pelanggaran,
+                            title: { text: 'Periode' }
                         },
-                        min: 0
-                    },
-                    legend: {
-                        layout: 'vertical',
-                        align: 'right',
-                        verticalAlign: 'middle',
-                        enabled: true
-                    },
-                    plotOptions: {
-                        line: {
-                            dataLabels: {
-                                enabled: true
-                            }
-                        }
-                    },
-                    series: jenisKejadianKeselamatan.data.data_jenis_kejadian.map(type => ({
-                        name: type.nama_kejadian,
-                        data: years_data_kecelakaan.map(monthYear => {
-                            const [monthName, year] = monthYear.split('-');
-                            const monthNumber = (months.indexOf(monthName) + 1).toString();
-                            const yearData = data_kecelakaan.find(d =>
-                                d.periode === year &&
-                                d.bulan === monthNumber &&
-                                d.name === type.nama_kejadian
-                            );
-                            return yearData ? yearData.jumlah : 0;
-                        })
-                    }))
+                        yAxis: {
+                            title: { text: 'Jumlah Kejadian' },
+                            min: 0
+                        },
+                        legend: {
+                            layout: 'vertical',
+                            align: 'right',
+                            verticalAlign: 'middle',
+                            enabled: true
+                        },
+                        plotOptions: {
+                            line: { dataLabels: { enabled: true } }
+                        },
+                        series: jenisKejadianKeamanan.data.data_jenis_kejadian.map(type => ({
+                            name: type.nama_kejadian,
+                            data: years_data_pelanggaran.map(monthYear => {
+                                const [monthName, year] = monthYear.split('-');
+                                const monthNumber = (months.indexOf(monthName) + 1).toString();
+                                const yearData = data_pelanggaran.find(d =>
+                                    d.periode === year &&
+                                    d.bulan === monthNumber &&
+                                    d.name === type.nama_kejadian
+                                );
+                                return yearData ? yearData.jumlah : 0;
+                            })
+                        }))
+                    });
+                }
+            }
+
+            // Handle Keselamatan Chart
+            if (kejadianKeselamatan?.data?.data_kejadian_keselamatan) {
+                const y = kejadianKeselamatan.data.data_kejadian_keselamatan.reduce((acc, kejadian) => {
+                const nama_kejadian = kejadian.jenis_kejadian.nama_kejadian;
+                const date = new Date(kejadian.tanggal);
+                const month = date.getMonth() + 1;
+                const year = date.getFullYear();
+                const key = `${nama_kejadian}-${year}-${month}`;
+                acc[key] = (acc[key] || 0) + 1;
+                return acc;
+                }, {});
+
+                const data_kecelakaan = Object.entries(y).map(([key, value]) => {
+                    const [nama_kejadian, year, month] = key.split('-');
+                    return {
+                        periode: year,
+                        bulan: month,
+                        name: nama_kejadian,
+                        jumlah: value
+                    };
                 });
+
+                const years_data_kecelakaan = [...new Set(data_kecelakaan.map(item => {
+                    const monthName = months[parseInt(item.bulan) - 1];
+                    return `${monthName}-${item.periode}`;
+                }))].sort((a,b) => {
+                    const [monthA, yearA] = a.split('-');
+                    const [monthB, yearB] = b.split('-'); 
+                    return yearA === yearB ? 
+                        months.indexOf(monthA) - months.indexOf(monthB) : 
+                        yearA - yearB;
+                });
+
+                const kejadianTypesKecelakaan = jenisKejadianKeselamatan.data.data_jenis_kejadian.map(k => k.nama_kejadian);
+
+                if (years_data_kecelakaan.length > 0) {
+                    Highcharts.chart('container-keselamatan', {
+                        chart: { type: 'line' },
+                        title: { text: 'Trend Kejadian Kecelakaan' },
+                        xAxis: {
+                            categories: years_data_kecelakaan,
+                            title: { text: 'Periode' }
+                        },
+                        yAxis: {
+                            title: { text: 'Jumlah Kejadian' },
+                            min: 0
+                        },
+                        legend: {
+                            layout: 'vertical',
+                            align: 'right',
+                            verticalAlign: 'middle',
+                            enabled: true
+                        },
+                        plotOptions: {
+                            line: { dataLabels: { enabled: true } }
+                        },
+                        series: jenisKejadianKeselamatan.data.data_jenis_kejadian.map(type => ({
+                            name: type.nama_kejadian,
+                            data: years_data_kecelakaan.map(monthYear => {
+                                const [monthName, year] = monthYear.split('-');
+                                const monthNumber = (months.indexOf(monthName) + 1).toString();
+                                const yearData = data_kecelakaan.find(d =>
+                                    d.periode === year &&
+                                    d.bulan === monthNumber &&
+                                    d.name === type.nama_kejadian
+                                );
+                                return yearData ? yearData.jumlah : 0;
+                            })
+                        }))
+                    });
+                }
             }
         } catch (error) {
             console.error('Error fetching data:', error);
+        }finally{
+            // Hide loading when done
+            $('#loading-overlay').hide();
         }
     }
 
