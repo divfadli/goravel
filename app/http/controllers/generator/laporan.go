@@ -143,28 +143,28 @@ func (r *Pdf) LaporanMingguanLastMonth(date time.Time) {
 		Select("DATE_TRUNC('week', tanggal) AS week_start, ARRAY_AGG(id_kejadian_keamanan) AS kejadian_ids").
 		Where(tanggal, startOfWeek, endOfWeek).
 		Group("DATE_TRUNC('week', tanggal)").
-		Order("week_start asc").Scan(&weeklyDataKeamanans)
+		Order("week_start asc").Get(&weeklyDataKeamanans)
 
 	facades.Orm().Query().
 		Table("public.kejadian_keamanan").
 		Select("DATE_TRUNC('week', tanggal) AS week_start, ARRAY_AGG(id_kejadian_keamanan) AS kejadian_ids").
 		Where("tanggal >= ? AND tanggal <= ?", startOfMonth, endOfWeek).
 		Group("DATE_TRUNC('week', tanggal)").
-		Order("week_start asc").Scan(&allWeeklyDataKeamanans)
+		Order("week_start asc").Get(&allWeeklyDataKeamanans)
 
 	facades.Orm().Query().
 		Table("public.kejadian_keselamatan").
 		Select("DATE_TRUNC('week', tanggal) AS week_start, ARRAY_AGG(id_kejadian_keselamatan) AS kejadian_ids").
 		Where(tanggal, startOfWeek, endOfWeek).
 		Group("DATE_TRUNC('week', tanggal)").
-		Order("week_start asc").Scan(&weeklyDataKeselamatans)
+		Order("week_start asc").Get(&weeklyDataKeselamatans)
 
 	facades.Orm().Query().
 		Table("public.kejadian_keselamatan").
 		Select("DATE_TRUNC('week', tanggal) AS week_start, ARRAY_AGG(id_kejadian_keselamatan) AS kejadian_ids").
 		Where("tanggal >= ? AND tanggal <= ?", startOfMonth, endOfWeek).
 		Group("DATE_TRUNC('week', tanggal)").
-		Order("week_start asc").Scan(&allWeeklyDataKeselamatans)
+		Order("week_start asc").Get(&allWeeklyDataKeselamatans)
 
 	allWeeklyDataKeamanan := make(map[string][]models.KejadianKeamanan)
 	allWeeklyDataKeselamatan := make(map[string][]models.KejadianKeselamatan)
@@ -756,28 +756,28 @@ func (r *Pdf) LaporanMingguan() {
 		Select("DATE_TRUNC('week', tanggal) AS week_start, ARRAY_AGG(id_kejadian_keamanan) AS kejadian_ids").
 		Where(tanggal, startOfWeek, endOfWeek).
 		Group("DATE_TRUNC('week', tanggal)").
-		Order("week_start asc").Scan(&weeklyDataKeamanans)
+		Order("week_start asc").Get(&weeklyDataKeamanans)
 
 	facades.Orm().Query().
 		Table("public.kejadian_keamanan").
 		Select("DATE_TRUNC('week', tanggal) AS week_start, ARRAY_AGG(id_kejadian_keamanan) AS kejadian_ids").
 		Where("tanggal >= ? AND tanggal <= ?", startOfMonth, endOfWeek).
 		Group("DATE_TRUNC('week', tanggal)").
-		Order("week_start asc").Scan(&allWeeklyDataKeamanans)
+		Order("week_start asc").Get(&allWeeklyDataKeamanans)
 
 	facades.Orm().Query().
 		Table("public.kejadian_keselamatan").
 		Select("DATE_TRUNC('week', tanggal) AS week_start, ARRAY_AGG(id_kejadian_keselamatan) AS kejadian_ids").
 		Where(tanggal, startOfWeek, endOfWeek).
 		Group("DATE_TRUNC('week', tanggal)").
-		Order("week_start asc").Scan(&weeklyDataKeselamatans)
+		Order("week_start asc").Get(&weeklyDataKeselamatans)
 
 	facades.Orm().Query().
 		Table("public.kejadian_keselamatan").
 		Select("DATE_TRUNC('week', tanggal) AS week_start, ARRAY_AGG(id_kejadian_keselamatan) AS kejadian_ids").
 		Where("tanggal >= ? AND tanggal <= ?", startOfMonth, endOfWeek).
 		Group("DATE_TRUNC('week', tanggal)").
-		Order("week_start asc").Scan(&allWeeklyDataKeselamatans)
+		Order("week_start asc").Get(&allWeeklyDataKeselamatans)
 
 	allWeeklyDataKeamanan := make(map[string][]models.KejadianKeamanan)
 	allWeeklyDataKeselamatan := make(map[string][]models.KejadianKeselamatan)
@@ -1417,28 +1417,28 @@ func (r *Pdf) LaporanMingguanUpdate(id_laporan int64, weeksTo int, month int, ye
 		Select("DATE_TRUNC('week', tanggal) AS week_start, ARRAY_AGG(id_kejadian_keamanan) AS kejadian_ids").
 		Where(tanggal, startOfWeek, endOfWeek).
 		Group("DATE_TRUNC('week', tanggal)").
-		Order("week_start asc").Scan(&weeklyDataKeamanans)
+		Order("week_start asc").Get(&weeklyDataKeamanans)
 
 	facades.Orm().Query().
 		Table("public.kejadian_keamanan").
 		Select("DATE_TRUNC('week', tanggal) AS week_start, ARRAY_AGG(id_kejadian_keamanan) AS kejadian_ids").
 		Where("tanggal >= ? AND tanggal <= ?", startOfMonth, endOfWeek).
 		Group("DATE_TRUNC('week', tanggal)").
-		Order("week_start asc").Scan(&allWeeklyDataKeamanans)
+		Order("week_start asc").Get(&allWeeklyDataKeamanans)
 
 	facades.Orm().Query().
 		Table("public.kejadian_keselamatan").
 		Select("DATE_TRUNC('week', tanggal) AS week_start, ARRAY_AGG(id_kejadian_keselamatan) AS kejadian_ids").
 		Where(tanggal, startOfWeek, endOfWeek).
 		Group("DATE_TRUNC('week', tanggal)").
-		Order("week_start asc").Scan(&weeklyDataKeselamatans)
+		Order("week_start asc").Get(&weeklyDataKeselamatans)
 
 	facades.Orm().Query().
 		Table("public.kejadian_keselamatan").
 		Select("DATE_TRUNC('week', tanggal) AS week_start, ARRAY_AGG(id_kejadian_keselamatan) AS kejadian_ids").
 		Where("tanggal >= ? AND tanggal <= ?", startOfMonth, endOfWeek).
 		Group("DATE_TRUNC('week', tanggal)").
-		Order("week_start asc").Scan(&allWeeklyDataKeselamatans)
+		Order("week_start asc").Get(&allWeeklyDataKeselamatans)
 
 	allWeeklyDataKeamanan := make(map[string][]models.KejadianKeamanan)
 	allWeeklyDataKeselamatan := make(map[string][]models.KejadianKeselamatan)
@@ -2041,14 +2041,14 @@ func (r *Pdf) LaporanBulanan() {
 		Select("DATE_TRUNC('week', tanggal) AS week_start, ARRAY_AGG(id_kejadian_keamanan) AS kejadian_ids").
 		Where("tanggal >= ? AND tanggal <= ?", startOfMonth, endOfMonth).
 		Group("DATE_TRUNC('week', tanggal)").
-		Order("week_start asc").Scan(&weeklyDataKeamanans)
+		Order("week_start asc").Get(&weeklyDataKeamanans)
 
 	facades.Orm().Query().
 		Table("public.kejadian_keselamatan").
 		Select("DATE_TRUNC('week', tanggal) AS week_start, ARRAY_AGG(id_kejadian_keselamatan) AS kejadian_ids").
 		Where("tanggal >= ? AND tanggal <= ?", startOfMonth, endOfMonth).
 		Group("DATE_TRUNC('week', tanggal)").
-		Order("week_start asc").Scan(&weeklyDataKeselamatans)
+		Order("week_start asc").Get(&weeklyDataKeselamatans)
 
 	weeklyDataKeamanan := make(map[string][]models.KejadianKeamanan)
 	weeklyDataKeselamatan := make(map[string][]models.KejadianKeselamatan)
@@ -2502,14 +2502,14 @@ func (r *Pdf) LaporanBulananUpdate(month int, years int) {
 		Select("DATE_TRUNC('week', tanggal) AS week_start, ARRAY_AGG(id_kejadian_keamanan) AS kejadian_ids").
 		Where("tanggal >= ? AND tanggal <= ?", startOfMonth, endOfMonth).
 		Group("DATE_TRUNC('week', tanggal)").
-		Order("week_start asc").Scan(&weeklyDataKeamanans)
+		Order("week_start asc").Get(&weeklyDataKeamanans)
 
 	facades.Orm().Query().
 		Table("public.kejadian_keselamatan").
 		Select("DATE_TRUNC('week', tanggal) AS week_start, ARRAY_AGG(id_kejadian_keselamatan) AS kejadian_ids").
 		Where("tanggal >= ? AND tanggal <= ?", startOfMonth, endOfMonth).
 		Group("DATE_TRUNC('week', tanggal)").
-		Order("week_start asc").Scan(&weeklyDataKeselamatans)
+		Order("week_start asc").Get(&weeklyDataKeselamatans)
 
 	weeklyDataKeamanan := make(map[string][]models.KejadianKeamanan)
 	weeklyDataKeselamatan := make(map[string][]models.KejadianKeselamatan)

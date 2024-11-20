@@ -1492,8 +1492,8 @@ type GroupingKeselamatanTengah struct {
 }
 
 type weeklyData []struct {
-	WeekStart   time.Time
-	KejadianIDs UintArray
+	WeekStart   time.Time     `gorm:"column:week_start"`
+	KejadianIDs pq.Int64Array `gorm:"column:kejadian_ids"`
 }
 
 func daysInMonth(tanggal time.Time) int {
