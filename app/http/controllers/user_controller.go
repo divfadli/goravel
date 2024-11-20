@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	RequestUser "goravel/app/http/requests/user"
 	"goravel/app/models"
 	"time"
@@ -127,6 +128,8 @@ func (r *UserController) Login(ctx http.Context) http.Response {
 		}).Info("Failed to query user")
 		return ErrorSystem(ctx, "Failed to query user")
 	}
+	a, _ := facades.Crypt().DecryptString(user.Password)
+	fmt.Println(a)
 
 	if user.IDUser == 0 || !facades.Hash().Check(req.Password, user.Password) {
 		// return ctx.Response().Redirect(http.StatusFound, "/login")
@@ -176,6 +179,7 @@ func (r *UserController) Login(ctx http.Context) http.Response {
 		"email":       user.Email,
 		"nik":         dataKaryawan.EmpNo,
 		"is_superior": is_superior,
+		"is_staff":    role.Name == "Staff Input",
 		"is_admin":    role.Name == "Admin",
 	}
 	facades.Cache().Put("user_data", cachedData, 2*time.Hour)
