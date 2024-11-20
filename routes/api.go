@@ -6,6 +6,7 @@ import (
 
 	"goravel/app/http/controllers"
 	pdf "goravel/app/http/controllers/generator"
+	"goravel/app/http/middleware"
 )
 
 func Api() {
@@ -40,45 +41,45 @@ func Api() {
 		r.Prefix("kejadian").Group(func(kejadian route.Router) {
 			jenisKejadianController := controllers.NewJenisKejadianController()
 
-			kejadian.Post("storeKejadian", jenisKejadianController.PostKejadian)
-			kejadian.Post("listKejadian", jenisKejadianController.ListKejadian)
-			kejadian.Get("showDetailKejadian", jenisKejadianController.ShowDetailKejadian)
-			kejadian.Delete("deleteKejadian", jenisKejadianController.DeleteKejadian)
+			kejadian.Middleware(middleware.Jwt(), middleware.Cors()).Post("storeKejadian", jenisKejadianController.PostKejadian)
+			kejadian.Middleware(middleware.Jwt(), middleware.Cors()).Post("listKejadian", jenisKejadianController.ListKejadian)
+			kejadian.Middleware(middleware.Jwt(), middleware.Cors()).Get("showDetailKejadian", jenisKejadianController.ShowDetailKejadian)
+			kejadian.Middleware(middleware.Jwt(), middleware.Cors()).Delete("deleteKejadian", jenisKejadianController.DeleteKejadian)
 
 			kejadian.Prefix("keamanan").Group(func(keamanan route.Router) {
 				kejadianKeamananController := controllers.NewKejadianKeamananController()
 
-				keamanan.Post("export-excel", kejadianKeamananController.ExportExcel)
+				keamanan.Middleware(middleware.Jwt(), middleware.Cors()).Post("export-excel", kejadianKeamananController.ExportExcel)
 
-				keamanan.Post("storeKejadianKeamanan", kejadianKeamananController.StoreKejadianKeamanan)
-				keamanan.Post("listKejadianKeamanan", kejadianKeamananController.ListKejadianKeamanan)
-				keamanan.Get("showDetailKejadianKeamanan", kejadianKeamananController.ShowDetailKejadianKeamanan)
-				keamanan.Delete("deleteKejadianKeamanan", kejadianKeamananController.DeleteKejadianKeamanan)
+				keamanan.Middleware(middleware.Jwt(), middleware.Cors()).Post("storeKejadianKeamanan", kejadianKeamananController.StoreKejadianKeamanan)
+				keamanan.Middleware(middleware.Jwt(), middleware.Cors()).Post("listKejadianKeamanan", kejadianKeamananController.ListKejadianKeamanan)
+				keamanan.Middleware(middleware.Jwt(), middleware.Cors()).Get("showDetailKejadianKeamanan", kejadianKeamananController.ShowDetailKejadianKeamanan)
+				keamanan.Middleware(middleware.Jwt(), middleware.Cors()).Delete("deleteKejadianKeamanan", kejadianKeamananController.DeleteKejadianKeamanan)
 			})
 
 			kejadian.Prefix("keselamatan").Group(func(keselamatan route.Router) {
 				kejadianKeselamatanController := controllers.NewKejadianKeselamatanController()
 
-				keselamatan.Post("export-excel", kejadianKeselamatanController.ExportExcel)
+				keselamatan.Middleware(middleware.Jwt(), middleware.Cors()).Post("export-excel", kejadianKeselamatanController.ExportExcel)
 
-				keselamatan.Post("storeKejadianKeselamatan", kejadianKeselamatanController.StoreKejadianKeselamatan)
-				keselamatan.Post("listKejadianKeselamatan", kejadianKeselamatanController.ListKejadianKeselamatan)
-				keselamatan.Get("showDetailKejadianKeselamatan", kejadianKeselamatanController.ShowDetailKejadianKeselamatan)
-				keselamatan.Delete("deleteKejadianKeselamatan", kejadianKeselamatanController.DeleteKejadianKeselamatan)
+				keselamatan.Middleware(middleware.Jwt(), middleware.Cors()).Post("storeKejadianKeselamatan", kejadianKeselamatanController.StoreKejadianKeselamatan)
+				keselamatan.Middleware(middleware.Jwt(), middleware.Cors()).Post("listKejadianKeselamatan", kejadianKeselamatanController.ListKejadianKeselamatan)
+				keselamatan.Middleware(middleware.Jwt(), middleware.Cors()).Get("showDetailKejadianKeselamatan", kejadianKeselamatanController.ShowDetailKejadianKeselamatan)
+				keselamatan.Middleware(middleware.Jwt(), middleware.Cors()).Delete("deleteKejadianKeselamatan", kejadianKeselamatanController.DeleteKejadianKeselamatan)
 			})
 		})
 
 		r.Prefix("approval").Group(func(router route.Router) {
 			approvalController := controllers.NewApproval()
 
-			router.Post("/storeApproval", approvalController.StoreApproval)
-			router.Get("/listApproval", approvalController.ListApproval)
+			router.Middleware(middleware.Jwt(), middleware.Cors()).Post("/storeApproval", approvalController.StoreApproval)
+			router.Middleware(middleware.Jwt(), middleware.Cors()).Get("/listApproval", approvalController.ListApproval)
 		})
 
 		r.Prefix("laporan").Group(func(router route.Router) {
 			laporanController := controllers.NewLaporan()
 
-			router.Get("/listLaporan", laporanController.ListLaporan)
+			router.Middleware(middleware.Jwt(), middleware.Cors()).Get("/listLaporan", laporanController.ListLaporan)
 		})
 	})
 }

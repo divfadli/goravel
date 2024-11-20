@@ -16,6 +16,9 @@
         $.ajax({
             url: `${window.location.origin}/api/approval/listApproval`,
             type: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + {{.data.token.access_token}}
+            },
             data: { nik: nik },
             success: function(response) {
                 renderApprovalCards(response.data.data_laporan);
@@ -28,7 +31,12 @@
 
     function renderApprovalCards(data) {
         const container = document.querySelector(".create-card");
-        container.innerHTML = data.map((x, i) => `
+        container.innerHTML = data.map((x, i) => {
+            // Move variable declarations inside the arrow function block
+            const report_dokumen = x.dokumen.replace(/'/g, "%27").replace(/\\/g, "/");
+            const final_url = `/api/files/${report_dokumen}`;
+            
+            return `
             <div class="card">
                 <div class="row">
                     <div class="card-header">
@@ -57,7 +65,7 @@
                                 </span>
                             </div>
                             <div class="d-flex align-items-center mt-2">
-                                <a href="/api/files/${x.dokumen}">
+                                <a href="#" onclick="window.open('${final_url}', '_blank'); return false;">
                                     <i class="fas fa-file-alt mr-2">
                                         <span class="label text-dark-75 text-hover-primary font-size-h5 font-weight-bold mr-3">
                                             Dokumen
@@ -75,8 +83,10 @@
                     </div>
                 </div>
             </div>
-        `).join('');
+            `;
+        }).join('');
     }
+
 
     function storeApproval(status, id_laporan) {
         if (status === "Rejected") {
@@ -119,6 +129,9 @@
         $.ajax({
             url: `${window.origin}/api/approval/storeApproval`,
             type: "POST",
+            headers: {
+                'Authorization': 'Bearer ' + {{.data.token.access_token}}
+            },
             data: {
                 nik: nik,
                 status: status,

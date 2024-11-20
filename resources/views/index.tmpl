@@ -716,6 +716,9 @@
             $.ajax({
                 url: url,
                 method: "POST",
+                headers: {
+                    'Authorization': 'Bearer ' + {{.data.token.access_token}}
+                },
                 data: {
                     nik: {{.data.nik }},
                     tanggal_awal: $('#tanggal_awal').val(),
@@ -742,6 +745,9 @@
             $.ajax({
                 url: window.origin + "/api/kejadian/listKejadian",
                 method: "POST",
+                headers: {
+                    'Authorization': 'Bearer ' + {{.data.token.access_token}}
+                },
                 data: {
                     klasifikasi_name: klasifikasiName
                 },

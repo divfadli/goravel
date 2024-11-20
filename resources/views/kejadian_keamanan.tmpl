@@ -33,9 +33,11 @@
                                 <button onclick="exportExcel()" class="btn btn-success py-2 px-4 font-weight-bolder font-size-m mr-2">
                                     <i class="fas fa-download icon-sm mr-2"></i>Export Excel
                                 </button>
-                                <a href="/kejadian/keamanan/form_kejadian_keamanan" class="btn btn-primary py-2 px-4 font-weight-bolder font-size-m">
-                                    <i class="fas fa-plus icon-sm mr-2"></i>Tambah Data
-                                </a>
+                                {{if .data.is_staff}}
+                                    <a href="/kejadian/keamanan/form_kejadian_keamanan" class="btn btn-primary py-2 px-4 font-weight-bolder font-size-m">
+                                        <i class="fas fa-plus icon-sm mr-2"></i>Tambah Data
+                                    </a>
+                                {{end}}
                             </div>
                         </div>
                     </div>
@@ -53,7 +55,9 @@
                                         <th>Jenis Pelanggaran</th>
                                         <th>Lokasi Kejadian</th>
                                         <th>Zona</th>
-                                        <th>Pilihan</th>
+                                        {{if .data.is_staff}}
+                                            <th>Pilihan</th>
+                                        {{end}}
                                         <th>Lihat Detail</th>
                                     </tr>
                                 </thead>
@@ -141,6 +145,9 @@
         $.ajax({
             url: {{.dataKeamananURL}},
             method: "POST",
+            headers: {
+                'Authorization': 'Bearer ' + {{.data.token.access_token}}
+            },
             data: {
                 nik: nik, 
                 tanggal_awal: tanggal_awal,
@@ -176,7 +183,11 @@
                                                 <i class="fas fa-eye"></i>
                                             </a>
                                         </div>`
-                        table.row.add([tanggal, nama_kapal, jenis_pelanggaran, lokasi_kejadian, zona, action, detail]).draw(false)
+                        {{if .data.is_staff}}
+                            table.row.add([tanggal, nama_kapal, jenis_pelanggaran, lokasi_kejadian, zona, action, detail]).draw(false)
+                        {{else}}
+                            table.row.add([tanggal, nama_kapal, jenis_pelanggaran, lokasi_kejadian, zona, detail]).draw(false)
+                        {{end}}
                     })
                 }
             },
@@ -209,6 +220,9 @@
                 $.ajax({
                     url: {{.deleteKejadianKeamananURL}},
                     type: "DELETE",
+                    headers: {
+                        'Authorization': 'Bearer ' + {{.data.token.access_token}}
+                    },
                     contentType: "application/json",
                     dataType: "json",
                     data: JSON.stringify(data),
@@ -244,6 +258,9 @@ function exportExcel() {
     $.ajax({
         url: '/api/kejadian/keamanan/export-excel',
         method: 'POST',
+        headers: {
+            'Authorization': 'Bearer ' + {{.data.token.access_token}}
+        },
         data: formData,
         processData: false,
         contentType: false,

@@ -77,6 +77,9 @@
         $.ajax({
             url: {{.dataJenisKejadianURL}},
             method: "POST",
+            headers: {
+                'Authorization': 'Bearer ' + {{.data.token.access_token}}
+            },
             success: function(result) {
                 arr_data = result.data.data_jenis_kejadian
                 table.clear().draw();
@@ -124,6 +127,9 @@
                 $.ajax({
                     url: {{.deleteJenisKejadianURL}},
                     type: "DELETE",
+                    headers: {
+                        'Authorization': 'Bearer ' + {{.data.token.access_token}}
+                    },      
                     contentType: "application/json",
                     dataType: "json",
                     data: JSON.stringify(data),
