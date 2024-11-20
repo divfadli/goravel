@@ -11,37 +11,30 @@
         integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 
     <style>
-         /* Add to existing style section */
-         .table-custom-size td {
-            height: 45px; /* Sets height for all rows */
-            padding: 8px 12px; /* Adds padding inside cells */
-            line-height: 1.4; /* Controls text line height */
+        /* Add to existing style section */
+        .table-custom-size {
+            width: 100%;
+            table-layout: fixed;
+            font-size: 1.2rem;
+        }
+
+        .table-custom-size td {
+            white-space: normal;
+            word-wrap: break-word;
+            vertical-align: middle;
+            min-height: 45px;
+            padding: 8px 12px;
+            line-height: 1.4;
         }
 
         .table-custom-size td:first-child {
             width: 30%;
+            min-width: 30%;
         }
-        
+
         .table-custom-size td:last-child {
-            width: 70%;
-        }
-
-        /* For rows that need more height */
-        .table-custom-size tr.tall-row td {
-            height: 60px;
-        }
-
-        .leaflet-control-attribution {
-            display: none;
-        }
-        
-        #map-legend {
-            background: white;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            width: 835px; /* Match the map width */
-            transition: width 0.3s ease;
+            width: 100%;
+            min-width: 70%;
         }
 
         .leaflet-control-attribution {
@@ -53,13 +46,17 @@
             color: white;
         }
 
-        .table-custom-size{
-            font-size: 1.2rem;
-        }
-
         #map {
             width: 835px;
             height: 450px;
+        }
+        #map-legend {
+            background: white;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 835px; /* Match the map width */
+            transition: width 0.3s ease;
         }
 
         #logo {
@@ -145,18 +142,19 @@
                 <div class="row mb-3">
                     {{$baseURL := .BaseURL}}
                     {{range .Images}}
-                    <div class="col">
+                    <div class="col-12 mb-2">
                         <img src="{{$baseURL}}/api/files/{{.Url}}" alt="Image" class="img-fluid">
                     </div>
                     {{end}}
                 </div>
                 <div class="row mb-3">
-                    <div class="col">
+                    <div class="col-12">
                         <div id="map"></div>
                         <div id="map-legend" class="mt-3"></div>
                     </div>
                 </div>
             </div>
+        </div>
     </div>
 
     <!-- Optional JavaScript -->

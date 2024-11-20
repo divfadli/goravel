@@ -12,29 +12,39 @@
 
     <style>
         /* Add to existing style section */
+        .table-custom-size {
+            width: 100%;
+            table-layout: fixed;
+            font-size: 1.2rem;
+        }
+
         .table-custom-size td {
-            height: 45px; /* Sets height for all rows */
-            padding: 8px 12px; /* Adds padding inside cells */
-            line-height: 1.4; /* Controls text line height */
+            white-space: normal;
+            word-wrap: break-word;
+            vertical-align: middle;
+            min-height: 45px;
+            padding: 8px 12px;
+            line-height: 1.4;
         }
 
         .table-custom-size td:first-child {
             width: 30%;
-        }
-        
-        .table-custom-size td:last-child {
-            width: 70%;
+            min-width: 30%;
         }
 
-        /* For rows that need more height */
-        .table-custom-size tr.tall-row td {
-            height: 60px;
+        .table-custom-size td:last-child {
+            width: 100%;
+            min-width: 70%;
         }
 
         .leaflet-control-attribution {
             display: none;
         }
-        
+
+        #map {
+            width: 835px;
+            height: 450px;
+        }
         #map-legend {
             background: white;
             padding: 10px;
@@ -47,15 +57,6 @@
         .custom-bg-blue {
             background-color: #0077b6;
             color: white;
-        }
-
-        .table-custom-size{
-            font-size: 1.2rem;
-        }
-
-        #map {
-            width: 835px;
-            height: 450px;
         }
 
         #logo {
