@@ -21,13 +21,24 @@
     <title>Hello, worldd!</title>
 
     <style>
-        tr {
-            page-break-before: always;
+        thead {
+            display: table-header-group !important;
+        }
+        tbody {
+            display: table-row-group;
+        }
+        tr td{
+            page-break-before: auto;
             page-break-after: always;
-            page-break-inside: avoid;
+            page-break-inside: avoid !important;
+        }
+        table {
+            word-wrap: break-word;
+            page-break-after: always !important;
         }
         table td {
             word-break: break-all;
+            word-wrap: break-word;
         }
         .pb_after{
             page-break-after: always;
@@ -36,14 +47,27 @@
         .reportGraph {
             width: 900px;
             height: 500px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         #map_bul_pelanggaran,#map_bul_kecelakaan {
-            width: 900px;
+            width: 900px; 
             height: 375px;
             margin: 20px auto;
             border: 1px solid #ddd;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            z-index: 1;
+        }
+
+        #map-legend-pelanggaran, #map-legend-kecelakaan {
+            padding: 20px;
+            margin: 20px auto;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 900px; /* Match the map width */
         }
 
         .leaflet-control-attribution {
@@ -216,26 +240,88 @@
                 <p class="lead" style="text-align: center;">Peta Situasi Keamanan Laut di Wilayah Perairan Indonesia</p>
                 <div class="col justify-content-center">
                     <div id="map_bul_pelanggaran"></div>
+                    <div id="map-legend-pelanggaran" class="mt-3"></div>
                 </div>
-            
+
                 <script>
-                    const map1 = new L.map('map_bul_pelanggaran', {
-                        zoomControl: false,
-                        scrollWheelZoom: false
-                    });
-                    
-                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {}).addTo(map1);
+                    var colorRandom = [
+                        // 25 Dark Colors
+                        '#1A1A1D', '#6A1E55', '#3B1C32', '#A64D79', '#6D67E4', 
+                        '#000B58', '#006A67', '#0B192C', '#3C3D37', '#750E21',
+                        '#F05941', '#005B41', '#5C5470', '#3F1D38', '#4477CE',
+                        '#A76F6F', '#CD1818', '#D21312', '#070A52', '#2C3333',
+                        '#2F58CD', '#393053', '#1A120B', '#3C2A21', '#F2F7A1',
 
-                    var marker;
-
-                    {{range $val := .KejadianKeamanan}}
-                        {{range $index,$set := $val.KejadianKeamanan}}
-                            marker = new L.marker([{{$set.Latitude}}, {{$set.Longitude}}]);
-                            marker.addTo(map1)
-                        {{end}}
-                    {{end}}
+                        // 25 Light Colors
+                        '#B3C8CF', '#F6F7C4', '#7BD3EA', '#CB9DF0', '#FFDDAE',
+                        '#FFBD73', '#FF9D3D', '#FFE700', '#00FF9C', '#72BF78',
+                        '#E78F81', '#C4D7FF', '#A5B68D', '#C1CFA1', '#CDC1FF',
+                        '#A594F9', '#E8B86D', '#A1D6B2', '#A28B55', '#7FA1C3',
+                        '#E2DAD6', '#F6FB7A', '#88D66C', '#FF7EE2', '#E7D4B5'
+                    ];
+                </script>
+                <script>
+                    function createLegend(title, items, jenis) {
+                        var legendHtml = '<div class="legend-title" style="font-weight: bold; margin-bottom: 8px;">' + title + ':</div>';
+                        legendHtml += '<div class="legend-columns" style="width: 100%; display: -webkit-box; display: -ms-flexbox; display: flex;">';
+                        
+                        var itemsPerColumn = Math.ceil(items.length / 3);
+                        
+                        for (var col = 0; col < 3; col++) {
+                            legendHtml += '<div class="legend-column" style="width: 33.33%; -webkit-box-flex: 1; -ms-flex: 1; flex: 1;">';
+                            for (var i = col * itemsPerColumn; i < (col + 1) * itemsPerColumn && i < items.length; i++) {
+                                var itemIndex = jenis.indexOf(items[i]);
+                                if (title == "Kecelakaan"){
+                                    itemIndex = 25 + itemIndex
+                                }
+                                var colors = colorRandom[itemIndex];
+                                legendHtml += '<div class="legend-item" data-type="' + items[i] + '" style="display: -webkit-box; display: -ms-flexbox; display: flex; -webkit-box-align: center; -ms-flex-align: center; align-items: center; margin: 4px 0;">';
+                                legendHtml += '<i style="background:' + colors + '; width: 10px; height: 10px; display: inline-block; border-radius: 50%; margin-right: 5px;"></i>';
+                                legendHtml += '<span style="font-size: 1.05rem;">' + items[i] +'</span></div>';
+                            }
+                            legendHtml += '</div>';
+                        }
+                        
+                        legendHtml += '</div>';
+                        return legendHtml;
+                    }
+                </script>
+            
+            <script>
+                var jkk = {{.JenisKejadianKeamanan}};
+                var namaKejadianKeamanan = jkk.map(function(item) {
+                    return item.nama_kejadian;
+                });
+                var setNamaKejadianPelanggaran = []
                 
-                    map1.setView([-0.9486645, 122.7961541], 4);
+                const map1 = new L.map('map_bul_pelanggaran', {
+                    center: [-2.548926, 118.0148634],
+                    detectRetina: true,
+                    zoomControl: false,
+                    scrollWheelZoom: false,
+                    dragging: false // Disable map dragging for static view
+                });
+                
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {}).addTo(map1);
+                
+                {{range $val := .KejadianKeamanan}}
+                    var indexColor = namaKejadianKeamanan.indexOf({{ $val.NamaKejadian }});
+                    setNamaKejadianPelanggaran.push({{$val.NamaKejadian}});
+                    {{range $index,$set := $val.KejadianKeamanan}}
+                        marker = new L.circleMarker([{{$set.Latitude}}, {{$set.Longitude}}], {
+                            radius: 5,
+                            fillColor: colorRandom[indexColor],
+                            color: colorRandom[indexColor],
+                            weight: 0.5,
+                            opacity: 0.5,
+                            fillOpacity: 1,
+                            interactive: false
+                        }).addTo(map1);
+                    {{end}}
+                {{end}}
+                
+                map1.setView([-0.9486645, 122.7961541], 4);
+                document.getElementById('map-legend-pelanggaran').innerHTML = createLegend("Pelanggaran", setNamaKejadianPelanggaran, namaKejadianKeamanan);
                 </script>
             </div>
         </div>
@@ -339,12 +425,21 @@
                 <p class="lead" style="text-align: center;">Peta Situasi Keselamatan Laut di Wilayah Perairan Indonesia</p>
                 <div class="col justify-content-center">
                     <div id="map_bul_kecelakaan"></div>
+                    <div id="map-legend-kecelakaan" class="mt-3"></div>
                 </div>
-                
+
                 <script>
+                    var jkkc = {{.JenisKejadianKeselamatan}};
+                    var namaKejadianKeselamatan = jkkc.map(function(item) {
+                        return item.nama_kejadian;
+                    });
+                    var setNamaKejadianKecelakaan = []
                     const map2 = new L.map('map_bul_kecelakaan', {
+                        center: [-2.548926, 118.0148634],
+                        detectRetina: true,
                         zoomControl: false,
-                        scrollWheelZoom: false
+                        scrollWheelZoom: false,
+                        dragging: false // Disable map dragging for static view
                     });
                     
                     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {}).addTo(map2);
@@ -352,13 +447,24 @@
                     var marker2;
 
                     {{range $val := .KejadianKeselamatan}}
-                        {{range $set := $val.KejadianKeselamatan}}
-                            marker2 = new L.marker([{{$set.Latitude}}, {{$set.Longitude}}]);
-                            marker2.addTo(map2)
+                        var indexColor = 25 + namaKejadianKeselamatan.indexOf({{ $val.NamaKejadian }});
+                        setNamaKejadianKecelakaan.push({{$val.NamaKejadian}});
+                        {{range $index,$set := $val.KejadianKeselamatan}}
+                            marker = new L.circleMarker([{{$set.Latitude}}, {{$set.Longitude}}], {
+                                radius: 5,
+                                fillColor: colorRandom[indexColor],
+                                color: colorRandom[indexColor],
+                                weight: 0.5,
+                                opacity: 0.5,
+                                fillOpacity: 1,
+                                interactive: false
+                            }).addTo(map2);
                         {{end}}
                     {{end}}
 
                     map2.setView([-0.9486645, 122.7961541], 4);
+                    document.getElementById('map-legend-kecelakaan').innerHTML = createLegend("Kecelakaan", setNamaKejadianKecelakaan, namaKejadianKeselamatan);
+
                 </script>
             </div>
         </div>
@@ -541,10 +647,13 @@
                 return {
                     label: alphabetLabels[index] + '. ' + kejadian,
                     data: data,
-                    fill: false,
+                    backgroundColor:getColor(index),
                     borderColor: getColor(index),
+                    borderWidth:1,
                     lineTension: 0.5,
                     pointStyle: 'rect',
+                    hoverBackgroundColor: getColor(index),
+                    barPercentage: 0.8,
                 };
             });
 
@@ -556,10 +665,13 @@
                 return {
                     label: alphabetLabels[index] + '. ' + kejadian,
                     data: data,
-                    fill: false,
+                    backgroundColor:getColor(index),
                     borderColor: getColor(index),
+                    borderWidth:1,
                     lineTension: 0.5,
                     pointStyle: 'rect',
+                    hoverBackgroundColor: getColor(index),
+                    barPercentage: 0.8,
                 };
             });
         
@@ -573,6 +685,7 @@
                     "responsive": true,
                     "title": {
                         "display": true,
+                        "padding": 20,
                         "text": [
                             "REKAPITULASI KEAMANAN & PELANGGARAN HUKUM DI LAUT",
                             "PERIODE " + {{index .PeriodeTanggal 0}} + " - " + {{index .PeriodeTanggal 1}} + " " + {{.BulanCapital}} + " "+ {{.Tahun}}
@@ -661,6 +774,7 @@
                     "responsive": true,
                     "title": {
                         "display": true,
+                        "padding": 20,
                         "text": [
                             "REKAPITULASI KESELAMATAN DI PERAIRAN INDONESIA",
                             "PERIODE " + {{index .PeriodeTanggal 0}} + " - " + {{index .PeriodeTanggal 1}} + " " + {{.BulanCapital}} + " "+ {{.Tahun}}
