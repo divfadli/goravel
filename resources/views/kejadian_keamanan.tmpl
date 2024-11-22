@@ -51,14 +51,12 @@
                                 <thead>
                                     <tr class="text-center" role="row">
                                         <th>Tanggal</th>
-                                        <th>Nama Kapal</th>
                                         <th>Jenis Pelanggaran</th>
                                         <th>Lokasi Kejadian</th>
                                         <th>Zona</th>
                                         {{if .data.is_staff}}
                                             <th>Pilihan</th>
                                         {{end}}
-                                        <th>Lihat Detail</th>
                                     </tr>
                                 </thead>
 
@@ -114,14 +112,56 @@
 
 <script type="text/javascript">
     let table = $('#kt_datatable').DataTable({
-        dom: '<"row justify-content-end"<"col-sm-2"f>>tip',
+        dom: '<"row"<"col-sm-12"f>>tip',
         scrollY: '80vh', 
         scrollX: true,
         scrollCollapse: true,
         searching: true,
         columnDefs: [{
-            className: 'dt-body-nowarp',
-            targets: "_all"
+            targets: [0,1,2,3],
+            createdCell: function (td,cellData, rowData, row, col) {
+                $(td).css('cursor', 'pointer');
+                $(td).on('click', function(){
+                    const id = arr_data[row].id_kejadian_keamanan;
+                    window.location.href = `/kejadian/keamanan/detail?id_kejadian_keamanan=${id}`;
+                });
+            }
+        },
+        {
+            // Tanggal column
+            targets: [0],
+            width: '120px',
+            className: 'dt-head-center dt-body-nowrap'
+        },
+        {
+            // Jenis Pelanggaran column  
+            targets: [1],
+            width: '200px',
+            className: 'dt-head-center dt-body-nowrap',
+            render: function(data, type, row) {
+                return '<div style="white-space: normal; word-wrap: break-word; max-width: 200px;">' + data + '</div>';
+            }
+        },
+        {
+            // Lokasi Kejadian column
+            targets: [2],
+            width: '250px', 
+            className: 'dt-head-center text-wrap',
+            render: function(data, type, row) {
+                return '<div style="white-space: normal; word-wrap: break-word; max-width: 250px;">' + data + '</div>';
+            }
+        },
+        {
+            // Zona column
+            targets: [3],
+            width: '100px',
+            className: 'dt-head-center dt-body-nowrap'
+        },
+        {
+            // Pilihan column
+            targets: [4],
+            width: '100px',
+            className: 'dt-head-center dt-body-nowrap'
         }],
         processing: true,
         bLengthChange: true,
@@ -166,27 +206,23 @@
                         var lokasi_kejadian = `<span class="font-weight-bold font-size-sm text-dark-50">${x.lokasi_kejadian}</span>`
                         var zona = `<span class="font-weight-bold font-size-sm text-dark-50">${x.zona}</span>`
                         var url = window.location.href + `form_kejadian_keamanan?id_kejadian_keamanan=${x.id_kejadian_keamanan}`
-                        var action = ` <div class="form-inline"> 
-                                            <div class="ml-auto"> 
-                                                <a href="${url}" class="btn btn-icon my-2 btn-sm btn-warning">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
-                                            </div>
-                                            <div class="ml-auto">
-                                                <button type="button" onclick="deleteKejadianKeamanan('${x.id_kejadian_keamanan}')" class="btn btn-icon my-2 btn-sm btn-danger">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </div>
-                                        </div>`
+                        var action = `<div class="d-flex justify-content-center align-items-center">
+                                        <a href="${url}" class="btn btn-icon btn-sm btn-dark mx-2">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" onclick="deleteKejadianKeamanan('${x.id_kejadian_keamanan}')" class="btn btn-icon btn-sm btn-dark mx-2">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>`
                         var detail = `  <div class="ml-auto"> 
                                             <a href="#" class="btn btn-icon my-2 btn-sm btn-info">
                                                 <i class="fas fa-eye"></i>
                                             </a>
                                         </div>`
                         {{if .data.is_staff}}
-                            table.row.add([tanggal, nama_kapal, jenis_pelanggaran, lokasi_kejadian, zona, action, detail]).draw(false)
+                            table.row.add([tanggal, jenis_pelanggaran, lokasi_kejadian, zona, action]).draw(false)
                         {{else}}
-                            table.row.add([tanggal, nama_kapal, jenis_pelanggaran, lokasi_kejadian, zona, detail]).draw(false)
+                            table.row.add([tanggal, jenis_pelanggaran, lokasi_kejadian, zona]).draw(false)
                         {{end}}
                     })
                 }
