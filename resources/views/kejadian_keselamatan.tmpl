@@ -250,8 +250,9 @@
         });
     }
 
-    $('.dataTable').on('click', 'tbody td', function() {
-        var id = $(table.cell({ row: this.parentNode.rowIndex, column: 0 }).data())[0].value;
+    $('.dataTable').on('click', 'tbody tr', function() {
+        var row = table.row(this).data();
+        var id = $(row[0])[0].value;
         $('#detailModal .modal-body').html(`<iframe src="/detail/keselamatan/${id}" width="100%" height="500px" frameborder="0"></iframe>`);
         $('#detailModal').modal('show');
     });

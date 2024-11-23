@@ -312,4 +312,8 @@ func Web() {
 	})
 
 	facades.Route().Resource("pengguna", controllers.NewPenggunaController())
+
+	facades.Route().Prefix("detail").Group(func(r route.Router) {
+		r.Get("keamanan/{id}", controllers.GetDetailKejadianKeamanan)
+	})
 }
