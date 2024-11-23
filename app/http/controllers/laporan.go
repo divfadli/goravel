@@ -104,7 +104,12 @@ func (r *Laporan) ListLaporan(ctx http.Context) http.Response {
 	}
 
 	fmt.Println(req.JenisLaporan, req.Bulan, req.Tahun, req.Minggu)
-	query := facades.Orm().Query()
+	query := facades.Orm().Query().
+		Join("JOIN public.approval ON public.approval.laporan_id = laporan.id_laporan").
+		Join("JOIN public.karyawan ON public.karyawan.emp_no = public.approval.approved_by").
+		Join("JOIN public.jabatan ON public.jabatan.id_jabatan = public.karyawan.jabatan_id").
+		Where("public.approval.status = ?", "Approved").
+		Where("public.jabatan.name = ?", "Kepala Bakamla")
 
 	// Add conditions based on request fields
 	if req.JenisLaporan != "" {
