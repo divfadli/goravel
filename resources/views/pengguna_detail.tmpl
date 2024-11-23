@@ -120,6 +120,7 @@ function updatePengguna() {
             });
             {{if eq .isCreate false}}
             setTimeout(function(){window.location.reload();}, 3000);
+            setTimeout(function(){window.location.href = '/pengguna';}, 3000);
             {{else}}
             setTimeout(function(){window.location.href = '/pengguna';}, 3000);
             {{end}}
