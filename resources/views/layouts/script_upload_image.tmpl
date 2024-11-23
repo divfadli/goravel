@@ -1,0 +1,93 @@
+ {{ define "layouts/script_upload_image.tmpl"}}
+    <script>
+        const fileInput = document.querySelector('#file_input');
+        const fileList = document.querySelector('#file-list');
+
+        fileInput.addEventListener('change', handleFileSelect);
+
+        function getImgURLPromise(file) {
+            return new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.onload = function() {
+                    resolve(xhr.response);
+                };
+                xhr.onerror = function() {
+                    reject(xhr.statusText);
+                };
+                xhr.open('GET', window.origin + "/api/files/" + file.url);
+                xhr.responseType = 'blob';
+                xhr.send();
+            });
+        }
+
+        function handleFileSelect() {
+            const container = new DataTransfer();
+            for (const file of fileInput.files) {
+                container.items.add(file);
+            }
+            fileInput.files = container.files;
+            updateFileList();
+        }
+
+        function removeFile(file) {
+            const container = new DataTransfer();
+            for (const f of fileInput.files) {
+                if (f !== file) {
+                    container.items.add(f);
+                }
+            }
+            fileInput.files = container.files;
+            updateFileList();
+        }
+
+        function updateFileList() {
+            fileList.innerHTML = '';
+            const row = document.createElement('div');
+            row.className = 'row g-2'; 
+            fileList.appendChild(row);
+
+            const files = Array.from(fileInput.files);
+            files.forEach(file => {
+                const col = document.createElement('div');
+                col.className = 'col-6 col-md-4 col-lg-3 mb-2';
+                
+                const imageContainer = document.createElement('div');
+                imageContainer.className = 'position-relative card';
+                imageContainer.style.height = '100px';
+                imageContainer.style.width = '100px';
+                
+                const cardBody = document.createElement('div');
+                cardBody.className = 'card-body p-0';
+                
+                const preview = document.createElement('img');
+                preview.className = 'card-img-top rounded';
+                preview.style.objectFit = 'contain';
+                preview.style.height = '100px';
+                preview.style.width = '100px';
+                preview.style.padding = '2px';
+                preview.style.backgroundColor = '#f8f9fa';
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+                
+                const removeButton = document.createElement('button');
+                removeButton.className = 'btn btn-danger btn-sm position-absolute';
+                removeButton.style.top = '2px';
+                removeButton.style.right = '2px';
+                removeButton.style.padding = '0.15rem 0.35rem';
+                removeButton.style.transform = 'scale(0.8)';
+                removeButton.innerHTML = '<i class="fas fa-times"></i>';
+                removeButton.addEventListener('click', () => removeFile(file));
+                
+                cardBody.appendChild(preview);
+                imageContainer.appendChild(cardBody);
+                imageContainer.appendChild(removeButton);
+                col.appendChild(imageContainer);
+                row.appendChild(col);
+            });
+        }
+    </script>
+ {{end}}
