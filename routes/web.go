@@ -315,5 +315,6 @@ func Web() {
 
 	facades.Route().Prefix("detail").Group(func(r route.Router) {
 		r.Get("keamanan/{id}", controllers.GetDetailKejadianKeamanan)
+		r.Get("keselamatan/{id}", controllers.GetDetailKejadianKeselamatan)
 	})
 }

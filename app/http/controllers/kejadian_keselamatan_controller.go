@@ -5,6 +5,7 @@ import (
 	"fmt"
 	kejadianKeselamatan "goravel/app/http/requests/kejadian_keselamatan"
 	"goravel/app/models"
+	template "html/template"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -575,4 +576,133 @@ func calculateContentHeightKecelakaan(item models.KejadianKeselamatan) float64 {
 	}
 
 	return lines * lineHeight
+}
+
+func GetDetailKejadianKeselamatan(ctx http.Context) http.Response {
+	userInfo := facades.Cache().Get("user_data")
+
+	id := ctx.Request().Route("id")
+
+	if userInfo != nil {
+		baseURL := "http://" + ctx.Request().Host()
+
+		var data models.KejadianKeselamatan
+
+		if err := facades.Orm().Query().With("JenisKejadian").Where("id_kejadian_keselamatan", id).
+			First(&data); err != nil || data.IdKejadianKeselamatan == 0 {
+			return ErrorSystem(ctx, "Data Tidak Ada")
+		}
+
+		var data_keselamatan_image []models.FileImage
+		facades.Orm().Query().Join("inner join public.image_keselamatan imk ON id_file_image = imk.file_image_id").
+			Where("imk.kejadian_keselamatan_id=?", data.IdKejadianKeselamatan).Find(&data_keselamatan_image)
+
+		var perpindahanAwal string
+		if data.PelabuhanAsal != "-" && data.PelabuhanAsal != "" {
+			perpindahanAwal = data.PelabuhanAsal
+		}
+		var perpindahanAkhir string
+		if data.PelabuhanTujuan != "-" && data.PelabuhanTujuan != "" {
+			perpindahanAwal = data.PelabuhanTujuan
+		}
+
+		var perpindahan string
+		if perpindahanAwal != "" && perpindahanAkhir != "" {
+			perpindahan = perpindahanAwal + " - " + perpindahanAkhir
+		} else if perpindahanAwal != "" && perpindahanAkhir == "" {
+			perpindahan = perpindahanAwal + " - "
+		} else if perpindahanAwal == "" && perpindahanAkhir != "" {
+			perpindahan = " - " + perpindahanAkhir
+		} else {
+			perpindahan = " - "
+		}
+
+		var korbanData models.ListKorban
+
+		var korban string
+		if err := json.Unmarshal(data.Korban, &korbanData); err != nil {
+			fmt.Println("ERROR", err)
+			return nil
+		}
+
+		if korbanData.KorbanHilang != 0 && korbanData.KorbanSelamat != 0 && korbanData.KorbanTewas != 0 {
+			korban = "Korban hilang " + strconv.Itoa(korbanData.KorbanHilang) + " orang, selamat " +
+				strconv.Itoa(korbanData.KorbanSelamat) + " orang, dan tewas " +
+				strconv.Itoa(korbanData.KorbanTewas) + " orang"
+		} else if korbanData.KorbanHilang != 0 && korbanData.KorbanSelamat != 0 && korbanData.KorbanTewas == 0 {
+			korban = "Korban hilang " + strconv.Itoa(korbanData.KorbanHilang) + " orang, dan selamat " +
+				strconv.Itoa(korbanData.KorbanSelamat) + " orang"
+		} else if korbanData.KorbanHilang != 0 && korbanData.KorbanSelamat == 0 && korbanData.KorbanTewas != 0 {
+			korban = "Korban hilang " + strconv.Itoa(korbanData.KorbanHilang) + " orang, dan tewas " +
+				strconv.Itoa(korbanData.KorbanTewas) + " orang"
+		} else if korbanData.KorbanHilang == 0 && korbanData.KorbanSelamat != 0 && korbanData.KorbanTewas != 0 {
+			korban = "Korban selamat " + strconv.Itoa(korbanData.KorbanSelamat) + " orang, dan tewas " +
+				strconv.Itoa(korbanData.KorbanTewas) + " orang"
+		} else if korbanData.KorbanHilang != 0 && korbanData.KorbanSelamat == 0 && korbanData.KorbanTewas == 0 {
+			korban = "Korban hilang " + strconv.Itoa(korbanData.KorbanHilang) + " orang"
+		} else if korbanData.KorbanHilang == 0 && korbanData.KorbanSelamat != 0 && korbanData.KorbanTewas == 0 {
+			korban = "Korban selamat " + strconv.Itoa(korbanData.KorbanSelamat) + " orang"
+		} else if korbanData.KorbanHilang == 0 && korbanData.KorbanSelamat == 0 && korbanData.KorbanTewas != 0 {
+			korban = "Korban tewas " + strconv.Itoa(korbanData.KorbanTewas) + " orang"
+		} else {
+			korban = "tidak ada korban jiwa"
+		}
+
+		linkBerita := strings.Split(data.LinkBerita, "\n")
+		var sumberBerita []string
+
+		for _, v := range linkBerita {
+			if strings.Contains(v, "http") {
+				trimmed := strings.TrimSpace(v)
+				berita := fmt.Sprintf(`<a href="%s" target="_blank">%s</a><br>`, trimmed, trimmed)
+				sumberBerita = append(sumberBerita, berita)
+			} else {
+				trimmed := strings.TrimSpace(v)
+				berita := fmt.Sprintf(`<u>%s</u><br>`, trimmed)
+				sumberBerita = append(sumberBerita, berita)
+			}
+		}
+
+		// html template data
+		templateData := struct {
+			BaseURL          string
+			Title            string
+			NamaKapal        string
+			Kejadian         string
+			Penyebab         string
+			Lokasi           string
+			Korban           string
+			Perpindahan      string
+			Keterangan       string
+			Waktu            string
+			InstansiPenindak string
+			SumberBerita     template.HTML
+			Latitude         float64
+			Longitude        float64
+			Images           []models.FileImage
+		}{
+			BaseURL:          baseURL,
+			Title:            data.JenisKejadian.NamaKejadian,
+			NamaKapal:        data.NamaKapal,
+			Kejadian:         data.JenisKejadian.NamaKejadian,
+			Penyebab:         data.Penyebab,
+			Lokasi:           data.LokasiKejadian,
+			Korban:           korban,
+			Perpindahan:      perpindahan,
+			Keterangan:       data.TindakLanjut,
+			Waktu:            data.Tanggal.ToDateString(),
+			InstansiPenindak: data.SumberBerita,
+			SumberBerita:     template.HTML(strings.Join(sumberBerita, "")),
+			Latitude:         data.Latitude,
+			Longitude:        data.Longitude,
+			Images:           data_keselamatan_image,
+		}
+
+		return ctx.Response().View().Make("detail-keselamatan.tmpl", templateData)
+	}
+
+	facades.Auth().Logout(ctx)
+
+	// For instance, you might redirect the user to the login page
+	return ctx.Response().Redirect(http.StatusFound, "/login")
 }
