@@ -137,6 +137,11 @@
             targets: [0,1,2,3],
             createdCell: function (td,cellData, rowData, row, col) {
                 $(td).css('cursor', 'pointer');
+                $(td).on('click', function(){
+                    const id = arr_data[row].id_kejadian_keselamatan;
+                    $('#detailModal .modal-body').html(`<iframe src="/detail/keselamatan/${id}" width="100%" height="500px" frameborder="0"></iframe>`);
+                    $('#detailModal').modal('show');
+                });
             }
         },
         {
@@ -245,14 +250,7 @@
             }
         });
     }
-
-    $('.dataTable').on('click', 'tbody tr', function() {
-        var row = table.row(this).data();
-        var id = $(row[0])[0].value;
-        $('#detailModal .modal-body').html(`<iframe src="/detail/keselamatan/${id}" width="100%" height="500px" frameborder="0"></iframe>`);
-        $('#detailModal').modal('show');
-    });
-        
+       
 </script>
 
 <script>
