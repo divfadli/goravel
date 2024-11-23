@@ -4,7 +4,9 @@ import (
 	"fmt"
 	kejadianKeamanan "goravel/app/http/requests/kejadian_keamanan"
 	"goravel/app/models"
+	template "html/template"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -568,4 +570,95 @@ func calculateContentHeightPelanggaran(item models.KejadianKeamanan) float64 {
 	}
 
 	return lines * lineHeight
+}
+
+func GetDetailKejadianKeamanan(ctx http.Context) http.Response {
+	userInfo := facades.Cache().Get("user_data")
+
+	id := ctx.Request().Route("id")
+
+	if userInfo != nil {
+		baseURL := "http://" + ctx.Request().Host()
+
+		var data models.KejadianKeamanan
+
+		if err := facades.Orm().Query().With("JenisKejadian").Where("id_kejadian_keamanan=?", id).
+			First(&data); err != nil || data.IdKejadianKeamanan == 0 {
+			return ErrorSystem(ctx, "Data Tidak Ada")
+		}
+
+		var data_keamanan_image []models.FileImage
+
+		facades.Orm().Query().Join("inner join public.image_keamanan imk ON id_file_image = imk.file_image_id").
+			Where("imk.kejadian_keamanan_id=?", data.IdKejadianKeamanan).Find(&data_keamanan_image)
+
+		var abk string
+		if strings.Contains(data.Muatan, "ABK") {
+			re := regexp.MustCompile(`\b\d+\s+orang\b`)
+			matches := re.FindAllString(data.Muatan, -1)
+			if len(matches) > 0 {
+				abk = matches[0]
+			} else {
+				abk = " - "
+			}
+		} else {
+			abk = " - "
+		}
+
+		linkBerita := strings.Split(data.LinkBerita, "\n")
+		var sumberBerita []string
+
+		for _, v := range linkBerita {
+			if strings.Contains(v, "http") {
+				trimmed := strings.TrimSpace(v)
+				berita := fmt.Sprintf(`<a href="%s" target="_blank">%s</a><br>`, trimmed, trimmed)
+				sumberBerita = append(sumberBerita, berita)
+			} else {
+				trimmed := strings.TrimSpace(v)
+				berita := fmt.Sprintf(`<u>%s</u><br>`, trimmed)
+				sumberBerita = append(sumberBerita, berita)
+			}
+		}
+
+		templateData := struct {
+			BaseURL          string
+			Title            string
+			NamaKapal        string
+			Kejadian         string
+			Penyebab         string
+			Lokasi           string
+			ABK              string
+			Muatan           string
+			InstansiPenindak string
+			Keterangan       string
+			Waktu            string
+			SumberBerita     template.HTML
+			Latitude         float64
+			Longitude        float64
+			Images           []models.FileImage
+		}{
+			BaseURL:          baseURL,
+			Title:            data.JenisKejadian.NamaKejadian,
+			NamaKapal:        data.NamaKapal,
+			Kejadian:         data.JenisKejadian.NamaKejadian,
+			Penyebab:         "-",
+			Lokasi:           data.LokasiKejadian,
+			ABK:              abk,
+			Muatan:           data.Muatan,
+			InstansiPenindak: data.SumberBerita,
+			Keterangan:       data.TindakLanjut,
+			Waktu:            data.Tanggal.ToDateString(),
+			SumberBerita:     template.HTML(strings.Join(sumberBerita, "")),
+			Latitude:         data.Latitude,
+			Longitude:        data.Longitude,
+			Images:           data_keamanan_image,
+		}
+
+		return ctx.Response().View().Make("detail-keamanan.tmpl", templateData)
+	}
+
+	facades.Auth().Logout(ctx)
+
+	// For instance, you might redirect the user to the login page
+	return ctx.Response().Redirect(http.StatusFound, "/login")
 }

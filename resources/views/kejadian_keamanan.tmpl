@@ -70,10 +70,26 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal Detail -->
+    <div class="modal fade" id="detailModal" tabindex="-1" role="dialog" aria-labelledby="detailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="detailModalLabel">Detail Kejadian Keamanan</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                </div>
+            </div>
+        </div>
+    </div>
+
 {{ template "layouts/footer.tmpl" . }}
 {{ template "layouts/script.tmpl" . }}
 
-<script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
 <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
@@ -121,10 +137,6 @@
             targets: [0,1,2,3],
             createdCell: function (td,cellData, rowData, row, col) {
                 $(td).css('cursor', 'pointer');
-                $(td).on('click', function(){
-                    const id = arr_data[row].id_kejadian_keamanan;
-                    //window.location.href = `/kejadian/keamanan/detail?id_kejadian_keamanan=${id}`;
-                });
             }
         },
         {
@@ -156,12 +168,14 @@
             targets: [3],
             width: '100px',
             className: 'dt-head-center dt-body-nowrap'
+        {{if .data.is_staff}}
         },
         {
             // Pilihan column
             targets: [4],
             width: '100px',
             className: 'dt-head-center dt-body-nowrap'
+        {{end}}
         }],
         processing: true,
         bLengthChange: true,
@@ -200,7 +214,7 @@
                 table.clear().draw();
                 if (arr_data.length >0){
                     arr_data.forEach((x,i)=>{
-                        var tanggal = `<span class="font-weight-bold font-size-sm text-dark-50">${x.tanggal}</span>`
+                        var tanggal = `<input type="hidden" value="${x.id_kejadian_keamanan}"><span class="font-weight-bold font-size-sm text-dark-50">${x.tanggal}</span>`
                         var nama_kapal = `<span class="font-weight-bold font-size-sm text-dark-50">${x.nama_kapal}</span>`
                         var jenis_pelanggaran = `<span class="font-weight-bold font-size-sm text-dark-50">${x.jenis_kejadian.nama_kejadian}</span>`
                         var lokasi_kejadian = `<span class="font-weight-bold font-size-sm text-dark-50">${x.lokasi_kejadian}</span>`
@@ -233,6 +247,13 @@
             }
         });
     }
+
+    $('.dataTable').on('click', 'tbody tr', function() {
+        var row = table.row(this).data();
+        var id = $(row[0])[0].value;
+        $('#detailModal .modal-body').html(`<iframe src="/detail/keamanan/${id}" width="100%" height="500px" frameborder="0"></iframe>`);
+        $('#detailModal').modal('show');
+    });
         
 </script>
 
