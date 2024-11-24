@@ -1,6 +1,13 @@
  {{ define "layouts/script_form_map.tmpl"}}
     <script>
         let marker;
+        var trans = {
+            OpenKeyGeoApi: "d79e43a8a0964fb99427716ecf1eb161",
+            Locale: "id",
+        };
+        var requestOptions = {
+            method: 'GET',
+        };
 
         function initMap() {
             try {
@@ -23,7 +30,29 @@
         function handleLocation(latLng) {
             geocoder.geocode({ 'location': latLng }, function(results, status) {
                 if (status === google.maps.GeocoderStatus.OK && results[0]) {
-                    updateLocationInfo(results[0]);
+                    const result = results[0];
+                    let address = result.formatted_address;
+
+                    const hasPlusCode = address.includes('+');
+                    if (hasPlusCode) {
+                        address = address.substring(address.indexOf(' ') + 1);
+                    }
+                    const coordinates = result.geometry.location;
+                    
+                    if(result.plus_code && address === result.plus_code?.global_code) {
+                        // Use Geoapify API for better address resolution
+                        const geoApiUrl = `https://api.geoapify.com/v1/geocode/reverse?lat=${coordinates.lat()}&lon=${coordinates.lng()}&apiKey=${trans.OpenKeyGeoApi}&lang=${trans.Locale}`;
+                        
+                        fetch(geoApiUrl, requestOptions)
+                            .then(response => response.json())
+                            .then(result => {
+                                const feature = result.features[0];
+                                updateLocationInfo(feature.properties.formatted, result.query.lat, result.query.lon);
+                            })
+                            .catch(error => console.log('error', error));
+                    } else {
+                        updateLocationInfo(address, coordinates.lat(), coordinates.lng());
+                    }
                 } else {
                     console.error('Geocode was not successful for the following reason: ' + status);
                 }
@@ -44,15 +73,37 @@
             
             // Check if input contains coordinates
             const regexdms = /^(\d{1,2})°\s*(\d{1,2})[′`']\s*(\d{1,3}(\.\d+)?)[″"]\s*(LS|LU|S|N)\s+(\d{1,3})°\s*(\d{1,2})[′`']\s*(\d{1,2}(\.\d+)?)[″"]\s*(BT|BB|E|W)$/
+            const regexddm = /^(\d{1,2})°\s*(\d{1,2}(\.\d+)?)\s*([LS|LU|S|N])\s+(\d{1,3})°\s*(\d{1,2}(\.\d+)?)\s*([BT|BB|E|W])$/;
             let coordinateMatch = searchInput.match(/^(-?\d+\.?\d*)\s*[,\s]\s*(-?\d+\.?\d*)$/);
             let dmsCoordinateMatch = searchInput.match(regexdms);
+            let ddmCoordinateMatch = searchInput.match(regexddm);
 
             // Clear error message koordinat
             $('#koordinat').removeClass('is-invalid');
             $('#koordinat').next('.error-message').text('');
             $('#koordinat')[0].setCustomValidity('');
             
-            if (coordinateMatch || dmsCoordinateMatch) {
+            if (coordinateMatch || dmsCoordinateMatch || ddmCoordinateMatch) {
+                if(ddmCoordinateMatch){
+                    coordinateMatch = [];
+                    console.log(ddmCoordinateMatch);
+                    const latDegrees = parseInt(ddmCoordinateMatch[1], 10);
+                    const latMinutes = parseInt(ddmCoordinateMatch[2], 10);
+                    const latSeconds = parseFloat(ddmCoordinateMatch[3]);
+                    const latDirection = ddmCoordinateMatch[4];
+
+                    // Ambil nilai bujur
+                    const lonDegrees = parseInt(ddmCoordinateMatch[5], 10);
+                    const lonMinutes = parseInt(ddmCoordinateMatch[6], 10);
+                    const lonSeconds = parseFloat(ddmCoordinateMatch[7]);
+                    const lonDirection = ddmCoordinateMatch[8];
+
+                    let adjustedLatSeconds = latSeconds * 60;
+                    let adjustedLonSeconds = lonSeconds * 60;
+
+                    coordinateMatch[1] = dmsToDecimal(latDegrees, latMinutes, adjustedLatSeconds, latDirection);
+                    coordinateMatch[2] = dmsToDecimal(lonDegrees, lonMinutes, adjustedLonSeconds, lonDirection);
+                }
                 if(dmsCoordinateMatch){
                     coordinateMatch = [];
                     const latDegrees = parseInt(dmsCoordinateMatch[1], 10);
@@ -124,19 +175,17 @@
             });
         }
 
-        function updateLocationInfo(result) {
+        function updateLocationInfo(formatted_address, lat, lon) {
             infoWindow.close();
 
-            let location = result.formatted_address;
-            let index = location.indexOf(' ') + 1;
-            let address = location.substring(index);
+            let address = formatted_address;
 
-            let coordinates = result.geometry.location;
-            $('#latitude').val(coordinates.lat());
-            $('#longitude').val(coordinates.lng());
+            let coordinates = new google.maps.LatLng(lat, lon);
+            $('#latitude').val(lat);
+            $('#longitude').val(lon);
 
             $('#cari_lokasi').val(address);
-            $('#koordinat').val(`Latitude: ${coordinates.lat()}; Longitude: ${coordinates.lng()}`);
+            $('#koordinat').val(`Latitude: ${lat}; Longitude: ${lon}`);
             setMarker(coordinates,address);
         }
      
