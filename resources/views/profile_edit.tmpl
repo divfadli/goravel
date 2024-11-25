@@ -1,0 +1,324 @@
+{{ define "profile_edit.tmpl"}}
+
+{{ template "templates/layout.tmpl" .}}
+<script>
+    console.log({{.pengguna}})
+</script>
+<style>
+	.fancybox-slide--iframe .fancybox-content {
+		background: #fff;
+		max-height: 100vh;
+	}
+</style>
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Fancybox v4 -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.css" />
+<script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.umd.js"></script>
+
+<div class="card shadow mb-4">
+    <div class="card-body">
+        <form id="profileUpdate">
+            <input type="hidden" name="_method" value="PUT">
+            <div class="row">
+                <!-- Left Column - Profile -->
+                <div class="col-md-6">
+                    <div class="card shadow mb-3">
+                        <div class="card-header px-3 py-2 h5">Profile</div>
+                        <div class="card-body">
+                            <input type="hidden" name="nik" value="{{.pengguna.EmpNo}}" />
+                            <div class="mb-3">
+                                <label class="form-label">Nama Lengkap<span class="text-danger">*</span></label>
+                                <input type="text" name="name" value="{{.pengguna.Name}}" class="form-control" required />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Jenis Kelamin<span class="text-danger"></span></label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="gender" id="genderMale" value="Laki-Laki" {{if eq "Laki-Laki" $.pengguna.Gender}}checked{{end}} required>
+                                    <label class="form-check-label" for="genderMale">Laki-Laki</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="gender" id="genderFemale" value="Perempuan" {{if eq "Perempuan" $.pengguna.Gender}}checked{{end}} required>
+                                    <label class="form-check-label" for="genderFemale">Perempuan</label>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label" for="agama">Agama</label>
+                                <select class="form-control" id="agama" name="agama">
+                                    <option value="Islam" {{if eq "Islam" $.pengguna.Agama}}selected{{end}}>Islam</option>
+                                    <option value="Kristen Katolik" {{if eq "Kristen Katolik" $.pengguna.Agama}}selected{{end}}>Kristen Katolik</option>
+                                    <option value="Kristen Protestan" {{if eq "Kristen Protestan" $.pengguna.Agama}}selected{{end}}>Kristen Protestan</option>
+                                    <option value="Hindu" {{if eq "Hindu" $.pengguna.Agama}}selected{{end}}>Hindu</option>
+                                    <option value="Budha" {{if eq "Budha" $.pengguna.Agama}}selected{{end}}>Budha</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="tanggal_lahir">Tanggal Lahir</label>
+                                <input type="date" class="form-control" id="tanggal_lahir" name="tanggal_lahir" value="{{.pengguna.TanggalLahir}}">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Signature</label>
+                                <div class="input-group">
+                                    <label class="input-group-text btn" for="signature">Upload File</label>
+                                    <input type="file" class="form-control" id="signature" 
+                                        name="signature" accept="image/*"
+                                        style="display:none" 
+                                        onchange="previewSignature(this)">
+                                    <div class="ms-2 d-flex align-items-center">
+                                        <a class="btn btn-outline-secondary px-2" id="btn-preview-signature" title="Preview Signature" 
+                                            data-fancybox="signature-gallery" 
+                                            href="{{if .pengguna.Ttd}}/api/files/{{.pengguna.Ttd}}{{else}}#{{end}}">
+                                            <i class="fas fa-image"></i>
+                                        </a>
+                                        <input type="text" class="form-control" name="signature_name" id="signature_name" 
+                                            value="{{if .pengguna.NameFileTtd}}{{.pengguna.NameFileTtd}}{{end}}" 
+                                            data-caption="Signature" readonly>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <script>
+                                function previewSignature(input) {
+                                    if (input.files && input.files[0]) {
+                                        var reader = new FileReader();
+                                        
+                                        reader.onload = function(e) {
+                                            const previewButton = document.querySelector('#btn-preview-signature');
+                                            previewButton.setAttribute('href', e.target.result);
+                                            document.querySelector('#signature_name').value = input.files[0].name;
+                                        };
+                                        
+                                        reader.readAsDataURL(input.files[0]);
+                                    }
+                                }
+                                Fancybox.bind('[data-fancybox="signature-gallery"]', {
+                                    Image: {
+                                        zoom: true,
+                                    },
+                                    Toolbar: {
+                                        display: ['zoom', 'close'],
+                                    },
+                                });
+                            </script>
+
+                            <script>
+                                document.addEventListener('DOMContentLoaded', function() {
+                                    const existingTtd = {{if .pengguna.Ttd}}"{{.pengguna.Ttd}}"{{else}}""{{end}};
+                                    const existingFileName = {{if .pengguna.NameFileTtd}}"{{.pengguna.NameFileTtd}}"{{else}}""{{end}};
+                                    const input = document.getElementById('signature');
+                                    const dataTransfer = new DataTransfer();
+                                    
+                                    if (existingTtd && existingTtd !== "") {
+                                        fetch('/api/files/' + existingTtd)
+                                            .then(response => response.blob())
+                                            .then(blob => {
+                                                const file = new File([blob], existingFileName, {
+                                                    type: 'image/*',
+                                                    lastModified: new Date().getTime()
+                                                });
+                                                dataTransfer.items.add(file);
+                                                input.files = dataTransfer.files;
+                                            })
+                                            .catch(error => console.log('Error loading signature:', error));
+                                    }
+                                });
+                            </script>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column - Account & Password -->
+                <div class="col-md-6">
+                    <div class="card shadow">
+                        <div class="card-header px-3 py-2 h5">Akun</div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">Email<span class="text-danger">*</span></label>
+                                <input type="email" name="email" value="{{.pengguna.User.Email}}" class="form-control" required />
+                            </div>
+                            <div class="mb-3">
+                                <label for="jabatan">Jabatan</label>
+                                <input type="hidden" name="jabatan_id" value="{{.pengguna.Jabatan.IdJabatan}}"/>
+                                <input type="text" name="jabatan" value="{{.pengguna.Jabatan.Name}}" class="form-control" readonly />
+                            </div>
+                            <div class="mb-3">
+                                <label for="role">Peran</label>
+                                <input type="hidden" name="role_id" value="{{.pengguna.User.Role.IDRole}}"/>
+                                <input type="text" name="role" value="{{.pengguna.User.Role.Name}}" class="form-control" readonly />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card shadow mt-3">
+                        <div class="card-header px-3 py-2 h5">Ganti Password</div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">Password</label>
+                                <small>&bull; Kosongkan bila tidak ingin mengedit</small>
+                                <input type="password" name="password" class="form-control" autocomplete="new-password" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Confirm Password</label>
+                                <input type="password" name="confirm_password" class="form-control" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Save Button -->
+                <div class="col-md-12 mt-3">
+                    <div class="card mb-5">
+                        <div class="card-body text-end">
+                            <button type="button" onclick="updatePengguna()" class="btn btn-success btn-sm float-right">
+                                <span class="fas fa-save mr-1"></span>
+                                Simpan
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>   
+    </div>
+</div>
+
+{{ template "layouts/footer.tmpl" . }}
+{{ template "layouts/script.tmpl" . }}
+
+<script>
+function validateForm() {
+    const name = document.querySelector('input[name="name"]').value.trim();
+    const email = document.querySelector('input[name="email"]').value.trim();
+    const gender = document.querySelector('input[name="gender"]:checked');
+    
+    let isValid = true;
+    let errorMessage = '';
+
+    if (!name) {
+        errorMessage += 'Nama Lengkap harus diisi\n';
+        isValid = false;
+    }
+
+    if (!email) {
+        errorMessage += 'Email harus diisi\n';
+        isValid = false;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        errorMessage += 'Format email tidak valid\n';
+        isValid = false;
+    }
+
+    if (!gender) {
+        errorMessage += 'Jenis Kelamin harus dipilih\n';
+        isValid = false;
+    }
+
+    const password = document.querySelector('input[name="password"]').value;
+    const confirmPassword = document.querySelector('input[name="confirm_password"]').value;
+
+    if (password) {
+        if (password.length < 6) {
+            errorMessage += 'Password minimal 6 karakter\n';
+            isValid = false;
+        }
+        if (password !== confirmPassword) {
+            errorMessage += 'Password dan Confirm Password tidak sama\n';
+            isValid = false;
+        }
+    }
+
+    const signatureFile = document.querySelector('input[name="signature"]').files[0];
+    if (signatureFile) {
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/*'];
+        const maxSize = 2 * 1024 * 1024; // 2MB
+
+        if (!allowedTypes.includes(signatureFile.type)) {
+            console.log(signatureFile.type);
+            errorMessage += 'Format file tanda tangan harus JPG, JPEG, atau PNG\n';
+            isValid = false;
+        }
+        if (signatureFile.size > maxSize) {
+            errorMessage += 'Ukuran file tanda tangan maksimal 2MB\n';
+            isValid = false;
+        }
+    }
+
+    if (!isValid) {
+        Swal.fire({
+            title: "Validasi Gagal!",
+            text: errorMessage,
+            icon: "error"
+        });
+    }
+
+    return isValid;
+}
+</script>
+
+<script>
+function updatePengguna() {
+    if (!validateForm()) {
+        return;
+    }
+
+    let formData = new FormData();
+    const selectedGender = document.querySelector('input[name="gender"]:checked').value;
+    
+    // Get form values using name attributes instead of IDs
+    formData.append('name', document.querySelector('input[name="name"]').value);
+    formData.append('email', document.querySelector('input[name="email"]').value);
+    formData.append('nik', document.querySelector('input[name="nik"]').value);
+    formData.append('jabatan_id', document.querySelector('input[name="jabatan_id"]').value);
+    formData.append('role_id', document.querySelector('input[name="role_id"]').value);
+    formData.append('gender', selectedGender);
+    formData.append('agama', document.querySelector('select[name="agama"]').value);
+    formData.append('tanggal_lahir', document.querySelector('input[name="tanggal_lahir"]').value);
+
+    const password = document.querySelector('input[name="password"]').value;
+    const confirmPassword = document.querySelector('input[name="confirm_password"]').value;
+    
+    if (password) {
+        formData.append('password', password);
+    }
+
+    // Handle signature file
+    const signatureFile = document.querySelector('input[name="signature"]').files[0];
+    if (signatureFile) {
+        formData.append('signature', signatureFile);
+        console.log('File Details:');
+        console.log('File name:', signatureFile.name);
+        console.log('File type:', signatureFile.type);
+        console.log('File size:', signatureFile.size, 'bytes');
+        console.log('Last modified:', new Date(signatureFile.lastModified));
+    }
+
+    for (let pair of formData.entries()) {
+        console.log(pair[0] + ': ' + pair[1]);
+    }
+
+     $.ajax({
+        url: '/user/edit_profile/{{.pengguna.UserID}}',
+        type: 'PUT',
+        data: formData,
+        contentType: false,
+        processData: false,
+        success: function(response) {
+            Swal.fire({
+                title: "Sukses!",
+                text: "Perubahan berhasil disimpan",
+                icon: "success"
+            });
+            setTimeout(function(){window.location.reload();}, 2000);
+        },
+        error: function(xhr, status, error) {
+            Swal.fire({
+                title: "Gagal!",
+                text: xhr.responseJSON?.message || "Terjadi kesalahan saat menyimpan perubahan",
+                icon: "error"
+            });
+        }
+    });
+}
+
+</script>
+
+{{ end }}

@@ -4,10 +4,13 @@ import (
 	"fmt"
 	RequestUser "goravel/app/http/requests/user"
 	"goravel/app/models"
+	"strings"
 	"time"
 
+	"github.com/golang-module/carbon/v2"
 	"github.com/goravel/framework/contracts/http"
 	"github.com/goravel/framework/facades"
+	"github.com/goravel/framework/support"
 )
 
 type UserController struct {
@@ -19,10 +22,128 @@ func NewUserController() *UserController {
 		//Inject services
 	}
 }
+func getFileNameFromUrl(url string) string {
+	if url == "" {
+		return ""
+	}
+	parts := strings.Split(url, "/")
+	return parts[len(parts)-1]
+}
 
+func (r *UserController) Index(ctx http.Context) http.Response {
+	userInfo := facades.Cache().Get("user_data")
+
+	if userInfo != nil {
+		userData := userInfo.(map[string]interface{})
+
+		var dataKaryawan models.Karyawan
+		facades.Orm().Query().With("Jabatan").With("User.Role").Where("emp_no=?", userData["nik"]).Get(&dataKaryawan)
+		fmt.Println(dataKaryawan)
+
+		if dataKaryawan.Ttd != nil {
+			fileName := getFileNameFromUrl(*dataKaryawan.Ttd)
+			dataKaryawan.NameFileTtd = &fileName
+		}
+
+		return ctx.Response().View().Make("profile_edit.tmpl", map[string]interface{}{
+			"title":       "Edit Profile",
+			"pageheading": "Edit profile",
+			"version":     support.Version,
+			"pengguna":    dataKaryawan,
+		})
+	}
+
+	facades.Auth().Logout(ctx)
+	// For instance, you might redirect the user to the login page
+	return ctx.Response().Redirect(http.StatusFound, "/login")
+}
+
+// Show method for controller
 func (r *UserController) Show(ctx http.Context) http.Response {
-	return ctx.Response().Success().Json(http.Json{
-		"Hello": "Goravel",
+	return ctx.Response().View().Make("user.tmpl", map[string]interface{}{
+		"title":       "User",
+		"pageheading": "User",
+		"version":     support.Version,
+	})
+}
+
+// Store method for controller
+func (r *UserController) Store(ctx http.Context) http.Response {
+	return ctx.Response().View().Make("user.tmpl", map[string]interface{}{
+		"title":       "User",
+		"pageheading": "User",
+		// "version":     support.Version,
+	})
+}
+
+// Update method for controller
+func (r *UserController) Update(ctx http.Context) http.Response {
+	id := ctx.Request().Route("id")
+	nama := ctx.Request().Input("name")
+	email := ctx.Request().Input("email")
+	nik := ctx.Request().Input("nik")
+	gender := ctx.Request().Input("gender")
+	agama := ctx.Request().Input("agama")
+	tanggal_lahir := ctx.Request().Input("tanggal_lahir")
+	password := ctx.Request().Input("password")
+
+	fmt.Println("masuk")
+	fmt.Println(id, nama, email, nik, gender, agama, tanggal_lahir, password)
+	fmt.Println("----------------------")
+
+	var karyawan models.Karyawan
+	facades.Orm().Query().With("Jabatan").With("User.Role").Where("user_id=?", id).First(&karyawan)
+
+	// Update karyawan data
+	karyawan.Name = nama
+	karyawan.Gender = gender
+	karyawan.Agama = agama
+	karyawan.TanggalLahir = carbon.Parse(tanggal_lahir).ToDateStruct()
+
+	// Handle signature file upload if present
+	if file, err := ctx.Request().File("signature"); err == nil {
+		if karyawan.Ttd != nil {
+			oldFileName := getFileNameFromUrl(*karyawan.Ttd)
+			fmt.Println(oldFileName)
+			facades.Storage().Delete("Signatures/" + nik + "/" + oldFileName)
+		}
+		// newfileIdentificator := buildFileIdentificator(file.GetClientOriginalName())
+		folder, err := facades.Storage().PutFileAs("Signatures/"+nik+"/", file, file.GetClientOriginalName())
+		if err != nil {
+			return Error(ctx, http.StatusInternalServerError, err.Error())
+		}
+
+		// Store the URL in a variable first
+		fileUrl := facades.Storage().Url(folder)
+		karyawan.Ttd = &fileUrl
+
+		fmt.Println("File uploaded successfully")
+	}
+
+	// Update user data
+	karyawan.User.Email = email
+	if password != "" {
+		hashedPassword, _ := facades.Hash().Make(password)
+		karyawan.User.Password = hashedPassword
+	}
+
+	// // Save changes
+	facades.Orm().Query().Save(&karyawan)
+	facades.Orm().Query().Save(&karyawan.User)
+
+	return ctx.Response().Json(200, map[string]interface{}{
+		"status":  "success",
+		"message": "Profile berhasil diupdate",
+		"data":    karyawan,
+	})
+}
+
+// Destroy method for controller
+func (r *UserController) Destroy(ctx http.Context) http.Response {
+	return ctx.Response().View().Make("user.tmpl", map[string]interface{}{
+		"title":       "User",
+		"pageheading": "User",
+		// "version":     support.Version,
 	})
 }
 
@@ -214,6 +335,13 @@ func (r *UserController) Register(ctx http.Context) http.Response {
 	if err := facades.Orm().Query().Create(&user); err != nil {
 		return ErrorSystem(ctx, "Data Gagal Ditambahkan")
 	}
+	return Success(ctx, http.Json{
+		"Success": "Data Berhasil Ditambahkan",
+	})
+}
+
+func (r *UserController) UpdateInfo(ctx http.Context) http.Response {
+	// var req RequestUser.UpdateInfo
 	return Success(ctx, http.Json{
 		"Success": "Data Berhasil Ditambahkan",
 	})
