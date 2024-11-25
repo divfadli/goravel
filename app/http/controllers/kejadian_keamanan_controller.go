@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"fmt"
 	kejadianKeamanan "goravel/app/http/requests/kejadian_keamanan"
 	"goravel/app/models"
@@ -581,11 +582,17 @@ func GetDetailKejadianKeamanan(ctx http.Context) http.Response {
 		baseURL := "http://" + ctx.Request().Host()
 
 		var data models.KejadianKeamanan
+		var jenisKejadian []models.JenisKejadian
+
+		facades.Orm().Query().Where("klasifikasi_name =? AND deleted_at IS NULL", "Keamanan Laut").
+			Order("nama_kejadian asc").Get(&jenisKejadian)
 
 		if err := facades.Orm().Query().With("JenisKejadian").Where("id_kejadian_keamanan=?", id).
 			First(&data); err != nil || data.IdKejadianKeamanan == 0 {
 			return ErrorSystem(ctx, "Data Tidak Ada")
 		}
+		jsonData, _ := json.MarshalIndent(jenisKejadian, "", "    ")
+		fmt.Println(string(jsonData))
 
 		var data_keamanan_image []models.FileImage
 
@@ -621,6 +628,7 @@ func GetDetailKejadianKeamanan(ctx http.Context) http.Response {
 		}
 
 		templateData := struct {
+			JenisKejadian    []models.JenisKejadian
 			BaseURL          string
 			Title            string
 			NamaKapal        string
@@ -637,6 +645,7 @@ func GetDetailKejadianKeamanan(ctx http.Context) http.Response {
 			Longitude        float64
 			Images           []models.FileImage
 		}{
+			JenisKejadian:    jenisKejadian,
 			BaseURL:          baseURL,
 			Title:            data.JenisKejadian.NamaKejadian,
 			NamaKapal:        data.NamaKapal,

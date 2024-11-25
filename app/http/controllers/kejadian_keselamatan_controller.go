@@ -587,6 +587,10 @@ func GetDetailKejadianKeselamatan(ctx http.Context) http.Response {
 		baseURL := "http://" + ctx.Request().Host()
 
 		var data models.KejadianKeselamatan
+		var jenisKejadian []models.JenisKejadian
+
+		facades.Orm().Query().Where("klasifikasi_name =? AND deleted_at IS NULL", "Keselamatan Laut").
+			Order("nama_kejadian asc").Get(&jenisKejadian)
 
 		if err := facades.Orm().Query().With("JenisKejadian").Where("id_kejadian_keselamatan", id).
 			First(&data); err != nil || data.IdKejadianKeselamatan == 0 {
@@ -665,6 +669,7 @@ func GetDetailKejadianKeselamatan(ctx http.Context) http.Response {
 
 		// html template data
 		templateData := struct {
+			JenisKejadian    []models.JenisKejadian
 			BaseURL          string
 			Title            string
 			NamaKapal        string
@@ -681,6 +686,7 @@ func GetDetailKejadianKeselamatan(ctx http.Context) http.Response {
 			Longitude        float64
 			Images           []models.FileImage
 		}{
+			JenisKejadian:    jenisKejadian,
 			BaseURL:          baseURL,
 			Title:            data.JenisKejadian.NamaKejadian,
 			NamaKapal:        data.NamaKapal,

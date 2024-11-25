@@ -73,7 +73,7 @@
 
     <!-- Modal Detail -->
     <div class="modal fade" id="detailModal" tabindex="-1" role="dialog" aria-labelledby="detailModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="detailModalLabel">Detail Kejadian Keselamatan</h5>
@@ -81,7 +81,7 @@
                         <span aria-hidden="true">×</span>
                     </button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body p-0">
                 </div>
             </div>
         </div>
@@ -139,7 +139,7 @@
                 $(td).css('cursor', 'pointer');
                 $(td).on('click', function(){
                     const id = arr_data[row].id_kejadian_keselamatan;
-                    $('#detailModal .modal-body').html(`<iframe src="/detail/keselamatan/${id}" width="100%" height="500px" frameborder="0"></iframe>`);
+                    $('#detailModal .modal-body').html(`<iframe src="/detail/keselamatan/${id}" width="100%" height="600px" frameborder="0" class="border-0"></iframe>`);
                     $('#detailModal').modal('show');
                 });
             }
@@ -213,9 +213,9 @@
                 key: key
             },
             success: function(result) {
-                arr_data = result.data.data_kejadian_keselamatan
+                arr_data = result.data.data_kejadian_keselamatan || [];
                 table.clear().draw();
-                if (arr_data.length >0){
+                if (arr_data && arr_data.length >0){
                     arr_data.forEach((x,i)=>{
                         var tanggal = `<input type="hidden" value="${x.id_kejadian_keselamatan}"><span class="font-weight-bold font-size-sm text-dark-50">${x.tanggal}</span>`
                         var nama_kapal = `<span class="font-weight-bold font-size-sm text-dark-50">${x.nama_kapal}</span>`
