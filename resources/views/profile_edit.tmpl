@@ -65,16 +65,14 @@
                                         name="signature" accept="image/*"
                                         style="display:none" 
                                         onchange="previewSignature(this)">
-                                    <div class="ms-2 d-flex align-items-center">
-                                        <a class="btn btn-outline-secondary px-2" id="btn-preview-signature" title="Preview Signature" 
-                                            data-fancybox="signature-gallery" 
-                                            href="{{if .pengguna.Ttd}}/api/files/{{.pengguna.Ttd}}{{else}}#{{end}}">
-                                            <i class="fas fa-image"></i>
-                                        </a>
-                                        <input type="text" class="form-control" name="signature_name" id="signature_name" 
-                                            value="{{if .pengguna.NameFileTtd}}{{.pengguna.NameFileTtd}}{{end}}" 
-                                            data-caption="Signature" readonly>
-                                    </div>
+                                    <a class="btn btn-outline-secondary px-2" id="btn-preview-signature" title="Preview Signature" 
+                                        data-fancybox="signature-gallery" 
+                                        href="{{if .pengguna.Ttd}}/api/files/{{.pengguna.Ttd}}{{else}}#{{end}}">
+                                        <i class="fas fa-image"></i>
+                                    </a>
+                                    <input type="text" class="form-control" name="signature_name" id="signature_name" 
+                                        value="{{if .pengguna.NameFileTtd}}{{.pengguna.NameFileTtd}}{{end}}" 
+                                        data-caption="Signature" readonly>
                                 </div>
                             </div>
 
