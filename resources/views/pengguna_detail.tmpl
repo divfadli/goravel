@@ -75,7 +75,11 @@
                     </div>
                 </div>
             </div>
-            <button type="button" onclick="updatePengguna()" class="btn btn-primary float-right">Simpan</button>
+            <button type="button" onclick="updatePengguna()" 
+                class="btn btn-primary btn-sm float-right">
+                <span class="fas fa-save mr-1"></span>
+                Simpan
+            </button>
         </form>   
     </div>
 </div>
@@ -86,6 +90,54 @@
 
 <script>
 function updatePengguna() {
+    // Validate required fields
+    if (!$('#nama').val()) {
+        Swal.fire({
+            title: "Peringatan!",
+            text: "Nama harus diisi",
+            icon: "warning"
+        });
+        return false;
+    }
+
+    if (!$('#email').val()) {
+        Swal.fire({
+            title: "Peringatan!",
+            text: "Email harus diisi",
+            icon: "warning"
+        });
+        return false;
+    }
+
+    // Validate email format
+    var emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test($('#email').val())) {
+        Swal.fire({
+            title: "Peringatan!",
+            text: "Format email tidak valid",
+            icon: "warning"
+        });
+        return false;
+    }
+
+    if (!$('#nik').val()) {
+        Swal.fire({
+            title: "Peringatan!",
+            text: "NIK harus diisi",
+            icon: "warning"
+        });
+        return false;
+    }
+
+    if (!$('#tanggal_lahir').val()) {
+        Swal.fire({
+            title: "Peringatan!",
+            text: "Tanggal lahir harus diisi",
+            icon: "warning"
+        });
+        return false;
+    }
+
     var formData = {
         nama: $('#nama').val(),
         email: $('#email').val(),
