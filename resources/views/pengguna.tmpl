@@ -5,7 +5,9 @@
 <div class="card shadow mb-4">
     <div class="card-body">
         <div class="d-flex justify-content-end mb-3">
-            <button class="btn btn-primary" onclick="window.location.href='/pengguna/new'">Tambah User</button>
+            <button class="btn btn-primary" onclick="window.location.href='/pengguna/new'">
+                <i class="fas fa-plus icon-sm mr-2"></i>Tambah User
+            </button>
         </div>
         <div class="table-responsive">
             <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
@@ -28,8 +30,12 @@
                         <td>{{$val.Jabatan.Name}}</td>
                         <td>{{$val.User.Role.Name}}</td>
                         <td>
-                            <button class="btn btn-warning btn-sm" onclick="window.location.href='/pengguna/{{$val.UserID}}'">Edit</button>
-                            <button class="btn btn-danger btn-sm" onclick="confirmUserDelete({{$val.UserID}})">Delete</button>
+                            <button class="fas fa-edit btn btn-dark btn-sm mx-2" 
+                                onclick="window.location.href='/pengguna/{{$val.UserID}}'">
+                            </button>
+                            <button class="fas fa-trash-alt btn btn-dark btn-sm" 
+                                onclick="confirmUserDelete({{$val.UserID}})">
+                            </button>
                         </td>
                     </tr>
                 {{end}}
