@@ -16,6 +16,8 @@ type Karyawan struct {
 	JabatanID    int         `json:"jabatan_id" gorm:"default:0" column:"jabatan_id"`
 	Jabatan      Jabatan     `json:"jabatan" gorm:"foreign_key:JabatanID"`
 	IDAtasan     *string     `json:"id_atasan" gorm:"default: null" column:"id_atasan"`
+	Ttd          *string     `json:"ttd" gorm:"default: null" column:"ttd"`
+	NameFileTtd  *string     `json:"name_file_ttd" gorm:"-"`
 	orm.Timestamps
 }
 
