@@ -99,11 +99,11 @@ func (r *Approval) StoreApproval(ctx http.Context) http.Response {
 
 				date := fmt.Sprintf("%d %s %d", now.Day(), generator.MonthNameIndonesia(now.Month()), now.Year())
 				fmt.Printf("%d %s %d\n", now.Day(), generator.MonthNameIndonesia(now.Month()), now.Year())
+				outputPath := fmt.Sprintf("storage/temp/%s/output-ttd-acc.pdf", approval.Laporan.JenisLaporan)
 
 				if approval.Laporan.JenisLaporan == "Laporan Mingguan" {
 					templatePath := "templates/ttd-mingguan.html"
 					newTemplatePath := "ttd-mingguan.html"
-					outputPath := fmt.Sprintf("storage/temp/%s/output-ttd-acc.pdf", approval.Laporan.JenisLaporan)
 
 					templateData := struct {
 						BaseURL    string
@@ -142,7 +142,6 @@ func (r *Approval) StoreApproval(ctx http.Context) http.Response {
 				} else {
 					templatePath := "templates/ttd-word.html"
 					newTemplatePath := "ttd-word.html"
-					outputPath := fmt.Sprintf("storage/temp/%s/output-ttd-acc.pdf", approval.Laporan.JenisLaporan)
 
 					templateData := struct {
 						BaseURL    string
@@ -163,7 +162,7 @@ func (r *Approval) StoreApproval(ctx http.Context) http.Response {
 					}
 
 					if err := r.pdf.ParseTemplate(templatePath, newTemplatePath, templateData); err == nil {
-						success, _ := r.pdf.GenerateLaporan(outputPath, pageCount, approval.Laporan.JenisLaporan)
+						success, _ := r.pdf.GenerateLaporan(outputPath, pageCount, approval.Laporan.JenisLaporan+"/")
 						if success {
 							extractedPaths = append(extractedPaths, outputPath)
 						}
