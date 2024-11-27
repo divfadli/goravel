@@ -17,7 +17,7 @@ import (
 	"github.com/pdfcpu/pdfcpu/pkg/pdfcpu/model"
 )
 
-// LAPORAN MINGGUAN
+// LAPORAN MINGGUAN (DONE)
 func (r *Pdf) LaporanMingguanLastMonth(date time.Time) {
 	appHost := facades.Config().Env("APP_HOST", "127.0.0.1")
 	appPort := facades.Config().Env("APP_PORT", "3000")
@@ -37,12 +37,12 @@ func (r *Pdf) LaporanMingguanLastMonth(date time.Time) {
 	var yearInt int
 	var bulanInt time.Month
 	if date.Month() == 1 {
-		bulan = monthNameIndonesia(12)
+		bulan = MonthNameIndonesia(12)
 		bulanInt = 12
 		year = strconv.Itoa(date.Year() - 1)
 		yearInt = date.Year() - 1
 	} else {
-		bulan = monthNameIndonesia(date.Month() - 1)
+		bulan = MonthNameIndonesia(date.Month() - 1)
 		bulanInt = date.Month() - 1
 		year = strconv.Itoa(date.Year())
 		yearInt = date.Year()
@@ -57,7 +57,7 @@ func (r *Pdf) LaporanMingguanLastMonth(date time.Time) {
 
 	dayperweek := 7
 
-	jumlahHari := daysInMonth(startOfMonth)
+	jumlahHari := DaysInMonth(startOfMonth)
 
 	var minggu []time.Time
 
@@ -132,7 +132,7 @@ func (r *Pdf) LaporanMingguanLastMonth(date time.Time) {
 	}
 	fmt.Println(weekName)
 
-	var weeklyDataKeamanans, weeklyDataKeselamatans, allWeeklyDataKeamanans, allWeeklyDataKeselamatans weeklyData
+	var weeklyDataKeamanans, weeklyDataKeselamatans, allWeeklyDataKeamanans, allWeeklyDataKeselamatans WeeklyData
 
 	var tanggal = "tanggal > ? AND tanggal <=?"
 	if startOfWeek.Day() == 1 {
@@ -346,7 +346,9 @@ func (r *Pdf) LaporanMingguanLastMonth(date time.Time) {
 		countOfWeek[name] = total
 	}
 	var images []string
-	outputPath := fmt.Sprintf("storage/temp/pelanggaran-%s.pdf", "head-last-month")
+	outputPath := fmt.Sprintf("storage/temp/create-last-month/Mingguan/pelanggaran/pelanggaran-%s.pdf", "head-last-month")
+	outputPathTempPelanggaran := fmt.Sprintf("storage/temp/create-last-month/Mingguan/pelanggaran")
+	_ = os.MkdirAll(outputPathTempPelanggaran, 0755)
 
 	templateDataKeamanan := struct {
 		BaseURL                  string
@@ -372,7 +374,7 @@ func (r *Pdf) LaporanMingguanLastMonth(date time.Time) {
 
 	if err := r.ParseTemplate(templateKeamananHeadPath, newTemplateKeamananHeadPath, templateDataKeamanan); err == nil {
 		// Generate Image
-		success, _ := r.GenerateSlide(outputPath)
+		success, _ := r.GenerateSlide(outputPath, "Mingguan_create-last-month/")
 		if success {
 			images = append(images, outputPath)
 		}
@@ -381,9 +383,11 @@ func (r *Pdf) LaporanMingguanLastMonth(date time.Time) {
 		return
 	}
 
+	var id_keamanan_arr []int64
 	for _, data := range result_keamanan {
+		id_keamanan_arr = append(id_keamanan_arr, data.IdKejadianKeamanan)
 		// path for download pdf
-		outputPath := fmt.Sprintf("storage/temp/pelanggaran-%d.pdf", data.IdKejadianKeamanan)
+		outputPath := fmt.Sprintf("storage/temp/create-last-month/Mingguan/pelanggaran/pelanggaran-%d.pdf", data.IdKejadianKeamanan)
 
 		var abk string
 		if strings.Contains(data.Muatan, "ABK") {
@@ -437,7 +441,7 @@ func (r *Pdf) LaporanMingguanLastMonth(date time.Time) {
 
 		if err := r.ParseTemplate(templateKeamananPath, newTemplateKeamananPath, templateData); err == nil {
 			// Generate Image
-			success, _ := r.GenerateSlide(outputPath)
+			success, _ := r.GenerateSlide(outputPath, "Mingguan_create-last-month/")
 			if success {
 				images = append(images, outputPath)
 			}
@@ -456,7 +460,10 @@ func (r *Pdf) LaporanMingguanLastMonth(date time.Time) {
 		name := "Minggu " + strconv.Itoa(i+1)
 		countOfWeek[name] = total
 	}
-	outputPath = fmt.Sprintf("storage/temp/kecelakaan-%s.pdf", "head-last-month")
+	outputPath = fmt.Sprintf("storage/temp/create-last-month/Mingguan/kecelakaan/kecelakaan-%s.pdf", "head-last-month")
+	outputPathTempKecelakaan := fmt.Sprintf("storage/temp/create-last-month/Mingguan/kecelakaan")
+
+	_ = os.MkdirAll(outputPathTempKecelakaan, 0755)
 
 	templateDataKeselamatan := struct {
 		KejadianKeamananLength      int
@@ -484,7 +491,7 @@ func (r *Pdf) LaporanMingguanLastMonth(date time.Time) {
 
 	if err := r.ParseTemplate(templateKeselamatanHeadPath, newTemplateKeselamatanHeadPath, templateDataKeselamatan); err == nil {
 		// Generate Image
-		success, _ := r.GenerateSlide(outputPath)
+		success, _ := r.GenerateSlide(outputPath, "Mingguan_create-last-month/")
 		if success {
 			images = append(images, outputPath)
 		}
@@ -493,9 +500,11 @@ func (r *Pdf) LaporanMingguanLastMonth(date time.Time) {
 		return
 	}
 
+	var id_keselamatan_arr []int64
 	for _, data := range result_keselamatan {
+		id_keselamatan_arr = append(id_keselamatan_arr, data.IdKejadianKeselamatan)
 		// path for download pdf
-		outputPath := fmt.Sprintf("storage/temp/kecelakaan-%d.pdf", data.IdKejadianKeselamatan)
+		outputPath := fmt.Sprintf("storage/temp/create-last-month/Mingguan/kecelakaan/kecelakaan-%d.pdf", data.IdKejadianKeselamatan)
 
 		var perpindahanAwal string
 		if data.PelabuhanAsal != "-" && data.PelabuhanAsal != "" {
@@ -589,7 +598,7 @@ func (r *Pdf) LaporanMingguanLastMonth(date time.Time) {
 
 		if err := r.ParseTemplate(templateKeselamatanPath, newTemplateKeselamatanPath, templateData); err == nil {
 			// Generate Image
-			success, _ := r.GenerateSlide(outputPath)
+			success, _ := r.GenerateSlide(outputPath, "Mingguan_create-last-month/")
 			if success {
 				images = append(images, outputPath)
 			}
@@ -599,15 +608,62 @@ func (r *Pdf) LaporanMingguanLastMonth(date time.Time) {
 		}
 	}
 
+	// ttd
+	tgl := fmt.Sprintf("%d %s %d", date.Day(), MonthNameIndonesia(date.Month()), date.Year())
+	var deputi models.Karyawan
+	facades.Orm().Query().
+		With("Jabatan").
+		With("User.Role").
+		Join("JOIN jabatan ON jabatan.id_jabatan = karyawan.jabatan_id").
+		Where("jabatan.name = ?", "Deputi Informasi, Hukum dan Kerja Sama").
+		First(&deputi)
+
+	templatePath := "templates/ttd-mingguan.html"
+	newTemplatePath := "ttd-mingguan.html"
+	outputTtdPath := "storage/temp/ttd/output-ttd-mingguan-acc.pdf"
+	outputPathTempTtd := fmt.Sprintf("storage/temp/ttd")
+	_ = os.MkdirAll(outputPathTempTtd, 0755)
+
+	templateData := struct {
+		BaseURL    string
+		Tanggal    string
+		Jabatan    string
+		Nama       string
+		IsApproved bool
+		Ttd        *string
+		Nik        string
+	}{
+		BaseURL:    baseURL,
+		Tanggal:    tgl,
+		Jabatan:    deputi.Jabatan.Name,
+		Nama:       deputi.Name,
+		IsApproved: false == true,
+		Ttd:        deputi.Ttd,
+		Nik:        deputi.EmpNo,
+	}
+
+	if err := r.ParseTemplate(templatePath, newTemplatePath, templateData); err == nil {
+		// Generate Image
+		success, _ := r.GenerateSlide(outputTtdPath, "Mingguan_create-last-month/")
+		if success {
+			images = append(images, outputTtdPath)
+		}
+	} else {
+		fmt.Printf("Error: %v\n", err)
+		return
+	}
+
 	// Save the PDF to a file
 	// Create directory path
-	dirPath := "storage/app/" + strconv.Itoa(yearInt) + "/Laporan Mingguan/Bulan " + bulan + "/"
-	_ = os.MkdirAll(dirPath, 0755)
-
 	yearStr := strconv.Itoa(yearInt)
+	rootPath := "storage/app/"
+	dirPath := yearStr + "/Laporan Mingguan/Bulan " + bulan + "/"
+	fullPath := rootPath + dirPath
+	_ = os.MkdirAll(fullPath, 0755)
+
 	lastTwoDigits := yearStr[len(yearStr)-2:]
 	nameFile := "LAP MING KE-" + strconv.Itoa(mingguKe) + " " + monthNameEnglishMap[bulanInt] + "'" + lastTwoDigits + ".pdf"
-	path := dirPath + nameFile
+	path := fullPath + nameFile
 	// jenisFile := Laporan Mingguan
 
 	err := api.MergeCreateFile(images, path, false, model.NewDefaultConfiguration())
@@ -615,6 +671,60 @@ func (r *Pdf) LaporanMingguanLastMonth(date time.Time) {
 		fmt.Println("Error merging PDF files:", err)
 		return
 	}
+
+	var kejadianKeamanan models.KejadianKeamanan
+	facades.Orm().Query().Model(&kejadianKeamanan).Where("id_kejadian_keamanan IN (?)", id_keamanan_arr).Update(map[string]interface{}{
+		"is_locked": true,
+	})
+
+	var kejadianKeselamatan models.KejadianKeselamatan
+	facades.Orm().Query().Model(&kejadianKeselamatan).Where("id_kejadian_keselamatan IN (?)", id_keselamatan_arr).Update(map[string]interface{}{
+		"is_locked": true,
+	})
+
+	jenisFile := "Laporan Mingguan"
+	namaLaporan := "Laporan Minggu ke-" + strconv.Itoa(mingguKe) + " " + monthNameEnglishTitleCase(bulanInt) + "'" + lastTwoDigits
+	document := dirPath + nameFile
+	document = strings.ReplaceAll(document, "/", "\\")
+
+	// save to Laporan
+	laporan := models.Laporan{
+		NamaLaporan:  namaLaporan,
+		JenisLaporan: jenisFile,
+		TahunKe:      yearInt,
+		BulanKe:      int(bulanInt),
+		MingguKe:     mingguKe,
+		Dokumen:      document,
+	}
+
+	var krywn, atasan models.Karyawan
+	facades.Orm().Query().Where("emp_no = ?", result_keamanan[0].CreatedBy).First(&krywn)
+	if krywn.EmpNo == "" {
+		fmt.Println("Data Tidak Ditemukan")
+		return
+	}
+	facades.Orm().Query().Where("emp_no = ?", krywn.IDAtasan).First(&atasan)
+	if atasan.EmpNo == "" {
+		fmt.Println("Data Tidak Ditemukan:")
+		return
+	}
+
+	if err := facades.Orm().Query().Create(&laporan); err != nil {
+		fmt.Println("Data Gagal Ditambahkan:", err)
+		return
+	}
+
+	approval := models.Approval{
+		LaporanID:  laporan.IDLaporan,
+		Status:     "WaitApproved",
+		ApprovedBy: atasan.EmpNo,
+	}
+
+	facades.Orm().Query().Create(&approval)
+
+	_ = os.RemoveAll(outputPathTempPelanggaran)
+	_ = os.RemoveAll(outputPathTempKecelakaan)
+	_ = os.RemoveAll(outputPathTempTtd)
 
 	fmt.Println("PDF created successfully!")
 }
@@ -634,12 +744,12 @@ func (r *Pdf) LaporanMingguan() {
 	newTemplateKeselamatanPath := "keselamatan.html"
 
 	now := time.Now()
-	bulan := monthNameIndonesia(now.Month())
+	bulan := MonthNameIndonesia(now.Month())
 	year := strconv.Itoa(now.Year())
 
 	dayperweek := 7
 
-	jumlahHari := daysInMonth(now)
+	jumlahHari := DaysInMonth(now)
 
 	var minggu []time.Time
 
@@ -696,14 +806,11 @@ func (r *Pdf) LaporanMingguan() {
 		minggu = append(minggu, startDate)
 	}
 
-	fmt.Println(minggu)
-
 	var startOfWeek time.Time
 	var endOfWeek time.Time
 	var mingguKe int
 	for i, weekEnd := range minggu {
 		if weekEnd.After(now) {
-			fmt.Println(i)
 			if i == 0 {
 				r.LaporanMingguanLastMonth(now)
 				return
@@ -727,7 +834,6 @@ func (r *Pdf) LaporanMingguan() {
 			break
 		}
 	}
-	fmt.Println(startOfMonth, startOfWeek, endOfWeek)
 
 	var weekName []string
 	for i, weekEnd := range minggu {
@@ -743,9 +849,8 @@ func (r *Pdf) LaporanMingguan() {
 		}
 		weekName = append(weekName, fullName)
 	}
-	fmt.Println(weekName)
 
-	var weeklyDataKeamanans, weeklyDataKeselamatans, allWeeklyDataKeamanans, allWeeklyDataKeselamatans weeklyData
+	var weeklyDataKeamanans, weeklyDataKeselamatans, allWeeklyDataKeamanans, allWeeklyDataKeselamatans WeeklyData
 
 	var tanggal = "tanggal > ? AND tanggal <=?"
 	if startOfWeek.Day() == 1 {
@@ -960,7 +1065,9 @@ func (r *Pdf) LaporanMingguan() {
 	}
 	// kejadianKeamananWeek, jenisKejadianKeamanan, weekName
 	var images []string
-	outputPath := fmt.Sprintf("storage/temp/pelanggaran-%s.pdf", "head")
+	outputPath := fmt.Sprintf("storage/temp/create/Mingguan/pelanggaran/pelanggaran-%s.pdf", "head")
+	outputPathTempPelanggaran := fmt.Sprintf("storage/temp/create/Mingguan/pelanggaran")
+	_ = os.MkdirAll(outputPathTempPelanggaran, 0755)
 
 	templateDataKeamanan := struct {
 		BaseURL                  string
@@ -986,7 +1093,7 @@ func (r *Pdf) LaporanMingguan() {
 
 	if err := r.ParseTemplate(templateKeamananHeadPath, newTemplateKeamananHeadPath, templateDataKeamanan); err == nil {
 		// Generate Image
-		success, _ := r.GenerateSlide(outputPath)
+		success, _ := r.GenerateSlide(outputPath, "Mingguan_create/")
 		if success {
 			images = append(images, outputPath)
 		}
@@ -999,7 +1106,7 @@ func (r *Pdf) LaporanMingguan() {
 	for _, data := range result_keamanan {
 		id_keamanan_arr = append(id_keamanan_arr, data.IdKejadianKeamanan)
 		// path for download pdf
-		outputPath := fmt.Sprintf("storage/temp/pelanggaran-%d.pdf", data.IdKejadianKeamanan)
+		outputPath := fmt.Sprintf("storage/temp/create/Mingguan/pelanggaran/pelanggaran-%d.pdf", data.IdKejadianKeamanan)
 
 		var abk string
 		if strings.Contains(data.Muatan, "ABK") {
@@ -1053,7 +1160,7 @@ func (r *Pdf) LaporanMingguan() {
 
 		if err := r.ParseTemplate(templateKeamananPath, newTemplateKeamananPath, templateData); err == nil {
 			// Generate Image
-			success, _ := r.GenerateSlide(outputPath)
+			success, _ := r.GenerateSlide(outputPath, "Mingguan_create/")
 			if success {
 				images = append(images, outputPath)
 			}
@@ -1072,7 +1179,9 @@ func (r *Pdf) LaporanMingguan() {
 		name := "Minggu " + strconv.Itoa(i+1)
 		countOfWeek[name] = total
 	}
-	outputPath = fmt.Sprintf("storage/temp/kecelakaan-%s.pdf", "head")
+	outputPath = fmt.Sprintf("storage/temp/create/Mingguan/kecelakaan/kecelakaan-%s.pdf", "head")
+	outputPathTempKecelakaan := fmt.Sprintf("storage/temp/create/Mingguan/kecelakaan")
+	_ = os.MkdirAll(outputPathTempKecelakaan, 0755)
 
 	templateDataKeselamatan := struct {
 		KejadianKeamananLength      int
@@ -1100,7 +1209,7 @@ func (r *Pdf) LaporanMingguan() {
 
 	if err := r.ParseTemplate(templateKeselamatanHeadPath, newTemplateKeselamatanHeadPath, templateDataKeselamatan); err == nil {
 		// Generate Image
-		success, _ := r.GenerateSlide(outputPath)
+		success, _ := r.GenerateSlide(outputPath, "Mingguan_create/")
 		if success {
 			images = append(images, outputPath)
 		}
@@ -1113,7 +1222,7 @@ func (r *Pdf) LaporanMingguan() {
 	for _, data := range result_keselamatan {
 		id_keselamatan_arr = append(id_keselamatan_arr, data.IdKejadianKeselamatan)
 		// path for download pdf
-		outputPath := fmt.Sprintf("storage/temp/kecelakaan-%d.pdf", data.IdKejadianKeselamatan)
+		outputPath := fmt.Sprintf("storage/temp/create/Mingguan/kecelakaan/kecelakaan-%d.pdf", data.IdKejadianKeselamatan)
 
 		var perpindahanAwal string
 		if data.PelabuhanAsal != "-" && data.PelabuhanAsal != "" {
@@ -1207,7 +1316,7 @@ func (r *Pdf) LaporanMingguan() {
 
 		if err := r.ParseTemplate(templateKeselamatanPath, newTemplateKeselamatanPath, templateData); err == nil {
 			// Generate Image
-			success, _ := r.GenerateSlide(outputPath)
+			success, _ := r.GenerateSlide(outputPath, "Mingguan_create/")
 			if success {
 				images = append(images, outputPath)
 			}
@@ -1215,6 +1324,51 @@ func (r *Pdf) LaporanMingguan() {
 			fmt.Printf("Error: %v\n", err)
 			return
 		}
+	}
+
+	// ttd
+	date := fmt.Sprintf("%d %s %d", now.Day(), bulan, now.Year())
+	var deputi models.Karyawan
+	facades.Orm().Query().
+		With("Jabatan").
+		With("User.Role").
+		Join("JOIN jabatan ON jabatan.id_jabatan = karyawan.jabatan_id").
+		Where("jabatan.name = ?", "Deputi Informasi, Hukum dan Kerja Sama").
+		First(&deputi)
+
+	templatePath := "templates/ttd-mingguan.html"
+	newTemplatePath := "ttd-mingguan.html"
+	outputTtdPath := "storage/temp/ttd/output-ttd-mingguan-acc.pdf"
+	outputPathTempTtd := fmt.Sprintf("storage/temp/ttd")
+	_ = os.MkdirAll(outputPathTempTtd, 0755)
+
+	templateData := struct {
+		BaseURL    string
+		Tanggal    string
+		Jabatan    string
+		Nama       string
+		IsApproved bool
+		Ttd        *string
+		Nik        string
+	}{
+		BaseURL:    baseURL,
+		Tanggal:    date,
+		Jabatan:    deputi.Jabatan.Name,
+		Nama:       deputi.Name,
+		IsApproved: false == true,
+		Ttd:        deputi.Ttd,
+		Nik:        deputi.EmpNo,
+	}
+
+	if err := r.ParseTemplate(templatePath, newTemplatePath, templateData); err == nil {
+		// Generate Image
+		success, _ := r.GenerateSlide(outputTtdPath, "Mingguan_create/")
+		if success {
+			images = append(images, outputTtdPath)
+		}
+	} else {
+		fmt.Printf("Error: %v\n", err)
+		return
 	}
 
 	// Save the PDF to a file
@@ -1233,9 +1387,6 @@ func (r *Pdf) LaporanMingguan() {
 		return
 	}
 
-	fmt.Println(id_keamanan_arr)
-	fmt.Println(id_keselamatan_arr)
-
 	var kejadianKeamanan models.KejadianKeamanan
 	facades.Orm().Query().Model(&kejadianKeamanan).Where("id_kejadian_keamanan IN (?)", id_keamanan_arr).Update(map[string]interface{}{
 		"is_locked": true,
@@ -1250,7 +1401,6 @@ func (r *Pdf) LaporanMingguan() {
 	namaLaporan := "Laporan Minggu ke-" + strconv.Itoa(mingguKe) + " " + monthNameEnglishTitleCase(now.Month()) + "'" + lastTwoDigits
 	document := dirPath + nameFile
 	document = strings.ReplaceAll(document, "/", "\\")
-	fmt.Println(document)
 
 	// save to Laporan
 	laporan := models.Laporan{
@@ -1287,6 +1437,10 @@ func (r *Pdf) LaporanMingguan() {
 
 	facades.Orm().Query().Create(&approval)
 
+	_ = os.RemoveAll(outputPathTempPelanggaran)
+	_ = os.RemoveAll(outputPathTempKecelakaan)
+	_ = os.RemoveAll(outputPathTempTtd)
+
 	fmt.Println("PDF created successfully!")
 }
 func (r *Pdf) LaporanMingguanUpdate(id_laporan int64, weeksTo int, month int, years int) {
@@ -1305,12 +1459,12 @@ func (r *Pdf) LaporanMingguanUpdate(id_laporan int64, weeksTo int, month int, ye
 	newTemplateKeselamatanPath := "keselamatan.html"
 
 	now := time.Date(years, time.Month(month), 1, 0, 0, 0, 0, time.UTC)
-	bulan := monthNameIndonesia(now.Month())
+	bulan := MonthNameIndonesia(now.Month())
 	year := strconv.Itoa(now.Year())
 
 	dayperweek := 7
 
-	jumlahHari := daysInMonth(now)
+	jumlahHari := DaysInMonth(now)
 
 	var minggu []time.Time
 
@@ -1368,8 +1522,6 @@ func (r *Pdf) LaporanMingguanUpdate(id_laporan int64, weeksTo int, month int, ye
 		minggu = append(minggu, startDate)
 	}
 
-	fmt.Println(minggu)
-
 	var startOfWeek time.Time
 	var endOfWeek time.Time
 	var mingguKe int
@@ -1388,7 +1540,6 @@ func (r *Pdf) LaporanMingguanUpdate(id_laporan int64, weeksTo int, month int, ye
 			break
 		}
 	}
-	fmt.Println(startOfMonth, startOfWeek, endOfWeek)
 
 	var weekName []string
 	for i, weekEnd := range minggu {
@@ -1404,9 +1555,8 @@ func (r *Pdf) LaporanMingguanUpdate(id_laporan int64, weeksTo int, month int, ye
 		}
 		weekName = append(weekName, fullName)
 	}
-	fmt.Println(weekName)
 
-	var weeklyDataKeamanans, weeklyDataKeselamatans, allWeeklyDataKeamanans, allWeeklyDataKeselamatans weeklyData
+	var weeklyDataKeamanans, weeklyDataKeselamatans, allWeeklyDataKeamanans, allWeeklyDataKeselamatans WeeklyData
 
 	var tanggal = "tanggal > ? AND tanggal <=?"
 	if startOfWeek.Day() == 1 {
@@ -1621,7 +1771,9 @@ func (r *Pdf) LaporanMingguanUpdate(id_laporan int64, weeksTo int, month int, ye
 	}
 	// kejadianKeamananWeek, jenisKejadianKeamanan, weekName
 	var images []string
-	outputPath := fmt.Sprintf("storage/temp/pelanggaran-%s.pdf", "head")
+	outputPath := fmt.Sprintf("storage/temp/update/Mingguan/pelanggaran/pelanggaran-%s.pdf", "head")
+	outputPathTempPelanggaran := fmt.Sprintf("storage/temp/update/Mingguan/pelanggaran")
+	_ = os.MkdirAll(outputPathTempPelanggaran, 0755)
 
 	templateDataKeamanan := struct {
 		BaseURL                  string
@@ -1647,7 +1799,7 @@ func (r *Pdf) LaporanMingguanUpdate(id_laporan int64, weeksTo int, month int, ye
 
 	if err := r.ParseTemplate(templateKeamananHeadPath, newTemplateKeamananHeadPath, templateDataKeamanan); err == nil {
 		// Generate Image
-		success, _ := r.GenerateSlide(outputPath)
+		success, _ := r.GenerateSlide(outputPath, "Mingguan_update/")
 		if success {
 			images = append(images, outputPath)
 		}
@@ -1660,7 +1812,7 @@ func (r *Pdf) LaporanMingguanUpdate(id_laporan int64, weeksTo int, month int, ye
 	for _, data := range result_keamanan {
 		id_keamanan_arr = append(id_keamanan_arr, data.IdKejadianKeamanan)
 		// path for download pdf
-		outputPath := fmt.Sprintf("storage/temp/pelanggaran-%d.pdf", data.IdKejadianKeamanan)
+		outputPath := fmt.Sprintf("storage/temp/update/Mingguan/pelanggaran/pelanggaran-%d.pdf", data.IdKejadianKeamanan)
 
 		var abk string
 		if strings.Contains(data.Muatan, "ABK") {
@@ -1714,7 +1866,7 @@ func (r *Pdf) LaporanMingguanUpdate(id_laporan int64, weeksTo int, month int, ye
 
 		if err := r.ParseTemplate(templateKeamananPath, newTemplateKeamananPath, templateData); err == nil {
 			// Generate Image
-			success, _ := r.GenerateSlide(outputPath)
+			success, _ := r.GenerateSlide(outputPath, "Mingguan_update/")
 			if success {
 				images = append(images, outputPath)
 			}
@@ -1733,7 +1885,9 @@ func (r *Pdf) LaporanMingguanUpdate(id_laporan int64, weeksTo int, month int, ye
 		name := "Minggu " + strconv.Itoa(i+1)
 		countOfWeek[name] = total
 	}
-	outputPath = fmt.Sprintf("storage/temp/kecelakaan-%s.pdf", "head")
+	outputPath = fmt.Sprintf("storage/temp/update/Mingguan/kecelakaan/kecelakaan-%s.pdf", "head")
+	outputPathTempKecelakaan := fmt.Sprintf("storage/temp/update/Mingguan/kecelakaan")
+	_ = os.MkdirAll(outputPathTempKecelakaan, 0755)
 
 	templateDataKeselamatan := struct {
 		KejadianKeamananLength      int
@@ -1761,7 +1915,7 @@ func (r *Pdf) LaporanMingguanUpdate(id_laporan int64, weeksTo int, month int, ye
 
 	if err := r.ParseTemplate(templateKeselamatanHeadPath, newTemplateKeselamatanHeadPath, templateDataKeselamatan); err == nil {
 		// Generate Image
-		success, _ := r.GenerateSlide(outputPath)
+		success, _ := r.GenerateSlide(outputPath, "Mingguan_update/")
 		if success {
 			images = append(images, outputPath)
 		}
@@ -1774,7 +1928,7 @@ func (r *Pdf) LaporanMingguanUpdate(id_laporan int64, weeksTo int, month int, ye
 	for _, data := range result_keselamatan {
 		id_keselamatan_arr = append(id_keselamatan_arr, data.IdKejadianKeselamatan)
 		// path for download pdf
-		outputPath := fmt.Sprintf("storage/temp/kecelakaan-%d.pdf", data.IdKejadianKeselamatan)
+		outputPath := fmt.Sprintf("storage/temp/update/Mingguan/kecelakaan/kecelakaan-%d.pdf", data.IdKejadianKeselamatan)
 
 		var perpindahanAwal string
 		if data.PelabuhanAsal != "-" && data.PelabuhanAsal != "" {
@@ -1868,7 +2022,7 @@ func (r *Pdf) LaporanMingguanUpdate(id_laporan int64, weeksTo int, month int, ye
 
 		if err := r.ParseTemplate(templateKeselamatanPath, newTemplateKeselamatanPath, templateData); err == nil {
 			// Generate Image
-			success, _ := r.GenerateSlide(outputPath)
+			success, _ := r.GenerateSlide(outputPath, "Mingguan_update/")
 			if success {
 				images = append(images, outputPath)
 			}
@@ -1876,6 +2030,52 @@ func (r *Pdf) LaporanMingguanUpdate(id_laporan int64, weeksTo int, month int, ye
 			fmt.Printf("Error: %v\n", err)
 			return
 		}
+	}
+
+	// ttd
+	date := fmt.Sprintf("%d %s %d", now.Day(), bulan, now.Year())
+	var deputi models.Karyawan
+	facades.Orm().Query().
+		With("Jabatan").
+		With("User.Role").
+		Join("JOIN jabatan ON jabatan.id_jabatan = karyawan.jabatan_id").
+		Where("jabatan.name = ?", "Deputi Informasi, Hukum dan Kerja Sama").
+		First(&deputi)
+
+	templatePath := "templates/ttd-mingguan.html"
+	newTemplatePath := "ttd-mingguan.html"
+	outputTtdPath := "storage/temp/ttd/output-ttd-mingguan-acc.pdf"
+	outputPathTempTtd := fmt.Sprintf("storage/temp/ttd")
+	_ = os.MkdirAll(outputPathTempTtd, 0755)
+
+	templateData := struct {
+		BaseURL    string
+		Tanggal    string
+		Jabatan    string
+		Nama       string
+		IsApproved bool
+		Ttd        *string
+		Nik        string
+	}{
+		BaseURL:    baseURL,
+		Tanggal:    date,
+		Jabatan:    deputi.Jabatan.Name,
+		Nama:       deputi.Name,
+		IsApproved: false == true,
+		Ttd:        deputi.Ttd,
+		Nik:        deputi.EmpNo,
+	}
+
+	if err := r.ParseTemplate(templatePath, newTemplatePath, templateData); err == nil {
+		// Generate Image
+		success, _ := r.GenerateSlide(outputTtdPath, "Mingguan_update/")
+		if success {
+			fmt.Println("ttd")
+			images = append(images, outputTtdPath)
+		}
+	} else {
+		fmt.Printf("Error: %v\n", err)
+		return
 	}
 
 	// Save the PDF to a file
@@ -1909,16 +2109,15 @@ func (r *Pdf) LaporanMingguanUpdate(id_laporan int64, weeksTo int, month int, ye
 	document := dirPath + nameFile
 	document = strings.ReplaceAll(document, "/", "\\")
 
-	// // save to Laporan
-	laporan := models.Laporan{
-		IDLaporan:    id_laporan,
-		NamaLaporan:  namaLaporan,
-		JenisLaporan: jenisFile,
-		TahunKe:      now.Year(),
-		BulanKe:      int(now.Month()),
-		MingguKe:     mingguKe,
-		Dokumen:      document,
-	}
+	// save to Laporan
+	var laporan models.Laporan
+	facades.Orm().Query().Where("id_laporan=?", id_laporan).First(&laporan)
+	laporan.NamaLaporan = namaLaporan
+	laporan.JenisLaporan = jenisFile
+	laporan.TahunKe = now.Year()
+	laporan.BulanKe = int(now.Month())
+	laporan.MingguKe = mingguKe
+	laporan.Dokumen = document
 
 	var krywn, atasan models.Karyawan
 	facades.Orm().Query().Where("emp_no = ?", result_keamanan[0].CreatedBy).First(&krywn)
@@ -1932,30 +2131,35 @@ func (r *Pdf) LaporanMingguanUpdate(id_laporan int64, weeksTo int, month int, ye
 		return
 	}
 
-	if err := facades.Orm().Query().Save(&laporan); err != nil {
-		fmt.Println("Data Gagal Ditambahkan:", err)
-		return
+	facades.Orm().Query().Save(&laporan)
+
+	approval := models.Approval{
+		LaporanID:  laporan.IDLaporan,
+		Status:     "WaitApproved",
+		ApprovedBy: atasan.EmpNo,
 	}
+	facades.Orm().Query().Delete(&models.Approval{}, "laporan_id = ?", laporan.IDLaporan)
 
-	// approval := models.Approval{
-	// 	LaporanID:  laporan.IDLaporan,
-	// 	Status:     "WaitApproved",
-	// 	ApprovedBy: atasan.EmpNo,
-	// }
+	facades.Orm().Query().Create(&approval)
 
-	// facades.Orm().Query().Create(&approval)
+	_ = os.RemoveAll(outputPathTempPelanggaran)
+	_ = os.RemoveAll(outputPathTempKecelakaan)
+	_ = os.RemoveAll(outputPathTempTtd)
 
 	fmt.Println("PDF created successfully!")
 }
 
 // LAPORAN BULANAN
 func (r *Pdf) LaporanBulanan() {
+	appHost := facades.Config().Env("APP_HOST", "127.0.0.1")
+	appPort := facades.Config().Env("APP_PORT", "3000")
+	baseURL := fmt.Sprintf("http://%s:%s", appHost, appPort)
 	now := time.Now()
-	bulan := monthNameIndonesia(now.Month())
+	bulan := MonthNameIndonesia(now.Month())
 	year := strconv.Itoa(now.Year())
 	dayperweek := 7
 
-	jumlahHari := daysInMonth(now)
+	jumlahHari := DaysInMonth(now)
 
 	var minggu []time.Time
 
@@ -2013,8 +2217,6 @@ func (r *Pdf) LaporanBulanan() {
 		minggu = append(minggu, startDate)
 	}
 
-	fmt.Println(minggu)
-
 	var weekName []string
 	for i, weekEnd := range minggu {
 		var setName, fullName string
@@ -2032,9 +2234,8 @@ func (r *Pdf) LaporanBulanan() {
 
 	startOfMonth := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
 	endOfMonth := startOfMonth.AddDate(0, 1, -1)
-	fmt.Println(startOfMonth, endOfMonth)
 
-	var weeklyDataKeamanans, weeklyDataKeselamatans weeklyData
+	var weeklyDataKeamanans, weeklyDataKeselamatans WeeklyData
 
 	facades.Orm().Query().
 		Table("public.kejadian_keamanan").
@@ -2348,8 +2549,27 @@ func (r *Pdf) LaporanBulanan() {
 			JumlahZonaTengah:    jumlahTengah,
 		})
 	}
+
+	var deputi models.Karyawan
+	facades.Orm().Query().
+		With("Jabatan").
+		With("User.Role").
+		Join("JOIN jabatan ON jabatan.id_jabatan = karyawan.jabatan_id").
+		Where("jabatan.name = ?", "Deputi Informasi, Hukum dan Kerja Sama").
+		First(&deputi)
+
+	firstDayNextMonth := now.AddDate(0, 1, -now.Day()+1)
+	date := fmt.Sprintf("%d %s %d", firstDayNextMonth.Day(), MonthNameIndonesia(firstDayNextMonth.Month()), firstDayNextMonth.Year())
+	fmt.Printf("%d %s %d\n", firstDayNextMonth.Day(), MonthNameIndonesia(firstDayNextMonth.Month()), firstDayNextMonth.Year())
 	// html template data
 	templateData := struct {
+		BaseURL                   string
+		Tanggal                   string
+		Jabatan                   string
+		Nama                      string
+		IsApproved                bool
+		Ttd                       *string
+		Nik                       string
 		Bulan                     string
 		BulanCapital              string
 		Tahun                     string
@@ -2370,6 +2590,13 @@ func (r *Pdf) LaporanBulanan() {
 		WeekName                  []string
 		PeriodeTanggal            []string
 	}{
+		BaseURL:                   baseURL,
+		Tanggal:                   date,
+		Jabatan:                   deputi.Jabatan.Name,
+		Nama:                      deputi.Name,
+		IsApproved:                false == true,
+		Ttd:                       deputi.Ttd,
+		Nik:                       deputi.EmpNo,
 		Bulan:                     bulan,
 		BulanCapital:              strings.ToUpper(bulan),
 		Tahun:                     year,
@@ -2396,27 +2623,70 @@ func (r *Pdf) LaporanBulanan() {
 	newTemplatePath := "laporan-bulanan.html"
 
 	// Save the PDF to a file
-	dirPath := "storage/app/" + year + "/Laporan Bulanan/"
-	_ = os.MkdirAll(dirPath, 0755)
+	rootPath := "storage/app/"
+	dirPath := year + "/Laporan Bulanan/"
+	fullPath := rootPath + dirPath
 
-	nameFile := strconv.Itoa(int(now.Month())) + ". Laporan bulan " + bulan + " Keamanan & Keselamatan di Wilayah Perairan Indonesia.pdf"
-	path := dirPath + nameFile
+	_ = os.MkdirAll(fullPath, 0755)
+
+	nameFile := strconv.Itoa(int(now.Month())) + ". Laporan bulan " + bulan + " Keamanan & Keselamatan di Wilayah Perairan Indonesia"
+	path := fullPath + nameFile + ".pdf"
 
 	if err := r.ParseTemplate(templatePath, newTemplatePath, templateData); err == nil {
-		r.GenerateLaporan(path)
+		r.GenerateLaporan(path, 0, "Bulanan_create/")
 	} else {
 		fmt.Println(err)
 	}
+
+	jenisFile := "Laporan Bulanan"
+	document := dirPath + nameFile + ".pdf"
+
+	// save to Laporan
+	laporan := models.Laporan{
+		NamaLaporan:  nameFile,
+		JenisLaporan: jenisFile,
+		TahunKe:      now.Year(),
+		BulanKe:      int(now.Month()),
+		Dokumen:      document,
+	}
+
+	var krywn, atasan models.Karyawan
+	facades.Orm().Query().Where("emp_no = ?", data_keamanan[0].CreatedBy).First(&krywn)
+	if krywn.EmpNo == "" {
+		fmt.Println("Data Tidak Ditemukan")
+		return
+	}
+	facades.Orm().Query().Where("emp_no = ?", krywn.IDAtasan).First(&atasan)
+	if atasan.EmpNo == "" {
+		fmt.Println("Data Tidak Ditemukan:")
+		return
+	}
+
+	if err := facades.Orm().Query().Create(&laporan); err != nil {
+		fmt.Println("Data Gagal Ditambahkan:", err)
+		return
+	}
+
+	approval := models.Approval{
+		LaporanID:  laporan.IDLaporan,
+		Status:     "WaitApproved",
+		ApprovedBy: atasan.EmpNo,
+	}
+
+	facades.Orm().Query().Create(&approval)
 
 	fmt.Println("PDF created successfully!")
 }
-func (r *Pdf) LaporanBulananUpdate(month int, years int) {
+func (r *Pdf) LaporanBulananUpdate(id_laporan int64, month int, years int) {
+	appHost := facades.Config().Env("APP_HOST", "127.0.0.1")
+	appPort := facades.Config().Env("APP_PORT", "3000")
+	baseURL := fmt.Sprintf("http://%s:%s", appHost, appPort)
 	now := time.Date(years, time.Month(month), 1, 0, 0, 0, 0, time.UTC)
-	bulan := monthNameIndonesia(now.Month())
+	bulan := MonthNameIndonesia(now.Month())
 	year := strconv.Itoa(now.Year())
 	dayperweek := 7
 
-	jumlahHari := daysInMonth(now)
+	jumlahHari := DaysInMonth(now)
 
 	var minggu []time.Time
 
@@ -2474,8 +2744,6 @@ func (r *Pdf) LaporanBulananUpdate(month int, years int) {
 		minggu = append(minggu, startDate)
 	}
 
-	fmt.Println(minggu)
-
 	var weekName []string
 	for i, weekEnd := range minggu {
 		var setName, fullName string
@@ -2493,9 +2761,8 @@ func (r *Pdf) LaporanBulananUpdate(month int, years int) {
 
 	startOfMonth := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
 	endOfMonth := startOfMonth.AddDate(0, 1, -1)
-	fmt.Println(startOfMonth, endOfMonth)
 
-	var weeklyDataKeamanans, weeklyDataKeselamatans weeklyData
+	var weeklyDataKeamanans, weeklyDataKeselamatans WeeklyData
 
 	facades.Orm().Query().
 		Table("public.kejadian_keamanan").
@@ -2809,8 +3076,26 @@ func (r *Pdf) LaporanBulananUpdate(month int, years int) {
 			JumlahZonaTengah:    jumlahTengah,
 		})
 	}
+	var deputi models.Karyawan
+	facades.Orm().Query().
+		With("Jabatan").
+		With("User.Role").
+		Join("JOIN jabatan ON jabatan.id_jabatan = karyawan.jabatan_id").
+		Where("jabatan.name = ?", "Deputi Informasi, Hukum dan Kerja Sama").
+		First(&deputi)
+
+	newDate := time.Now()
+	date := fmt.Sprintf("%d %s %d", newDate.Day(), MonthNameIndonesia(newDate.Month()), newDate.Year())
+	fmt.Printf("%d %s %d\n", newDate.Day(), MonthNameIndonesia(newDate.Month()), newDate.Year())
 	// html template data
 	templateData := struct {
+		BaseURL                   string
+		Tanggal                   string
+		Jabatan                   string
+		Nama                      string
+		IsApproved                bool
+		Ttd                       *string
+		Nik                       string
 		Bulan                     string
 		BulanCapital              string
 		Tahun                     string
@@ -2831,6 +3116,13 @@ func (r *Pdf) LaporanBulananUpdate(month int, years int) {
 		WeekName                  []string
 		PeriodeTanggal            []string
 	}{
+		BaseURL:                   baseURL,
+		Tanggal:                   date,
+		Jabatan:                   deputi.Jabatan.Name,
+		Nama:                      deputi.Name,
+		IsApproved:                false == true,
+		Ttd:                       deputi.Ttd,
+		Nik:                       deputi.EmpNo,
 		Bulan:                     bulan,
 		BulanCapital:              strings.ToUpper(bulan),
 		Tahun:                     year,
@@ -2857,24 +3149,70 @@ func (r *Pdf) LaporanBulananUpdate(month int, years int) {
 	newTemplatePath := "laporan-bulanan.html"
 
 	// Save the PDF to a file
-	dirPath := "storage/app/" + year + "/Laporan Bulanan/"
-	_ = os.MkdirAll(dirPath, 0755)
+	rootPath := "storage/app/"
+	dirPath := year + "/Laporan Bulanan/"
+	fullPath := rootPath + dirPath
 
-	nameFile := strconv.Itoa(int(now.Month())) + ". Laporan bulan " + bulan + " Keamanan & Keselamatan di Wilayah Perairan Indonesia.pdf"
-	path := dirPath + nameFile
-	// jenisFile := "Laporan Bulanan"
+	_ = os.MkdirAll(fullPath, 0755)
+
+	nameFile := strconv.Itoa(int(now.Month())) + ". Laporan bulan " + bulan + " Keamanan & Keselamatan di Wilayah Perairan Indonesia"
+	path := fullPath + nameFile + ".pdf"
 
 	if err := r.ParseTemplate(templatePath, newTemplatePath, templateData); err == nil {
-		r.GenerateLaporan(path)
+		r.GenerateLaporan(path, 0, "Bulanan_update/")
 	} else {
 		fmt.Println(err)
 	}
+
+	jenisFile := "Laporan Bulanan"
+	document := dirPath + nameFile + ".pdf"
+
+	// save to Laporan
+	var laporan models.Laporan
+	fmt.Println(id_laporan)
+	facades.Orm().Query().Where("id_laporan=?", id_laporan).First(&laporan)
+	laporan.NamaLaporan = nameFile
+	laporan.JenisLaporan = jenisFile
+	laporan.BulanKe = int(now.Month())
+	laporan.TahunKe = now.Year()
+	laporan.Dokumen = document
+	// laporan.JenisLaporan = jenisFile
+	// laporan.TahunKe = now.Year()
+	// laporan.BulanKe = int(now.Month())
+	// laporan.MingguKe = mingguKe
+	// laporan.Dokumen = document
+
+	var krywn, atasan models.Karyawan
+	facades.Orm().Query().Where("emp_no = ?", data_keamanan[0].CreatedBy).First(&krywn)
+	if krywn.EmpNo == "" {
+		fmt.Println("Data Tidak Ditemukan")
+		return
+	}
+	facades.Orm().Query().Where("emp_no = ?", krywn.IDAtasan).First(&atasan)
+	if atasan.EmpNo == "" {
+		fmt.Println("Data Tidak Ditemukan:")
+		return
+	}
+
+	facades.Orm().Query().Save(&laporan)
+
+	approval := models.Approval{
+		LaporanID:  laporan.IDLaporan,
+		Status:     "WaitApproved",
+		ApprovedBy: atasan.EmpNo,
+	}
+
+	facades.Orm().Query().Delete(&models.Approval{}, "laporan_id = ?", laporan.IDLaporan)
+	facades.Orm().Query().Create(&approval)
 
 	fmt.Println("PDF created successfully!")
 }
 
 // LAPORAN TRIWULAN
 func (r *Pdf) LaporanTriwulan() {
+	appHost := facades.Config().Env("APP_HOST", "127.0.0.1")
+	appPort := facades.Config().Env("APP_PORT", "3000")
+	baseURL := fmt.Sprintf("http://%s:%s", appHost, appPort)
 	const (
 		templatePath    = "templates/laporan-triwulan.html"
 		newTemplatePath = "laporan-triwulan.html"
@@ -2913,7 +3251,7 @@ func (r *Pdf) LaporanTriwulan() {
 
 	monthNumbers := make([]int, len(months))
 	for i, month := range months {
-		monthNumbers[i] = monthNameMap[month]
+		monthNumbers[i] = MonthNameMap[month]
 	}
 
 	fmt.Println(monthNumbers)
@@ -2965,7 +3303,9 @@ func (r *Pdf) LaporanTriwulan() {
 		}
 	}
 
+	var id_keamanan_arr []int64
 	for _, kejadian := range dataKeamanan {
+		id_keamanan_arr = append(id_keamanan_arr, kejadian.IdKejadianKeamanan)
 		month := monthNameEnglish(time.Month(kejadian.Tanggal.Month()))
 		kejadianCountKeamanan[kejadian.JenisKejadian.NamaKejadian][month]++
 
@@ -2980,7 +3320,9 @@ func (r *Pdf) LaporanTriwulan() {
 			locationCountKeamanan[kejadian.JenisKejadian.NamaKejadian]["laut/perairan"]++
 		}
 	}
+	var id_keselamatan_arr []int64
 	for _, kejadian := range dataKeselamatan {
+		id_keselamatan_arr = append(id_keselamatan_arr, kejadian.IdKejadianKeselamatan)
 		month := monthNameEnglish(time.Month(kejadian.Tanggal.Month()))
 		kejadianCountKeselamatan[kejadian.JenisKejadian.NamaKejadian][month]++
 	}
@@ -3032,7 +3374,7 @@ func (r *Pdf) LaporanTriwulan() {
 
 	var bulan []string
 	for _, x := range monthNumbers {
-		bulan = append(bulan, monthNameIndonesia(time.Month(x)))
+		bulan = append(bulan, MonthNameIndonesia(time.Month(x)))
 	}
 
 	// Group the incidents by 'jenis_kejadian_id'
@@ -3184,7 +3526,24 @@ func (r *Pdf) LaporanTriwulan() {
 		})
 	}
 
+	var deputi models.Karyawan
+	facades.Orm().Query().
+		With("Jabatan").
+		With("User.Role").
+		Join("JOIN jabatan ON jabatan.id_jabatan = karyawan.jabatan_id").
+		Where("jabatan.name = ?", "Deputi Informasi, Hukum dan Kerja Sama").
+		First(&deputi)
+
+	firstDayNextMonth := now.AddDate(0, 1, -now.Day()+1)
+	date := fmt.Sprintf("%d %s %d", firstDayNextMonth.Day(), MonthNameIndonesia(firstDayNextMonth.Month()), firstDayNextMonth.Year())
 	templateData := struct {
+		BaseURL                                  string
+		Tanggal                                  string
+		Jabatan                                  string
+		Nama                                     string
+		IsApproved                               bool
+		Ttd                                      *string
+		Nik                                      string
 		PeriodeTriwulan                          string
 		BulanCapital                             string
 		BulanSingkatan                           []string
@@ -3202,6 +3561,13 @@ func (r *Pdf) LaporanTriwulan() {
 		TablePengelompokanLokasiKejadianKeamanan []LocationOutput
 		Tahun                                    string
 	}{
+		BaseURL:                                  baseURL,
+		Tanggal:                                  date,
+		Jabatan:                                  deputi.Jabatan.Name,
+		Nama:                                     deputi.Name,
+		IsApproved:                               false == true,
+		Ttd:                                      deputi.Ttd,
+		Nik:                                      deputi.EmpNo,
 		PeriodeTriwulan:                          triwulanKe,
 		BulanCapital:                             periodeBulan,
 		BulanSingkatan:                           months,
@@ -3221,20 +3587,71 @@ func (r *Pdf) LaporanTriwulan() {
 	}
 
 	// Save the PDF to a file
-	dirPath := "storage/app/" + year + "/Laporan Triwulan/"
-	_ = os.MkdirAll(dirPath, 0755)
+	rootPath := "storage/app/"
+	dirPath := year + "/Laporan Triwulan/"
+	fullPath := rootPath + dirPath
 
-	nameFile := "Laporan Triwulan " + triwulanKe + ".pdf"
-	path := dirPath + nameFile
-	// jenisFile := "Laporan Triwulan"
+	_ = os.MkdirAll(fullPath, 0755)
+
+	nameFile := "Laporan Triwulan " + triwulanKe
+	path := fullPath + nameFile + ".pdf"
 
 	if err := r.ParseTemplate(templatePath, newTemplatePath, templateData); err == nil {
-		r.GenerateLaporan(path)
+		r.GenerateLaporan(path, 0, "Triwulan_create/")
 	} else {
 		fmt.Println(err)
 	}
+
+	jenisFile := "Laporan Triwulan"
+	document := dirPath + nameFile + ".pdf"
+
+	// save to Laporan
+	laporan := models.Laporan{
+		NamaLaporan:  nameFile,
+		JenisLaporan: jenisFile,
+		TahunKe:      now.Year(),
+		BulanKe:      int(now.Month()),
+		Dokumen:      document,
+	}
+
+	var krywn, atasan models.Karyawan
+	facades.Orm().Query().Where("emp_no = ?", dataKeamanan[0].CreatedBy).First(&krywn)
+	if krywn.EmpNo == "" {
+		fmt.Println("Data Tidak Ditemukan")
+		return
+	}
+	facades.Orm().Query().Where("emp_no = ?", krywn.IDAtasan).First(&atasan)
+	if atasan.EmpNo == "" {
+		fmt.Println("Data Tidak Ditemukan:")
+		return
+	}
+
+	if err := facades.Orm().Query().Create(&laporan); err != nil {
+		fmt.Println("Data Gagal Ditambahkan:", err)
+		return
+	}
+	var kejadianKeamanan models.KejadianKeamanan
+	facades.Orm().Query().Model(&kejadianKeamanan).Where("id_kejadian_keamanan IN (?)", id_keamanan_arr).Update(map[string]interface{}{
+		"is_locked": true,
+	})
+
+	var kejadianKeselamatan models.KejadianKeselamatan
+	facades.Orm().Query().Model(&kejadianKeselamatan).Where("id_kejadian_keselamatan IN (?)", id_keselamatan_arr).Update(map[string]interface{}{
+		"is_locked": true,
+	})
+
+	approval := models.Approval{
+		LaporanID:  laporan.IDLaporan,
+		Status:     "WaitApproved",
+		ApprovedBy: atasan.EmpNo,
+	}
+
+	facades.Orm().Query().Create(&approval)
 }
-func (r *Pdf) LaporanTriwulanUpdate(month int, years int) {
+func (r *Pdf) LaporanTriwulanUpdate(id_laporan int64, month int, years int) {
+	appHost := facades.Config().Env("APP_HOST", "127.0.0.1")
+	appPort := facades.Config().Env("APP_PORT", "3000")
+	baseURL := fmt.Sprintf("http://%s:%s", appHost, appPort)
 	const (
 		templatePath    = "templates/laporan-triwulan.html"
 		newTemplatePath = "laporan-triwulan.html"
@@ -3273,10 +3690,8 @@ func (r *Pdf) LaporanTriwulanUpdate(month int, years int) {
 
 	monthNumbers := make([]int, len(months))
 	for i, month := range months {
-		monthNumbers[i] = monthNameMap[month]
+		monthNumbers[i] = MonthNameMap[month]
 	}
-
-	fmt.Println(monthNumbers)
 
 	query1 := facades.Orm().Query().Join("inner join jenis_kejadian k on k.id_jenis_kejadian = jenis_kejadian_id").
 		With("JenisKejadian").
@@ -3325,7 +3740,9 @@ func (r *Pdf) LaporanTriwulanUpdate(month int, years int) {
 		}
 	}
 
+	var id_keamanan_arr []int64
 	for _, kejadian := range dataKeamanan {
+		id_keamanan_arr = append(id_keamanan_arr, kejadian.IdKejadianKeamanan)
 		month := monthNameEnglish(time.Month(kejadian.Tanggal.Month()))
 		kejadianCountKeamanan[kejadian.JenisKejadian.NamaKejadian][month]++
 
@@ -3340,7 +3757,9 @@ func (r *Pdf) LaporanTriwulanUpdate(month int, years int) {
 			locationCountKeamanan[kejadian.JenisKejadian.NamaKejadian]["laut/perairan"]++
 		}
 	}
+	var id_keselamatan_arr []int64
 	for _, kejadian := range dataKeselamatan {
+		id_keselamatan_arr = append(id_keselamatan_arr, kejadian.IdKejadianKeselamatan)
 		month := monthNameEnglish(time.Month(kejadian.Tanggal.Month()))
 		kejadianCountKeselamatan[kejadian.JenisKejadian.NamaKejadian][month]++
 	}
@@ -3392,7 +3811,7 @@ func (r *Pdf) LaporanTriwulanUpdate(month int, years int) {
 
 	var bulan []string
 	for _, x := range monthNumbers {
-		bulan = append(bulan, monthNameIndonesia(time.Month(x)))
+		bulan = append(bulan, MonthNameIndonesia(time.Month(x)))
 	}
 
 	// Group the incidents by 'jenis_kejadian_id'
@@ -3544,7 +3963,24 @@ func (r *Pdf) LaporanTriwulanUpdate(month int, years int) {
 		})
 	}
 
+	var deputi models.Karyawan
+	facades.Orm().Query().
+		With("Jabatan").
+		With("User.Role").
+		Join("JOIN jabatan ON jabatan.id_jabatan = karyawan.jabatan_id").
+		Where("jabatan.name = ?", "Deputi Informasi, Hukum dan Kerja Sama").
+		First(&deputi)
+
+	newDate := time.Now()
+	date := fmt.Sprintf("%d %s %d", newDate.Day(), MonthNameIndonesia(newDate.Month()), newDate.Year())
 	templateData := struct {
+		BaseURL                                  string
+		Tanggal                                  string
+		Jabatan                                  string
+		Nama                                     string
+		IsApproved                               bool
+		Ttd                                      *string
+		Nik                                      string
 		PeriodeTriwulan                          string
 		BulanCapital                             string
 		BulanSingkatan                           []string
@@ -3562,6 +3998,13 @@ func (r *Pdf) LaporanTriwulanUpdate(month int, years int) {
 		TablePengelompokanLokasiKejadianKeamanan []LocationOutput
 		Tahun                                    string
 	}{
+		BaseURL:                                  baseURL,
+		Tanggal:                                  date,
+		Jabatan:                                  deputi.Jabatan.Name,
+		Nama:                                     deputi.Name,
+		IsApproved:                               false == true,
+		Ttd:                                      deputi.Ttd,
+		Nik:                                      deputi.EmpNo,
 		PeriodeTriwulan:                          triwulanKe,
 		BulanCapital:                             periodeBulan,
 		BulanSingkatan:                           months,
@@ -3581,16 +4024,63 @@ func (r *Pdf) LaporanTriwulanUpdate(month int, years int) {
 	}
 
 	// Save the PDF to a file
-	dirPath := "storage/app/" + year + "/Laporan Triwulan/"
-	_ = os.MkdirAll(dirPath, 0755)
+	rootPath := "storage/app/"
+	dirPath := year + "/Laporan Triwulan/"
+	fullPath := rootPath + dirPath
 
-	nameFile := "Laporan Triwulan " + triwulanKe + ".pdf"
-	path := dirPath + nameFile
-	// jenisFile := "Laporan Triwulan"
+	_ = os.MkdirAll(fullPath, 0755)
+
+	nameFile := "Laporan Triwulan " + triwulanKe
+	path := fullPath + nameFile + ".pdf"
 
 	if err := r.ParseTemplate(templatePath, newTemplatePath, templateData); err == nil {
-		r.GenerateLaporan(path)
+		r.GenerateLaporan(path, 0, "Triwulan_update/")
 	} else {
 		fmt.Println(err)
 	}
+
+	jenisFile := "Laporan Triwulan"
+	document := dirPath + nameFile + ".pdf"
+
+	var laporan models.Laporan
+	facades.Orm().Query().Where("id_laporan=?", id_laporan).First(&laporan)
+	// save to Laporan
+
+	laporan.NamaLaporan = nameFile
+	laporan.JenisLaporan = jenisFile
+	laporan.TahunKe = now.Year()
+	laporan.BulanKe = int(now.Month())
+	laporan.Dokumen = document
+
+	var krywn, atasan models.Karyawan
+	facades.Orm().Query().Where("emp_no = ?", dataKeamanan[0].CreatedBy).First(&krywn)
+	if krywn.EmpNo == "" {
+		fmt.Println("Data Tidak Ditemukan")
+		return
+	}
+	facades.Orm().Query().Where("emp_no = ?", krywn.IDAtasan).First(&atasan)
+	if atasan.EmpNo == "" {
+		fmt.Println("Data Tidak Ditemukan:")
+		return
+	}
+
+	facades.Orm().Query().Save(&laporan)
+
+	var kejadianKeamanan models.KejadianKeamanan
+	facades.Orm().Query().Model(&kejadianKeamanan).Where("id_kejadian_keamanan IN (?)", id_keamanan_arr).Update(map[string]interface{}{
+		"is_locked": true,
+	})
+
+	var kejadianKeselamatan models.KejadianKeselamatan
+	facades.Orm().Query().Model(&kejadianKeselamatan).Where("id_kejadian_keselamatan IN (?)", id_keselamatan_arr).Update(map[string]interface{}{
+		"is_locked": true,
+	})
+
+	approval := models.Approval{
+		LaporanID:  laporan.IDLaporan,
+		Status:     "WaitApproved",
+		ApprovedBy: atasan.EmpNo,
+	}
+
+	facades.Orm().Query().Create(&approval)
 }
