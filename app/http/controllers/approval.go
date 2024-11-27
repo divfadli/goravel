@@ -100,28 +100,27 @@ func (r *Approval) StoreApproval(ctx http.Context) http.Response {
 				date := fmt.Sprintf("%d %s %d", now.Day(), generator.MonthNameIndonesia(now.Month()), now.Year())
 				fmt.Printf("%d %s %d\n", now.Day(), generator.MonthNameIndonesia(now.Month()), now.Year())
 				outputPath := fmt.Sprintf("storage/temp/%s/output-ttd-acc.pdf", approval.Laporan.JenisLaporan)
+				templateData := struct {
+					BaseURL    string
+					Tanggal    string
+					Jabatan    string
+					Nama       string
+					IsApproved bool
+					Ttd        *string
+					Nik        string
+				}{
+					BaseURL:    baseURL,
+					Tanggal:    date,
+					Jabatan:    approval.Karyawan.Jabatan.Name,
+					Nama:       approval.Karyawan.Name,
+					IsApproved: true == true,
+					Ttd:        approval.Karyawan.Ttd,
+					Nik:        approval.Karyawan.EmpNo,
+				}
 
 				if approval.Laporan.JenisLaporan == "Laporan Mingguan" {
 					templatePath := "templates/ttd-mingguan.html"
 					newTemplatePath := "ttd-mingguan.html"
-
-					templateData := struct {
-						BaseURL    string
-						Tanggal    string
-						Jabatan    string
-						Nama       string
-						IsApproved bool
-						Ttd        *string
-						Nik        string
-					}{
-						BaseURL:    baseURL,
-						Tanggal:    date,
-						Jabatan:    approval.Karyawan.Jabatan.Name,
-						Nama:       approval.Karyawan.Name,
-						IsApproved: true == true,
-						Ttd:        approval.Karyawan.Ttd,
-						Nik:        approval.Karyawan.EmpNo,
-					}
 
 					if err := r.pdf.ParseTemplate(templatePath, newTemplatePath, templateData); err == nil {
 						// Generate Image
@@ -142,24 +141,6 @@ func (r *Approval) StoreApproval(ctx http.Context) http.Response {
 				} else {
 					templatePath := "templates/ttd-word.html"
 					newTemplatePath := "ttd-word.html"
-
-					templateData := struct {
-						BaseURL    string
-						Tanggal    string
-						Jabatan    string
-						Nama       string
-						IsApproved bool
-						Ttd        *string
-						Nik        string
-					}{
-						BaseURL:    baseURL,
-						Tanggal:    date,
-						Jabatan:    approval.Karyawan.Jabatan.Name,
-						Nama:       approval.Karyawan.Name,
-						IsApproved: true == true,
-						Ttd:        approval.Karyawan.Ttd,
-						Nik:        approval.Karyawan.EmpNo,
-					}
 
 					if err := r.pdf.ParseTemplate(templatePath, newTemplatePath, templateData); err == nil {
 						success, _ := r.pdf.GenerateLaporan(outputPath, pageCount, approval.Laporan.JenisLaporan+"/")
