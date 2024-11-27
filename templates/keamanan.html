@@ -28,13 +28,13 @@
         }
 
         .table-custom-size td:first-child {
-            width: 30%;
-            min-width: 30%;
+            width: 40%;
+            min-width: 40%;
         }
 
         .table-custom-size td:last-child {
-            width: 100%;
-            min-width: 70%;
+            width: 60%;
+            min-width: 60%;
         }
 
         .leaflet-control-attribution {
@@ -81,7 +81,7 @@
 </head>
 
 <body>
-    <div class="container">
+    <div class="container-fluid">
         <div class="row align-items-center custom-bg-blue mb-3">
             <div class="col-2">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/7/77/Logo_of_the_Maritime_Security_Agency_of_the_Republic_of_Indonesia.png"
@@ -91,44 +91,44 @@
                 <h1>{{.Title}}</h1>
             </div>
         </div>
-        <div class="row align-items-center mb-3">
+        <div class="row">
             <div class="col-6">
-                <table class="table table-custom-size table-bordered table-striped table-sm">
+                <table class="table table-custom-size table-bordered table-striped table-sm mb-4">
                     <tbody>
                         <tr>
-                            <td>Tanggal</td>
+                            <td class="font-weight-bold bg-light" width="50%">Tanggal</td>
                             <td>{{.Waktu}}</td>
                         </tr>
                         <tr>
-                            <td>Kejadian</td>
+                            <td class="font-weight-bold bg-light">Kejadian</td>
                             <td>{{.Kejadian}}</td>
                         </tr>
                         <tr>
-                            <td>Jenis & Nama Kapal</td>
+                            <td class="font-weight-bold bg-light">Jenis & Nama Kapal</td>
                             <td>{{.NamaKapal}}</td>
                         </tr>
                         <tr>
-                            <td>ABK</td>
+                            <td class="font-weight-bold bg-light">ABK</td>
                             <td>{{.ABK}}</td>
                         </tr>
                         <tr>
-                            <td>Muatan</td>
+                            <td class="font-weight-bold bg-light">Muatan</td>
                             <td>{{.Muatan}}</td>
                         </tr>
                         <tr>
-                            <td>Lokasi Kejadian</td>
+                            <td class="font-weight-bold bg-light">Lokasi Kejadian</td>
                             <td>{{.Lokasi}}</td>
                         </tr>
                         <tr>
-                            <td>Instansi Penindak</td>
+                            <td class="font-weight-bold bg-light">Instansi Penindak</td>
                             <td>{{.InstansiPenindak}}</td>
                         </tr>
                         <tr>
-                            <td>Keterangan</td>
+                            <td class="font-weight-bold bg-light">Keterangan</td>
                             <td>{{.Keterangan}}</td>
                         </tr>
                         <tr>
-                            <td>Sumber Berita</td>
+                            <td class="font-weight-bold bg-light">Sumber Berita</td>
                             <td>
                                 {{range $index, $url := split .SumberBerita "\n"}}
                                     {{if contains $url "http"}}
@@ -140,23 +140,23 @@
                             </td>                            
                         </tr>
                     </tbody>
-                </table>
-                
+                </table> 
             </div>
             <div class="col-6">
                 <div class="row mb-3">
-                    {{$baseURL := .BaseURL}}
-                    {{range .Images}}
-                    <div class="col">
-                        <img src="{{$baseURL}}/api/files/{{.Url}}" alt="Image" class="img-fluid">
-                    </div>                  
-                    {{end}}
+                    <div class="col-12">
+                        <div id="map" class="rounded mb-3"></div>
+                        <div id="map-legend" class="rounded"></div>
+                    </div>
                 </div>
                 <div class="row mb-3">
-                    <div class="col">
-                        <div id="map"></div>
-                        <div id="map-legend" class="mt-3"></div>
-                    </div>
+                    {{$baseURL := .BaseURL}}
+                    {{range .Images}}
+                    <div class="col-12 mb-2">
+                        <img src="{{$baseURL}}/api/files/{{.Url}}" alt="Image" class="img-fluid rounded"
+                        style="width: 40%; height: auto;">
+                    </div>                  
+                    {{end}}
                 </div>
             </div>
         </div>

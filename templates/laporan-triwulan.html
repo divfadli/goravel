@@ -19,6 +19,38 @@
 
     <title>Hello, worldd!</title>
     <style>
+         .signature-container {
+            margin-top: 100px;
+            margin-left: auto;
+            margin-right: 200px;
+            width: 350px;
+        }
+
+        .signature-img {
+            width: 200px;
+            height: auto;
+            object-fit: contain;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .signature-text {
+            margin-bottom: 5px;
+            line-height: 2;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .signature-name {
+            font-weight: bold;
+        }
+        
         tr {
             page-break-before: always;
             page-break-after: always;
@@ -410,7 +442,7 @@
             </div>
         </div>
 
-        <div class="row align-items-center mb-3">
+        <div class="row align-items-center mb-3 pb_after">
             <div class="col">
                 <h5>4. Dari hasil pengumpulan informasi dan data beserta analisis, dapat disimpulkan sebagai berikut:</h5>
                     {{ $lengthKejadianKeamanan := len .KejadianKeamanan }}
@@ -554,6 +586,30 @@
                 </ol>
             </div>
         </div>
+
+        <table class="signature-container">
+            <tr>
+                <td class="signature-text text-right">Jakarta, {{.Tanggal}}</td>
+            </tr>
+            <tr>
+                <td class="signature-text text-right">{{.Jabatan}}</td>
+            </tr>
+            <tr>
+                <td class="text-center">
+                    {{if .IsApproved}}
+                        <img src="{{.BaseURL}}/api/files/{{.Ttd}}" alt="Signature" class="signature-img">
+                        {{else}}
+                        <br><br>
+                    {{end}}
+                </td>
+            </tr>
+            <tr>
+                <td class="signature-text signature-name text-center"><u>{{.Nama}}</u></td>
+            </tr>
+            <tr>
+                <td class="signature-text signature-name text-center">({{.Nik}})</td>
+            </tr>
+        </table>  
     </div>
     
     <!-- Optional JavaScript -->

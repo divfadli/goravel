@@ -77,8 +77,8 @@
 </head>
 
 <body>
-    <div class="container">
-        <div class="row align-items-center custom-bg-blue mb-3">
+    <div class="container-fluid">
+        <div class="row align-items-center custom-bg-blue mb-4">
             <div class="col-2">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/7/77/Logo_of_the_Maritime_Security_Agency_of_the_Republic_of_Indonesia.png"
                     alt="Logo" id="logo">
@@ -87,15 +87,15 @@
                 <h1>LAPORAN MINGGUAN DATIN BULAN {{.BulanCapital}} {{.Tahun}}</h1>
             </div>
         </div>
-        <div class="row align-items-center">
+        <div class="row">
             <div class="col-6">
-                <div class="row mb-6">
-                    <div class="col">
+                <div class="row">
+                    <div class="col-12">
                         <div class="reportGraph"><canvas id="graph_pelanggaran"></canvas></div>
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col">
+                    <div class="col-12">
                         <script>
                             var jenisKejadian = [];
                         </script>
@@ -146,9 +146,9 @@
                 </div>
             </div>
             <div class="col-6">
-                <div class="row mb-3">
-                    <div class="col">
-                        <h4>Jumlah Pelanggaran Laut Minggu Ke {{.MingguKe}} Bulan {{.Bulan}} {{.Tahun}}</h4>
+                <div class="row">
+                    <div class="col-12">
+                        <h4 class="mb-3">Jumlah Pelanggaran Laut Minggu Ke {{.MingguKe}} Bulan {{.Bulan}} {{.Tahun}}</h4>
                         <div id="map">
                             <script>
                                 var marker;
@@ -168,11 +168,9 @@
                                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {}).addTo(map);
                             </script>
                         </div>
-                        <div id="map-legend" class="mt-3">
-
-                        </div>
+                        <div id="map-legend" class="mt-3"></div>
                     </div>
-                </div>
+                </div> 
             </div>
         </div>
     </div>
