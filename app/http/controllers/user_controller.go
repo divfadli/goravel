@@ -340,13 +340,6 @@ func (r *UserController) Register(ctx http.Context) http.Response {
 	})
 }
 
-func (r *UserController) UpdateInfo(ctx http.Context) http.Response {
-	// var req RequestUser.UpdateInfo
-	return Success(ctx, http.Json{
-		"Success": "Data Berhasil Ditambahkan",
-	})
-}
-
 // func (r *UserController) Info(ctx http.Context) http.Response {
 // 	var user models.Akun
 // 	err := facades.Auth().User(ctx, &user)
