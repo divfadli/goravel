@@ -2,12 +2,23 @@ package generator
 
 import (
 	"fmt"
+	"goravel/app/models"
 	"log"
 	"time"
 
 	"github.com/go-co-op/gocron/v2"
 	"github.com/google/uuid"
+	"github.com/goravel/framework/facades"
 )
+
+func safeExecute(job func()) {
+	defer func() {
+		if r := recover(); r != nil {
+			facades.Log().Error(fmt.Sprintf("Job panic recovered: %v", r))
+		}
+	}()
+	job()
+}
 
 func QuarterlyGenerate() {
 	s, _ := gocron.NewScheduler()
@@ -18,19 +29,21 @@ func QuarterlyGenerate() {
 	// QuarterlyJob Every 3 Month
 	QuarterlyJob, _ := s.NewJob(
 		gocron.MonthlyJob(3, gocron.NewDaysOfTheMonth(-1), gocron.NewAtTimes(
-			gocron.NewAtTime(23, 50, 0),
+			gocron.NewAtTime(23, 59, 0),
 		)),
 		gocron.NewTask(
 			func() {
-				currentTime := time.Now()
-				month := currentTime.Month()
+				safeExecute(func() {
+					currentTime := time.Now()
+					month := currentTime.Month()
 
-				// Only generate for quarter-end months (3,6,9,12)
-				if month == time.March || month == time.June ||
-					month == time.September || month == time.December {
-					generate := NewPdf("")
-					generate.LaporanTriwulan()
-				}
+					// Only generate for quarter-end months (3,6,9,12)
+					if month == time.March || month == time.June ||
+						month == time.September || month == time.December {
+						generate := NewPdf("")
+						generate.LaporanTriwulan()
+					}
+				})
 			},
 		),
 		gocron.WithName("QuarterlyReportJob"),
@@ -42,16 +55,28 @@ func QuarterlyGenerate() {
 	)
 	jobs["QuarterlyReportJob"] = QuarterlyJob.ID()
 
-	// Update QuarterlyUpdateJob Every Monday
+	// Update QuarterlyUpdateJob Every Saturday
 	QuarterlyUpdateJob, _ := s.NewJob(
 		gocron.WeeklyJob(1, gocron.NewWeekdays(time.Monday), gocron.NewAtTimes(
-			gocron.NewAtTime(0, 10, 0),
+			gocron.NewAtTime(0, 0, 0),
 		)),
 		gocron.NewTask(
-			// generate laporan mingguan
+			// generate laporan quarterly
 			func() {
-				generate := NewPdf("")
-				generate.LaporanTriwulanUpdate(6, 2024)
+				safeExecute(func() {
+					generate := NewPdf("")
+					var laporan []models.Laporan
+					facades.Orm().Query().
+						Join("INNER JOIN public.approval apv ON apv.laporan_id = laporan.id_laporan").
+						Where("apv.status = ? AND laporan.jenis_laporan = ?", "Rejected", "Laporan Triwulan").
+						Find(&laporan)
+
+					for _, lp := range laporan {
+						fmt.Println(lp.IDLaporan)
+						generate.LaporanTriwulanUpdate(lp.IDLaporan,
+							lp.BulanKe, lp.TahunKe)
+					}
+				})
 			},
 		),
 		gocron.WithName("QuarterlyReportUpdateJob"),
@@ -94,13 +119,15 @@ func MonthlyGenerate() {
 	// add a job to the scheduler
 	monthlyJob, _ := s.NewJob(
 		gocron.MonthlyJob(1, gocron.NewDaysOfTheMonth(-1), gocron.NewAtTimes(
-			gocron.NewAtTime(00, 00, 00),
+			gocron.NewAtTime(23, 59, 00),
 		)),
 		gocron.NewTask(
 			// TODO: generate laporan bulanan
 			func() {
-				generate := NewPdf("")
-				generate.LaporanBulanan()
+				safeExecute(func() {
+					generate := NewPdf("")
+					generate.LaporanBulanan()
+				})
 			},
 		),
 		gocron.WithName("MonthlyReportJob"),
@@ -118,16 +145,28 @@ func MonthlyGenerate() {
 	)
 	jobs["MonthlyReportJob"] = monthlyJob.ID()
 
-	// Update MonthlyReportJob every Monday
+	// Update MonthlyReportJob every Saturday
 	monthlyUpdateJob, _ := s.NewJob(
 		gocron.WeeklyJob(1, gocron.NewWeekdays(time.Monday), gocron.NewAtTimes(
-			gocron.NewAtTime(0, 10, 0),
+			gocron.NewAtTime(0, 0, 0),
 		)),
 		gocron.NewTask(
-			// generate laporan mingguan
+			// generate laporan Bulanan
 			func() {
-				generate := NewPdf("")
-				generate.LaporanBulananUpdate(6, 2024)
+				safeExecute(func() {
+					generate := NewPdf("")
+					var laporan []models.Laporan
+					facades.Orm().Query().
+						Join("INNER JOIN public.approval apv ON apv.laporan_id = laporan.id_laporan").
+						Where("apv.status = ? AND laporan.jenis_laporan = ?", "Rejected", "Laporan Bulanan").
+						Find(&laporan)
+
+					for _, lp := range laporan {
+						fmt.Println(lp.IDLaporan)
+						generate.LaporanBulananUpdate(lp.IDLaporan,
+							lp.BulanKe, lp.TahunKe)
+					}
+				})
 			},
 		),
 		gocron.WithName("MonthlyReportUpdateJob"),
@@ -168,13 +207,15 @@ func WeeklyGenerate() {
 	// add a job to the scheduler
 	weeklyJob, _ := s.NewJob(
 		gocron.WeeklyJob(1, gocron.NewWeekdays(time.Monday), gocron.NewAtTimes(
-			gocron.NewAtTime(0, 0, 0),
+			gocron.NewAtTime(00, 00, 00),
 		)),
 		gocron.NewTask(
 			// generate laporan mingguan
 			func() {
-				generate := NewPdf("")
-				generate.LaporanMingguan()
+				safeExecute(func() {
+					generate := NewPdf("")
+					generate.LaporanMingguan()
+				})
 			},
 		),
 		gocron.WithName("WeeklyReportJob"),
@@ -195,13 +236,24 @@ func WeeklyGenerate() {
 	// Update WeeklyReportJob
 	weeklyUpdateJob, _ := s.NewJob(
 		gocron.WeeklyJob(1, gocron.NewWeekdays(time.Monday), gocron.NewAtTimes(
-			gocron.NewAtTime(0, 10, 0),
+			// gocron.NewAtTime(00, 00, 00),
+			gocron.NewAtTime(0, 0, 00),
 		)),
 		gocron.NewTask(
 			// generate laporan mingguan
 			func() {
-				generate := NewPdf("")
-				generate.LaporanMingguanUpdate(4, 1, 9, 2024)
+				safeExecute(func() {
+					generate := NewPdf("")
+
+					var laporan []models.Laporan
+					facades.Orm().Query().
+						Join("INNER JOIN public.approval apv ON apv.laporan_id = laporan.id_laporan").
+						Where("apv.status = ? AND laporan.jenis_laporan = ?", "Rejected", "Laporan Mingguan").
+						Find(&laporan)
+					for _, lp := range laporan {
+						generate.LaporanMingguanUpdate(lp.IDLaporan, lp.MingguKe, lp.BulanKe, lp.TahunKe)
+					}
+				})
 			},
 		),
 		gocron.WithName("WeeklyReportUpdateJob"),
