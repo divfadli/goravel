@@ -15,6 +15,8 @@ func Api() {
 
 	// facades.Route().Post("/storeLaporan", laporan.Create)
 	generates := pdf.NewPdf("")
+	facades.Route().Get("extract-pdf", generates.ExtractedPdf)
+	facades.Route().Get("ttd-pdf", generates.TtdMingguan)
 	facades.Route().Static("storage", "./storage")
 
 	// Generate Laporan
