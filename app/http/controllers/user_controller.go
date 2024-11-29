@@ -50,6 +50,7 @@ func (r *UserController) Index(ctx http.Context) http.Response {
 			"pageheading": "Edit profile",
 			"version":     support.Version,
 			"pengguna":    dataKaryawan,
+			"data":        userInfo,
 		})
 	}
 
