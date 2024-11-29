@@ -13,7 +13,7 @@
                         <div class="form-inline">
                             <div class="ml-auto">   
                                 <a href="/jenis_kejadian/form_jenis_kejadian" class="btn btn-primary py-2 px-4 font-weight-bolder font-size-m">
-                                    <i class="flaticon2-plus icon-sm"></i>Tambah Data
+                                    <i class="fas fa-plus icon-sm mr-2"></i>Tambah Data
                                 </a>
                             </div>
                         </div>
@@ -88,12 +88,15 @@
                         var nama_kejadian = `<span class="font-weight-bold font-size-sm text-dark-50">${x.nama_kejadian}</span>`
                         var klasifikasi_name = `<span class="font-weight-bold font-size-sm text-dark-50">${x.klasifikasi_name}</span>`
                         var url = window.location.href + `form_jenis_kejadian?id_jenis_kejadian=${x.id_jenis_kejadian}`
-                        var action = `  <a href="${url}" class="btn btn-icon my-2 btn-sm btn-warning">
-                                            <i class="flaticon2-edit">Edit</i>
+                        var action = `      
+                                    <div class="d-flex justify-content-center align-items-center">                                    
+                                        <a href="${url}" class="btn btn-icon btn-sm btn-dark mx-2">
+                                            <i class="fas fa-edit"></i>
                                         </a>
-                                        <button type="button" onclick="deleteJenisKejadian('${x.id_jenis_kejadian}')" class="btn btn-icon my-2 btn-sm btn-danger">
-                                            <i class="flaticon2-trash">Delete</i>
-                                        </button>`
+                                        <button type="button" onclick="deleteJenisKejadian('${x.id_jenis_kejadian}')" class="btn btn-icon btn-sm btn-dark mx-2">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>`
                         table.row.add([nama_kejadian, klasifikasi_name, action]).draw(false)
                     })
                 }
