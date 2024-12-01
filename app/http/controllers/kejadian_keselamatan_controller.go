@@ -6,6 +6,8 @@ import (
 	kejadianKeselamatan "goravel/app/http/requests/kejadian_keselamatan"
 	"goravel/app/models"
 	template "html/template"
+	"image"
+	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -503,32 +505,33 @@ func (r *KejadianKeselamatanController) ExportExcel(ctx http.Context) http.Respo
 			Where("imk.kejadian_keselamatan_id=?", item.IdKejadianKeselamatan).
 			Find(&images); err == nil && len(images) > 0 {
 
-			// Enhanced image placement configuration
-			const (
-				imageScale   = 0.25 // Reduced scale for better fit
-				baseOffsetY  = 5    // Increased top padding
-				imagesPerRow = 2    // 2 images per row for better organization
-				imageSpacing = 20   // Increased spacing between images
-				rowSpacing   = 25   // Vertical spacing between rows
-			)
-
-			for idx, img := range images {
+			for _, img := range images {
 				physicalPath := facades.Storage().Path(strings.TrimPrefix(img.Url, "/storage/app/"))
 
-				// Calculate grid position
-				rowPosition := idx / imagesPerRow
-				colPosition := idx % imagesPerRow
+				// Get image dimensions
+				imgFile, err := os.Open(physicalPath)
+				if err != nil {
+					facades.Log().Error(fmt.Sprintf("Failed to open image %s: %v", img.Url, err))
+					continue
+				}
+				defer imgFile.Close()
 
-				// Calculate precise positioning
-				offsetX := float64(colPosition * imageSpacing)
-				offsetY := float64(rowPosition*rowSpacing) + baseOffsetY
+				imgConfig, _, err := image.DecodeConfig(imgFile)
+				if err != nil {
+					facades.Log().Error(fmt.Sprintf("Failed to decode image %s: %v", img.Url, err))
+					continue
+				}
 
-				err := f.AddPicture(sheet, imgCell, physicalPath, &excelize.GraphicOptions{
-					ScaleX:      imageScale,
-					ScaleY:      imageScale,
-					Positioning: "oneCell",
-					OffsetX:     int(offsetX),
-					OffsetY:     int(offsetY),
+				// Calculate real height in Excel units
+				realHeight := float64(imgConfig.Height)
+				if realHeight > rowHeight {
+					rowHeight = realHeight
+				}
+
+				err = f.AddPicture(sheet, imgCell, physicalPath, &excelize.GraphicOptions{
+					Positioning:         "oneCell",
+					AutoFit:             true,
+					AutoFitIgnoreAspect: true,
 				})
 				if err != nil {
 					facades.Log().Error(fmt.Sprintf("Failed to add image %s: %v", img.Url, err))
@@ -536,12 +539,6 @@ func (r *KejadianKeselamatanController) ExportExcel(ctx http.Context) http.Respo
 				}
 			}
 
-			// Dynamic row height based on number of images
-			numRows := (len(images) + imagesPerRow - 1) / imagesPerRow
-			rowHeight := float64(baseOffsetY + (numRows * rowSpacing))
-			if rowHeight < 30 {
-				rowHeight = 30 // Minimum row height
-			}
 			f.SetRowHeight(sheet, row, rowHeight)
 		}
 
