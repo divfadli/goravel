@@ -442,6 +442,21 @@ func (r *KejadianKeselamatanController) ExportExcel(ctx http.Context) http.Respo
 		f.SetCellStyle(sheet, cell, cell, headerStyle)
 	}
 
+	// Optimize column widths
+	columnWidths := map[string]float64{
+		"A": 15, // Tanggal
+		"B": 25, // Nama Kapal
+		"C": 25, // Jenis Kejadian
+		"D": 30, // Lokasi
+		"E": 20, // Penyebab
+		"F": 15, // Zona
+		"G": 50, // Images
+	}
+
+	for col, width := range columnWidths {
+		f.SetColWidth(sheet, col, col, width)
+	}
+
 	// Write data rows with optimized image handling
 	for i, item := range kejadianKeselamatan {
 		row := i + 2
@@ -530,21 +545,6 @@ func (r *KejadianKeselamatanController) ExportExcel(ctx http.Context) http.Respo
 			f.SetRowHeight(sheet, row, rowHeight)
 		}
 
-	}
-
-	// Optimize column widths
-	columnWidths := map[string]float64{
-		"A": 15, // Tanggal
-		"B": 25, // Nama Kapal
-		"C": 25, // Jenis Kejadian
-		"D": 30, // Lokasi
-		"E": 20, // Penyebab
-		"F": 15, // Zona
-		"G": 45, // Images
-	}
-
-	for col, width := range columnWidths {
-		f.SetColWidth(sheet, col, col, width)
 	}
 
 	// Generate file with timestamp
