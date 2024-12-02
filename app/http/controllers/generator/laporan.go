@@ -1388,6 +1388,7 @@ func (r *Pdf) LaporanMingguan() {
 	}
 
 	var kejadianKeamanan models.KejadianKeamanan
+
 	facades.Orm().Query().Model(&kejadianKeamanan).Where("id_kejadian_keamanan IN (?)", id_keamanan_arr).Update(map[string]interface{}{
 		"is_locked": true,
 	})
@@ -2033,7 +2034,8 @@ func (r *Pdf) LaporanMingguanUpdate(id_laporan int64, weeksTo int, month int, ye
 	}
 
 	// ttd
-	date := fmt.Sprintf("%d %s %d", now.Day(), bulan, now.Year())
+	newDate := time.Now()
+	date := fmt.Sprintf("%d %s %d", newDate.Day(), MonthNameIndonesia(newDate.Month()), newDate.Year())
 	var deputi models.Karyawan
 	facades.Orm().Query().
 		With("Jabatan").
