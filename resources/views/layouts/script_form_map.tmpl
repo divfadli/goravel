@@ -72,11 +72,12 @@
             let searchInput = $('#cari_lokasi').val();
             
             // Check if input contains coordinates
-            const regexdms = /^(\d{1,2})°\s*(\d{1,2})[′`']\s*(\d{1,3}(\.\d+)?)[″"]\s*(LS|LU|S|N)\s+(\d{1,3})°\s*(\d{1,2})[′`']\s*(\d{1,2}(\.\d+)?)[″"]\s*(BT|BB|E|W)$/
-            const regexddm = /^(\d{1,2})°\s*(\d{1,2}(\.\d+)?)\s*([LS|LU|S|N])\s+(\d{1,3})°\s*(\d{1,2}(\.\d+)?)\s*([BT|BB|E|W])$/;
+            const regexdms = /^(\d{1,3})°\s*(\d{1,2})[′`']\s*(\d{1,3}(\.\d+)?)[″"]\s*(LS|LU|S|N)\s+(\d{1,3})°\s*(\d{1,2})[′`']\s*(\d{1,2}(\.\d+)?)[″"]\s*(BT|BB|E|W)$/
+            const regexddm = /^(\d{1,3})°\s*(\d{1,2}(\.\d+)?)[′`']\s*([LS|LU|S|N])\s+(\d{1,3})°\s*(\d{1,2}(\.\d+)?)[′`']\s*([BT|BB|E|W])$/;
             let coordinateMatch = searchInput.match(/^(-?\d+\.?\d*)\s*[,\s]\s*(-?\d+\.?\d*)$/);
             let dmsCoordinateMatch = searchInput.match(regexdms);
             let ddmCoordinateMatch = searchInput.match(regexddm);
+            console.log(regexdms, regexddm)
 
             // Clear error message koordinat
             $('#koordinat').removeClass('is-invalid');
