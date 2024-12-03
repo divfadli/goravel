@@ -19,6 +19,7 @@ type Karyawan struct {
 	Ttd          *string     `json:"ttd" gorm:"default: null" column:"ttd"`
 	NameFileTtd  *string     `json:"name_file_ttd" gorm:"-"`
 	orm.Timestamps
+	orm.SoftDeletes
 }
 
 func (r *Karyawan) TableName() string {

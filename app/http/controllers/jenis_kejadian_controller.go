@@ -87,7 +87,7 @@ func (r *JenisKejadianController) ListKejadian(ctx http.Context) http.Response {
 	var data []models.JenisKejadian
 	query := facades.Orm().Query()
 	if req.KlasifikasiName != "" {
-		query = query.Where("klasifikasi_name =? AND deleted_at IS NULL", req.KlasifikasiName)
+		query = query.Where("klasifikasi_name =?", req.KlasifikasiName)
 	}
 
 	if err := query.Find(&data); err != nil || len(data) == 0 {
@@ -108,7 +108,7 @@ func (r *JenisKejadianController) ShowDetailKejadian(ctx http.Context) http.Resp
 
 	var data models.JenisKejadian
 
-	if err := facades.Orm().Query().Where("id_jenis_kejadian=? AND deleted_at IS NULL", req.IdJenisKejadian).First(&data); err != nil || data.IDJenisKejadian == "" {
+	if err := facades.Orm().Query().Where("id_jenis_kejadian=?", req.IdJenisKejadian).First(&data); err != nil || data.IDJenisKejadian == "" {
 		return ErrorSystem(ctx, "Data Tidak Ada")
 	}
 

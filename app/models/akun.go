@@ -11,6 +11,7 @@ type Akun struct {
 	orm.Timestamps
 	RoleID int  `json:"role_id" gorm:"default:null" column:"role_id"`
 	Role   Role `gorm:"foreign_key:RoleID"`
+	orm.SoftDeletes
 }
 
 func (r *Akun) TableName() string {
