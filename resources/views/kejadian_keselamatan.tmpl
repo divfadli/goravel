@@ -150,13 +150,13 @@
             // Tanggal column
             targets: [0],
             width: '120px',
-            className: 'dt-head-center dt-body-nowrap'
+            className: 'dt-head-center dt-body-center'
         },
         {
             // Jenis Kecelakaan column  
             targets: [1],
             width: '200px',
-            className: 'dt-head-center dt-body-nowrap',
+            className: 'dt-head-center dt-body-left',
             render: function(data, type, row) {
                 return '<div style="white-space: normal; word-wrap: break-word; max-width: 200px;">' + data + '</div>';
             }
@@ -165,7 +165,7 @@
             // Lokasi Kejadian column
             targets: [2],
             width: '250px', 
-            className: 'dt-head-center text-wrap',
+            className: 'dt-head-dt-body-left',
             render: function(data, type, row) {
                 return '<div style="white-space: normal; word-wrap: break-word; max-width: 250px;">' + data + '</div>';
             }
@@ -174,16 +174,20 @@
             // Zona column
             targets: [3],
             width: '100px',
-            className: 'dt-head-center dt-body-nowrap'
-        {{if .data.is_staff}}
-        },
+            className: 'dt-head-center dt-body-center',
+            render: function(data, type, row) {
+                return '<div class="text-nowrap">' + data + '</div>';
+            }
+        }
+        {{if .data.is_staff}},
         {
             // Pilihan column
             targets: [4],
             width: '100px',
-            className: 'dt-head-center dt-body-nowrap'
+            className: 'dt-head-center dt-body-center'
         {{end}}
         }],
+        autoWidth: false,
         processing: true,
         bLengthChange: true,
         language: {
