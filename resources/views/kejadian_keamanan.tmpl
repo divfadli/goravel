@@ -136,12 +136,14 @@
         columnDefs: [{
             targets: [0,1,2,3],
             createdCell: function (td,cellData, rowData, row, col) {
-                $(td).css('cursor', 'pointer');
-                $(td).on('click', function(){
-                    const id = arr_data[row].id_kejadian_keamanan;
-                    $('#detailModal .modal-body').html(`<iframe src="/detail/keamanan/${id}" width="100%" height="600px" frameborder="0" class="border-0"></iframe>`);
-                    $('#detailModal').modal('show');
-                });
+                if(arr_data[row].is_locked){
+                    $(td).css('cursor', 'pointer');
+                    $(td).on('click', function(){
+                        const id = arr_data[row].id_kejadian_keamanan;
+                        $('#detailModal .modal-body').html(`<iframe src="/detail/keamanan/${id}" width="100%" height="600px" frameborder="0" class="border-0"></iframe>`);
+                        $('#detailModal').modal('show');
+                    });
+                }
             }
         },
         {
@@ -225,7 +227,7 @@
                         var lokasi_kejadian = `<span class="font-weight-bold font-size-sm text-dark-50">${x.lokasi_kejadian}</span>`
                         var zona = `<span class="font-weight-bold font-size-sm text-dark-50">${x.zona}</span>`
                         var url = window.location.href + `form_kejadian_keamanan?id_kejadian_keamanan=${x.id_kejadian_keamanan}`
-                        var action = `<div class="d-flex justify-content-center align-items-center">
+                        var action = x.is_locked ? '' : `<div class="d-flex justify-content-center align-items-center">
                                         <a href="${url}" class="btn btn-icon btn-sm btn-dark mx-2">
                                             <i class="fas fa-edit"></i>
                                         </a>
