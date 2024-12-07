@@ -373,6 +373,7 @@ func (r *KejadianKeamananController) ExportExcel(ctx http.Context) http.Response
 	}
 
 	query = query.Where("tanggal BETWEEN (?) AND (?)", tanggalAwal, tanggalAkhir)
+	query = query.Where("is_locked is true")
 
 	if err := query.Order("tanggal asc").Find(&kejadianKeamanan); err != nil {
 		return ErrorSystem(ctx, "Failed to fetch data")

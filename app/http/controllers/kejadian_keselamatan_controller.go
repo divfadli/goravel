@@ -378,6 +378,7 @@ func (r *KejadianKeselamatanController) ExportExcel(ctx http.Context) http.Respo
 		query = query.Where("lower(zona::text) like lower(?)", "%"+req.Zona+"%")
 	}
 	query = query.Where("tanggal BETWEEN (?) AND (?)", tanggalAwal, tanggalAkhir)
+	query = query.Where("is_locked is true")
 
 	if err := query.Order("tanggal asc").Find(&kejadianKeselamatan); err != nil {
 		return ErrorSystem(ctx, "Failed to fetch data")
