@@ -207,7 +207,7 @@ func WeeklyGenerate() {
 	// add a job to the scheduler
 	weeklyJob, _ := s.NewJob(
 		gocron.WeeklyJob(1, gocron.NewWeekdays(time.Monday), gocron.NewAtTimes(
-			gocron.NewAtTime(00, 00, 00),
+			gocron.NewAtTime(0, 0, 00),
 		)),
 		gocron.NewTask(
 			// generate laporan mingguan
@@ -236,8 +236,7 @@ func WeeklyGenerate() {
 	// Update WeeklyReportJob
 	weeklyUpdateJob, _ := s.NewJob(
 		gocron.WeeklyJob(1, gocron.NewWeekdays(time.Monday), gocron.NewAtTimes(
-			// gocron.NewAtTime(00, 00, 00),
-			gocron.NewAtTime(0, 0, 00),
+			gocron.NewAtTime(0, 0, 0),
 		)),
 		gocron.NewTask(
 			// generate laporan mingguan
