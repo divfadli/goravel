@@ -74,7 +74,16 @@
                 </div>
             `;
         }
-        container.innerHTML = data.map((x, i) => {
+
+        const orderMap = {
+            'Laporan Mingguan': 1,
+            'Laporan Bulanan': 2,
+            'Laporan Triwulan': 3
+        };
+        
+        const sortedData = data.sort((a, b) => orderMap[a.jenis_laporan] - orderMap[b.jenis_laporan]);
+
+        container.innerHTML = sortedData.map((x, i) => {
             // Move variable declarations inside the arrow function block
             const report_dokumen = x.dokumen.replace(/'/g, "%27").replace(/\\/g, "/");
             const final_url = `/api/files/${report_dokumen}`;
@@ -171,8 +180,12 @@
                 keterangan: keterangan
             },
             success: function() {
-                Swal.fire(`${status} Berhasil`, `Laporan berhasil di ${status.toLowerCase()}!!`, "success");
-                getListApproval()
+                    Swal.fire(`${status} Berhasil`, `Laporan berhasil di ${status.toLowerCase()}!!`, "success")
+                    .then((result) => {
+                        if (result.isConfirmed) {
+                            getListApproval()
+                        }
+                    });
             },
             error: function() {
                 Swal.fire('Gagal!', 'Terjadi kesalahan saat mengirim data.', 'error');
