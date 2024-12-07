@@ -4084,5 +4084,6 @@ func (r *Pdf) LaporanTriwulanUpdate(id_laporan int64, month int, years int) {
 		ApprovedBy: atasan.EmpNo,
 	}
 
+	facades.Orm().Query().Delete(&models.Approval{}, "laporan_id = ?", laporan.IDLaporan)
 	facades.Orm().Query().Create(&approval)
 }
