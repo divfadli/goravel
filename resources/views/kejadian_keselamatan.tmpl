@@ -47,7 +47,8 @@
                 <div class="row" style="margin-top:20px">
                     <div class="col-md-12">
                         <div class="table-responsive">
-                            <table class="table table-head-custom table-head-bg table-hover text-center display nowrap" role="grid" id="kt_datatable" style="width:100%">
+                            <table class="table table-head-custom table-head-bg table-hover text-center display w-100" 
+                                role="grid" id="kt_datatable" style="min-width:100%">
                                 <thead>
                                     <tr class="text-center" role="row">
                                         <th>Tanggal</th>
@@ -126,14 +127,25 @@
 
 {{ template "layouts/script_datatables.tmpl" . }}
 
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.4.1/css/responsive.dataTables.min.css">
+<script type="text/javascript" src="https://cdn.datatables.net/responsive/2.4.1/js/dataTables.responsive.min.js"></script>
+
 <script type="text/javascript">
     let table = $('#kt_datatable').DataTable({
+        responsive: true,
+        autoWidth:true,
         dom: '<"row"<"col-sm-12"f>>tip',
         scrollY: '80vh', 
         scrollX: true,
         scrollCollapse: true,
         searching: true,
-        columnDefs: [{
+        columnDefs: [
+        {
+            targets: '_all',
+            className: 'text-center align-middle',
+            autoWidth: true,
+        },
+        {
             targets: [0,1,2,3],
             createdCell: function (td,cellData, rowData, row, col) {
                 if(arr_data[row].is_locked){
@@ -150,44 +162,47 @@
             // Tanggal column
             targets: [0],
             width: '120px',
-            className: 'dt-head-center dt-body-center'
+            className: 'dt-head-center dt-body-center',
+            render: function(data, type, row) {
+                return '<div class="text-nowrap">' + data + '</div>';
+            }
         },
         {
             // Jenis Kecelakaan column  
             targets: [1],
             width: '200px',
-            className: 'dt-head-center dt-body-left',
+            className: 'dt-head-center dt-body-center align-middle',
             render: function(data, type, row) {
-                return '<div style="white-space: normal; word-wrap: break-word; max-width: 200px;">' + data + '</div>';
+                return '<div style="word-break: break-word; width: 200px; display: block; margin: 0 auto; text-align: center;">' + data + '</div>';
             }
         },
         {
             // Lokasi Kejadian column
             targets: [2],
             width: '250px', 
-            className: 'dt-head-dt-body-left',
+            className: 'dt-head-center dt-body-center align-middle', 
             render: function(data, type, row) {
-                return '<div style="white-space: normal; word-wrap: break-word; max-width: 250px;">' + data + '</div>';
+                return '<div style="word-break: break-word; width: 250px; display: block; margin: 0 auto; text-align: center;">' + data + '</div>';
             }
         },
         {
             // Zona column
             targets: [3],
             width: '100px',
-            className: 'dt-head-center dt-body-center',
+            className: 'dt-head-center dt-body-center align-middle',
             render: function(data, type, row) {
                 return '<div class="text-nowrap">' + data + '</div>';
             }
         }
-        {{if .data.is_staff}},
-        {
+        {{if .data.is_staff}}
+        ,{
             // Pilihan column
             targets: [4],
             width: '100px',
-            className: 'dt-head-center dt-body-center'
+            className: 'dt-head-center dt-body-center align-middle'
+        }
         {{end}}
-        }],
-        autoWidth: false,
+        ],
         processing: true,
         bLengthChange: true,
         language: {
